@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -19,12 +19,20 @@ import Image from "next/image";
 
 export default function ReviewPlanPage() {
   const router = useRouter();
-  const planDetailsStr = sessionStorage.getItem("selected_plan_details");
-  const plan = planDetailsStr ? JSON.parse(planDetailsStr) : {
+  const [plan, setPlan] = useState({
     name: "Professional (Certified)",
     price: "€15.99",
     period: "/month",
-  };
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const planDetailsStr = sessionStorage.getItem("selected_plan_details");
+      if (planDetailsStr) {
+        setPlan(JSON.parse(planDetailsStr));
+      }
+    }
+  }, []);
 
   const features = [
     "Can charge through CoudPouss (even after 30 days)",
