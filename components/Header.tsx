@@ -48,6 +48,9 @@ export default function Header({
 }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
+
+  // Check if we're on professional dashboard
+  const isProfessionalDashboard = pathname === ROUTES.PROFESSIONAL_DASHBOARD;
   const [userInitial, setUserInitial] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("userInitial");
@@ -169,6 +172,68 @@ export default function Header({
                 </Typography>
               </Box>
 
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                {isProfessionalDashboard && isAuthenticated && (
+                  <>
+                    <Button
+                      component={Link}
+                      href={ROUTES.PROFESSIONAL_DASHBOARD}
+                      sx={{
+                        color:
+                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
+                            ? "primary.main"
+                            : "text.secondary",
+                        textTransform: "none",
+                        display: { xs: "none", lg: "block" },
+                        borderBottom:
+                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
+                            ? "2px solid"
+                            : "none",
+                        borderColor: "primary.main",
+                        borderRadius: 0,
+                        pb: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? 1 : 0,
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      Home
+                    </Button>
+                    <Button
+                      component={Link}
+                      href="/professional-dashboard/explore-requests"
+                      sx={{
+                        color: "text.secondary",
+                        textTransform: "none",
+                        display: { xs: "none", lg: "block" },
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      Explore Requests
+                    </Button>
+                    <Button
+                      component={Link}
+                      href="/professional-dashboard/task-management"
+                      sx={{
+                        color: "text.secondary",
+                        textTransform: "none",
+                        display: { xs: "none", lg: "block" },
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      Task Management
+                    </Button>
+                  </>
+                )}
+              </Box>
+
               {/* Search Bar */}
               <Box
                 sx={{
@@ -224,24 +289,26 @@ export default function Header({
 
               {/* Action Buttons */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                {/* Explore Services Dropdown */}
-                {showExploreServices && isAuthenticated && (
-                  <Button
-                    onClick={handleServicesMenuOpen}
-                    endIcon={<ExpandMoreIcon />}
-                    sx={{
-                      color: "text.secondary",
-                      textTransform: "none",
-                      display: { xs: "none", lg: "flex" },
-                      "&:hover": {
-                        bgcolor: "transparent",
-                        color: "primary.main",
-                      },
-                    }}
-                  >
-                    Explore Services
-                  </Button>
-                )}
+                {/* Explore Services Dropdown - Only for non-professional routes */}
+                {!isProfessionalDashboard &&
+                  showExploreServices &&
+                  isAuthenticated && (
+                    <Button
+                      onClick={handleServicesMenuOpen}
+                      endIcon={<ExpandMoreIcon />}
+                      sx={{
+                        color: "text.secondary",
+                        textTransform: "none",
+                        display: { xs: "none", lg: "flex" },
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      Explore Services
+                    </Button>
+                  )}
                 <Menu
                   anchorEl={servicesMenuAnchor}
                   open={Boolean(servicesMenuAnchor)}
@@ -505,52 +572,58 @@ export default function Header({
                   </Box>
                 </Menu>
 
-                {/* My Requests Link - Only show when authenticated */}
-                {showMyRequests && isAuthenticated && (
-                  <Button
-                    component={Link}
-                    href={ROUTES.MY_REQUESTS}
-                    sx={{
-                      color:
-                        pathname === ROUTES.MY_REQUESTS
-                          ? "primary.main"
-                          : "text.secondary",
-                      textTransform: "none",
-                      display: { xs: "none", lg: "block" },
-                      borderBottom:
-                        pathname === ROUTES.MY_REQUESTS ? "2px solid" : "none",
-                      borderColor: "primary.main",
-                      borderRadius: 0,
-                      pb: pathname === ROUTES.MY_REQUESTS ? 1 : 0,
-                      "&:hover": {
-                        bgcolor: "transparent",
-                        color: "primary.main",
-                      },
-                    }}
-                  >
-                    My Requests
-                  </Button>
-                )}
+                {/* My Requests Link - Only show when authenticated and not on professional dashboard */}
+                {!isProfessionalDashboard &&
+                  showMyRequests &&
+                  isAuthenticated && (
+                    <Button
+                      component={Link}
+                      href={ROUTES.MY_REQUESTS}
+                      sx={{
+                        color:
+                          pathname === ROUTES.MY_REQUESTS
+                            ? "primary.main"
+                            : "text.secondary",
+                        textTransform: "none",
+                        display: { xs: "none", lg: "block" },
+                        borderBottom:
+                          pathname === ROUTES.MY_REQUESTS
+                            ? "2px solid"
+                            : "none",
+                        borderColor: "primary.main",
+                        borderRadius: 0,
+                        pb: pathname === ROUTES.MY_REQUESTS ? 1 : 0,
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      My Requests
+                    </Button>
+                  )}
 
-                {/* Book a Service Button - Only show when authenticated */}
-                {showBookServiceButton && isAuthenticated && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setBookServiceModalOpen(true)}
-                    sx={{
-                      textTransform: "none",
-                      px: 2,
-                      py: 1,
-                      borderRadius: 2,
-                      display: { xs: "none", sm: "flex" },
-                      gap: 0.5,
-                    }}
-                    endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
-                  >
-                    Book a Service
-                  </Button>
-                )}
+                {/* Book a Service Button - Only show when authenticated and not on professional dashboard */}
+                {!isProfessionalDashboard &&
+                  showBookServiceButton &&
+                  isAuthenticated && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => setBookServiceModalOpen(true)}
+                      sx={{
+                        textTransform: "none",
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
+                        display: { xs: "none", sm: "flex" },
+                        gap: 0.5,
+                      }}
+                      endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
+                    >
+                      Book a Service
+                    </Button>
+                  )}
 
                 {/* Get Started Button - Only show when NOT authenticated */}
                 {showAuthButtons && !isAuthenticated && (

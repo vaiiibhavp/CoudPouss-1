@@ -73,9 +73,10 @@ export default function SignupPage() {
   const handleProfileSelect = (type: "elder" | "professional") => {
     setUserType(type);
     if (type === "professional") {
-      setStep("enter-contact");
+      // Redirect to professional signup flow
+      router.push(ROUTES.SIGNUP_PROFESSIONAL_ENTER_CONTACT);
     } else {
-      // For elder, you can implement different flow
+      // For elder, continue with current flow
       setStep("enter-contact");
     }
   };
