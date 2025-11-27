@@ -115,8 +115,7 @@ export default function AuthenticatedHomePage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Hero Section */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -866,8 +865,7 @@ export default function AuthenticatedHomePage() {
         </Container>
       </Box>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

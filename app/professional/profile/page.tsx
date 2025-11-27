@@ -31,7 +31,7 @@ export default function ProfessionalProfilePage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      <Header />
+      
 
       <Container maxWidth="lg" sx={{ py: 6 }}>
         <Typography
@@ -114,305 +114,305 @@ export default function ProfessionalProfilePage() {
               <>
                 {/* Profile Header */}
                 <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 3,
-                mb: 3,
-                p: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                border: "1px solid #E5E7EB",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <Box sx={{ position: "relative" }}>
-                <Avatar
                   sx={{
-                    width: 120,
-                    height: 120,
-                    bgcolor: "#E5E7EB",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 3,
+                    mb: 3,
+                    p: 3,
+                    bgcolor: "white",
+                    borderRadius: 2,
+                    border: "1px solid #E5E7EB",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                   }}
                 >
-                  <Image
-                    src="/icons/testimonilas-1.png"
-                    alt="Bessie Carter"
-                    width={120}
-                    height={120}
-                    style={{ objectFit: "cover" }}
-                  />
-                </Avatar>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="h5" fontWeight="600" sx={{ mb: 0.5 }}>
-                  Bessie Carter
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#6B7280", mb: 0.5 }}
-                >
-                  Professional User
-                </Typography>
-                <Typography variant="body2" sx={{ color: "#6B7280" }}>
-                  Manchester, Kentucky 39495
-                </Typography>
-              </Box>
-              <Button
-                variant="outlined"
-                startIcon={<EditIcon />}
-                sx={{
-                  textTransform: "none",
-                  borderColor: "#2F6B8E",
-                  color: "#2F6B8E",
-                  px: 3,
-                  py: 1,
-                  borderRadius: 2,
-                  "&:hover": {
-                    borderColor: "#2F6B8E",
-                    bgcolor: "#F0F9FF",
-                  },
-                }}
-              >
-                Edit Profile
-              </Button>
-            </Box>
-
-            {/* Personal Information */}
-            <Box
-              sx={{
-                mb: 3,
-                p: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                border: "1px solid #E5E7EB",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <Typography
-                variant="h6"
-                fontWeight="600"
-                sx={{ color: "#2F6B8E", mb: 3 }}
-              >
-                Personal Information
-              </Typography>
-
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 3,
-                }}
-              >
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#6B7280", mb: 1 }}
+                  <Box sx={{ position: "relative" }}>
+                    <Avatar
+                      sx={{
+                        width: 120,
+                        height: 120,
+                        bgcolor: "#E5E7EB",
+                      }}
+                    >
+                      <Image
+                        src="/icons/testimonilas-1.png"
+                        alt="Bessie Carter"
+                        width={120}
+                        height={120}
+                        style={{ objectFit: "cover" }}
+                      />
+                    </Avatar>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h5" fontWeight="600" sx={{ mb: 0.5 }}>
+                      Bessie Carter
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#6B7280", mb: 0.5 }}
+                    >
+                      Professional User
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#6B7280" }}>
+                      Manchester, Kentucky 39495
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    startIcon={<EditIcon />}
+                    sx={{
+                      textTransform: "none",
+                      borderColor: "#2F6B8E",
+                      color: "#2F6B8E",
+                      px: 3,
+                      py: 1,
+                      borderRadius: 2,
+                      "&:hover": {
+                        borderColor: "#2F6B8E",
+                        bgcolor: "#F0F9FF",
+                      },
+                    }}
                   >
-                    Full Name
-                  </Typography>
-                  <Typography variant="body1" fontWeight="500">
-                    Bessie Cooper
-                  </Typography>
+                    Edit Profile
+                  </Button>
                 </Box>
 
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#6B7280", mb: 1 }}
-                  >
-                    E-mail id
-                  </Typography>
-                  <Typography variant="body1" fontWeight="500">
-                    michael.mitc@example.com
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#6B7280", mb: 1 }}
-                  >
-                    Mobile Number
-                  </Typography>
-                  <Typography variant="body1" fontWeight="500">
-                    +11 (480) 555-0103
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#6B7280", mb: 1 }}
-                  >
-                    Address
-                  </Typography>
-                  <Typography variant="body1" fontWeight="500">
-                    4517 Washington Ave. Manchester, Kentucky 39495
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#6B7280", mb: 1 }}
-                  >
-                    Year of Experience
-                  </Typography>
-                  <Typography variant="body1" fontWeight="500">
-                    4
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-
-            {/* Public Profile Details */}
-            <Box
-              sx={{
-                mb: 3,
-                p: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                border: "1px solid #E5E7EB",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <Typography
-                variant="h6"
-                fontWeight="600"
-                sx={{ color: "#2F6B8E", mb: 3 }}
-              >
-                Public profile Details
-              </Typography>
-
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" sx={{ color: "#6B7280", mb: 1 }}>
-                  Bio
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ color: "#374151", lineHeight: 1.6 }}
-                >
-                  Hi, I'm Bessie — with over 6 years of experience in expert TV
-                  mounting and reliable plumbing solutions. I specialize in
-                  mounting TVs, shelves, mirrors with precision and care
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#6B7280", mb: 1 }}
-                >
-                  Experience & Specialties
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ color: "#374151", lineHeight: 1.6 }}
-                >
-                  Hi, I'm Bessie — with over 6 years of experience in expert
-                  TV mounting and reliable plumbing solutions. I specialize in
-                  mounting TVs, shelves, mirrors with precision and care
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Achievements */}
-            <Box
-              sx={{
-                mb: 3,
-                p: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                border: "1px solid #E5E7EB",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <Typography
-                variant="h6"
-                fontWeight="600"
-                sx={{ color: "#2F6B8E", mb: 3 }}
-              >
-                Achievements
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ color: "#374151", lineHeight: 1.6 }}
-              >
-                Bessie Cooper has successfully completed over 150 projects,
-                showcasing her expertise in TV mounting and plumbing. Her
-                dedication to quality and customer satisfaction has earned her
-                numerous accolades, including the "Best Service Provider" award
-                in 2022. Clients consistently praise her attention to detail and
-                professionalism, making her a top choice for home improvement
-                services.
-              </Typography>
-            </Box>
-
-            {/* Images of Past Works */}
-            <Box
-              sx={{
-                p: 3,
-                bgcolor: "white",
-                borderRadius: 2,
-                border: "1px solid #E5E7EB",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <Typography
-                variant="h6"
-                fontWeight="600"
-                sx={{ color: "#2F6B8E", mb: 3 }}
-              >
-                Images of Past Works
-              </Typography>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-                  gap: 2,
-                }}
-              >
+                {/* Personal Information */}
                 <Box
                   sx={{
-                    position: "relative",
-                    paddingTop: "75%",
+                    mb: 3,
+                    p: 3,
+                    bgcolor: "white",
                     borderRadius: 2,
-                    overflow: "hidden",
-                    bgcolor: "#F3F4F6",
+                    border: "1px solid #E5E7EB",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                   }}
                 >
-                  <Image
-                    src="/image/explore-service-section-1.png"
-                    alt="Past work 1"
-                    fill
-                    style={{ objectFit: "cover" }}
-                  />
+                  <Typography
+                    variant="h6"
+                    fontWeight="600"
+                    sx={{ color: "#2F6B8E", mb: 3 }}
+                  >
+                    Personal Information
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 3,
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "#6B7280", mb: 1 }}
+                      >
+                        Full Name
+                      </Typography>
+                      <Typography variant="body1" fontWeight="500">
+                        Bessie Cooper
+                      </Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "#6B7280", mb: 1 }}
+                      >
+                        E-mail id
+                      </Typography>
+                      <Typography variant="body1" fontWeight="500">
+                        michael.mitc@example.com
+                      </Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "#6B7280", mb: 1 }}
+                      >
+                        Mobile Number
+                      </Typography>
+                      <Typography variant="body1" fontWeight="500">
+                        +11 (480) 555-0103
+                      </Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "#6B7280", mb: 1 }}
+                      >
+                        Address
+                      </Typography>
+                      <Typography variant="body1" fontWeight="500">
+                        4517 Washington Ave. Manchester, Kentucky 39495
+                      </Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "#6B7280", mb: 1 }}
+                      >
+                        Year of Experience
+                      </Typography>
+                      <Typography variant="body1" fontWeight="500">
+                        4
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
+
+                {/* Public Profile Details */}
                 <Box
                   sx={{
-                    position: "relative",
-                    paddingTop: "75%",
+                    mb: 3,
+                    p: 3,
+                    bgcolor: "white",
                     borderRadius: 2,
-                    overflow: "hidden",
-                    bgcolor: "#F3F4F6",
+                    border: "1px solid #E5E7EB",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                   }}
                 >
-                  <Image
-                    src="/image/explore-service-section-2.png"
-                    alt="Past work 2"
-                    fill
-                    style={{ objectFit: "cover" }}
-                  />
+                  <Typography
+                    variant="h6"
+                    fontWeight="600"
+                    sx={{ color: "#2F6B8E", mb: 3 }}
+                  >
+                    Public profile Details
+                  </Typography>
+
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="body2" sx={{ color: "#6B7280", mb: 1 }}>
+                      Bio
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{ color: "#374151", lineHeight: 1.6 }}
+                    >
+                      Hi, I'm Bessie — with over 6 years of experience in expert TV
+                      mounting and reliable plumbing solutions. I specialize in
+                      mounting TVs, shelves, mirrors with precision and care
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#6B7280", mb: 1 }}
+                    >
+                      Experience & Specialties
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{ color: "#374151", lineHeight: 1.6 }}
+                    >
+                      Hi, I'm Bessie — with over 6 years of experience in expert
+                      TV mounting and reliable plumbing solutions. I specialize in
+                      mounting TVs, shelves, mirrors with precision and care
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-            </Box>
+
+                {/* Achievements */}
+                <Box
+                  sx={{
+                    mb: 3,
+                    p: 3,
+                    bgcolor: "white",
+                    borderRadius: 2,
+                    border: "1px solid #E5E7EB",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    fontWeight="600"
+                    sx={{ color: "#2F6B8E", mb: 3 }}
+                  >
+                    Achievements
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{ color: "#374151", lineHeight: 1.6 }}
+                  >
+                    Bessie Cooper has successfully completed over 150 projects,
+                    showcasing her expertise in TV mounting and plumbing. Her
+                    dedication to quality and customer satisfaction has earned her
+                    numerous accolades, including the "Best Service Provider" award
+                    in 2022. Clients consistently praise her attention to detail and
+                    professionalism, making her a top choice for home improvement
+                    services.
+                  </Typography>
+                </Box>
+
+                {/* Images of Past Works */}
+                <Box
+                  sx={{
+                    p: 3,
+                    bgcolor: "white",
+                    borderRadius: 2,
+                    border: "1px solid #E5E7EB",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    fontWeight="600"
+                    sx={{ color: "#2F6B8E", mb: 3 }}
+                  >
+                    Images of Past Works
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+                      gap: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        position: "relative",
+                        paddingTop: "75%",
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        bgcolor: "#F3F4F6",
+                      }}
+                    >
+                      <Image
+                        src="/image/explore-service-section-1.png"
+                        alt="Past work 1"
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    </Box>
+                    <Box
+                      sx={{
+                        position: "relative",
+                        paddingTop: "75%",
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        bgcolor: "#F3F4F6",
+                      }}
+                    >
+                      <Image
+                        src="/image/explore-service-section-2.png"
+                        alt="Past work 2"
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
               </>
             )}
           </Box>
         </Box>
       </Container>
 
-      <Footer />
+      
     </Box>
   );
 }

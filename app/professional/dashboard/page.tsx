@@ -110,8 +110,7 @@ export default function DashboardPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Hero Section */}
       <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -327,8 +326,7 @@ export default function DashboardPage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

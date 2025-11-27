@@ -65,8 +65,7 @@ export default function PersonalCarePage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Hero Section - Personal Care Banner */}
       <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -242,8 +241,7 @@ export default function PersonalCarePage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

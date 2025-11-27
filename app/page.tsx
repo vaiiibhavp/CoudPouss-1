@@ -246,8 +246,7 @@ export default function HomePage() {
       {/* Top Bar */}
       <Box sx={{ bgcolor: "grey.800", height: "2px" }} />
 
-      {/* Header */}
-      <Header />
+
 
       {/* Hero Section */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -1507,9 +1506,6 @@ export default function HomePage() {
           </Box>
         </Container>
       </Box>
-
-      {/* Footer */}
-      <Footer />
     </Box>
   );
 }

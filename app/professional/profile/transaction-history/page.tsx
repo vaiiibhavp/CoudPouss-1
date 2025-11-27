@@ -119,7 +119,6 @@ export default function TransactionHistoryPage() {
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       <Header
-        showNavigationLinks={true}
         showExploreServices={false}
         showBookServiceButton={false}
         showAuthButtons={false}

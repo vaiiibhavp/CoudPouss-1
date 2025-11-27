@@ -69,8 +69,7 @@ export default function HomeAssistancePage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Hero Section */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -341,8 +340,7 @@ export default function HomeAssistancePage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

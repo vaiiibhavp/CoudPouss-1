@@ -98,8 +98,7 @@ export default function RequestViewPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Main Content */}
       <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -640,8 +639,7 @@ export default function RequestViewPage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
 
       {/* Quote Submitted Modal */}
       <QuoteSubmittedModal open={isModalOpen} onClose={handleCloseModal} />

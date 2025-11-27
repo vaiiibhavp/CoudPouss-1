@@ -116,8 +116,7 @@ export default function ExploreRequestsPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Main Content */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -294,8 +293,7 @@ export default function ExploreRequestsPage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

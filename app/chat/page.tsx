@@ -118,8 +118,7 @@ export default function ChatPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Main Chat Content */}
       <Container maxWidth="xl" sx={{ flex: 1, py: 4 }}>
@@ -400,8 +399,7 @@ export default function ChatPage() {
         </Paper>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

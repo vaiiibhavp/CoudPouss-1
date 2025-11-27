@@ -65,8 +65,7 @@ export default function TransportPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Hero Section - Transport Banner */}
       <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -251,8 +250,7 @@ export default function TransportPage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

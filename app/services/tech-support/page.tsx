@@ -60,8 +60,7 @@ export default function TechSupportPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Hero Section - Tech Support Banner */}
       <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -237,8 +236,7 @@ export default function TechSupportPage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

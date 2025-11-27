@@ -26,9 +26,9 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
+import { useSelector } from "react-redux";
 
 interface HeaderProps {
-  showNavigationLinks?: boolean;
   showExploreServices?: boolean;
   showBookServiceButton?: boolean;
   showAuthButtons?: boolean;
@@ -38,7 +38,6 @@ interface HeaderProps {
 }
 
 export default function Header({
-  showNavigationLinks = false,
   showExploreServices = true,
   showBookServiceButton = true,
   showAuthButtons = true,
@@ -51,18 +50,8 @@ export default function Header({
 
   // Check if we're on professional dashboard or its sub-routes (including professional profile)
   const isProfessionalDashboard = pathname?.startsWith('/professional');
-  const [userInitial, setUserInitial] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("userInitial");
-    }
-    return null;
-  });
-  const [userEmail, setUserEmail] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("userEmail");
-    }
-    return null;
-  });
+  const [userInitial, setUserInitial] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [servicesMenuAnchor, setServicesMenuAnchor] =
     useState<null | HTMLElement>(null);
   const [notificationsMenuAnchor, setNotificationsMenuAnchor] =
@@ -72,17 +61,33 @@ export default function Header({
   const [bookServiceModalOpen, setBookServiceModalOpen] = useState(false);
 
   useEffect(() => {
-    // Sync state with localStorage changes (e.g., from other tabs)
+
+
+    if (typeof window === "undefined") return;
+
+
+    const syncFromLocalStorage = () => {
+      const initial = localStorage.getItem("userInitial");
+      const email = localStorage.getItem("userEmail");
+
+      setUserInitial(initial);
+      setUserEmail(email);
+    };
+    // Sync state with localStorage 
+    // changes (e.g., from other tabs)
+
+
+    syncFromLocalStorage();
     const handleStorageChange = () => {
       if (typeof window !== "undefined") {
         setUserInitial(localStorage.getItem("userInitial"));
         setUserEmail(localStorage.getItem("userEmail"));
+
       }
     };
-
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, [pathname]);
 
   const isAuthenticated = Boolean(userInitial && userEmail);
 
@@ -123,7 +128,6 @@ export default function Header({
   // Determine home route - use prop if provided, otherwise based on authentication
   const finalHomeRoute =
     homeRoute || (isAuthenticated ? ROUTES.AUTH_HOME : ROUTES.HOME);
-
   return (
     <>
       <AppBar position="static" elevation={0} sx={{ bgcolor: "white" }}>
@@ -1224,7 +1228,7 @@ export default function Header({
                         <KeyboardArrowDownIcon />
                       </IconButton>
                     </Box>
-                    
+
                     {/* Profile Dropdown Menu */}
                     <Menu
                       anchorEl={profileMenuAnchor}

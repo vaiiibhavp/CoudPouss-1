@@ -49,7 +49,7 @@ export default function ProfilePage() {
       }}
     >
       {/* Header */}
-      <Header showNavigationLinks={true} />
+      <Header  />
 
       {/* Main Content */}
       <Container
@@ -138,8 +138,7 @@ export default function ProfilePage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }

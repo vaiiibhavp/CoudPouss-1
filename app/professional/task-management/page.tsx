@@ -85,8 +85,7 @@ export default function TaskManagementPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      {/* Header */}
-      <Header />
+      
 
       {/* Main Content */}
       <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -188,8 +187,7 @@ export default function TaskManagementPage() {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Footer />
+
     </Box>
   );
 }
