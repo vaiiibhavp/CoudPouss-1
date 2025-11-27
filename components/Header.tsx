@@ -1,3 +1,4 @@
+// components/Header.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -24,9 +25,11 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux";
 import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
-import { useSelector } from "react-redux";
+import { logout, setUserFromStorage } from "@/lib/redux/authSlice";
+import { AppDispatch, RootState } from "@/lib/redux/store";
 
 interface HeaderProps {
   showExploreServices?: boolean;
@@ -47,55 +50,23 @@ export default function Header({
 }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   // Check if we're on professional dashboard or its sub-routes (including professional profile)
   const isProfessionalDashboard = pathname?.startsWith('/professional');
-  const [userInitial, setUserInitial] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [servicesMenuAnchor, setServicesMenuAnchor] =
-    useState<null | HTMLElement>(null);
-  const [notificationsMenuAnchor, setNotificationsMenuAnchor] =
-    useState<null | HTMLElement>(null);
-  const [profileMenuAnchor, setProfileMenuAnchor] =
-    useState<null | HTMLElement>(null);
+  const [servicesMenuAnchor, setServicesMenuAnchor] = useState<null | HTMLElement>(null);
+  const [notificationsMenuAnchor, setNotificationsMenuAnchor] = useState<null | HTMLElement>(null);
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
   const [bookServiceModalOpen, setBookServiceModalOpen] = useState(false);
 
   useEffect(() => {
-
-
-    if (typeof window === "undefined") return;
-
-
-    const syncFromLocalStorage = () => {
-      const initial = localStorage.getItem("userInitial");
-      const email = localStorage.getItem("userEmail");
-
-      setUserInitial(initial);
-      setUserEmail(email);
-    };
-    // Sync state with localStorage 
-    // changes (e.g., from other tabs)
-
-
-    syncFromLocalStorage();
-    const handleStorageChange = () => {
-      if (typeof window !== "undefined") {
-        setUserInitial(localStorage.getItem("userInitial"));
-        setUserEmail(localStorage.getItem("userEmail"));
-
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [pathname]);
-
-  const isAuthenticated = Boolean(userInitial && userEmail);
+    // Sync Redux state with localStorage on component mount
+    dispatch(setUserFromStorage());
+  }, [dispatch]);
 
   const handleLogout = () => {
-    localStorage.removeItem("userInitial");
-    localStorage.removeItem("userEmail");
-    setUserInitial(null);
-    setUserEmail(null);
+    dispatch(logout());
     router.push(ROUTES.HOME);
   };
 
@@ -107,9 +78,7 @@ export default function Header({
     setServicesMenuAnchor(null);
   };
 
-  const handleNotificationsMenuOpen = (
-    event: React.MouseEvent<HTMLElement>
-  ) => {
+  const handleNotificationsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsMenuAnchor(event.currentTarget);
   };
 
@@ -126,8 +95,8 @@ export default function Header({
   };
 
   // Determine home route - use prop if provided, otherwise based on authentication
-  const finalHomeRoute =
-    homeRoute || (isAuthenticated ? ROUTES.AUTH_HOME : ROUTES.HOME);
+  const finalHomeRoute = homeRoute || (isAuthenticated ? ROUTES.AUTH_HOME : ROUTES.HOME);
+
   return (
     <>
       <AppBar position="static" elevation={0} sx={{ bgcolor: "white" }}>
@@ -193,16 +162,10 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_DASHBOARD}
                       sx={{
-                        color:
-                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
-                            ? "primary.main"
-                            : "text.secondary",
+                        color: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom:
-                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
-                            ? "2px solid"
-                            : "none",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "2px solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? 1 : 0,
@@ -218,16 +181,10 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_EXPLORE_REQUESTS}
                       sx={{
-                        color:
-                          pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS
-                            ? "primary.main"
-                            : "text.secondary",
+                        color: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom:
-                          pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS
-                            ? "2px solid"
-                            : "none",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "2px solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? 1 : 0,
@@ -243,16 +200,10 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_TASK_MANAGEMENT}
                       sx={{
-                        color:
-                          pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT
-                            ? "primary.main"
-                            : "text.secondary",
+                        color: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom:
-                          pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT
-                            ? "2px solid"
-                            : "none",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "2px solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? 1 : 0,
@@ -324,25 +275,23 @@ export default function Header({
               {/* Action Buttons */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 {/* Explore Services Dropdown - Only for non-professional routes */}
-                {!isProfessionalDashboard &&
-                  showExploreServices &&
-                  isAuthenticated && (
-                    <Button
-                      onClick={handleServicesMenuOpen}
-                      endIcon={<ExpandMoreIcon />}
-                      sx={{
-                        color: "text.secondary",
-                        textTransform: "none",
-                        display: { xs: "none", lg: "flex" },
-                        "&:hover": {
-                          bgcolor: "transparent",
-                          color: "primary.main",
-                        },
-                      }}
-                    >
-                      Explore Services
-                    </Button>
-                  )}
+                {!isProfessionalDashboard && showExploreServices && isAuthenticated && (
+                  <Button
+                    onClick={handleServicesMenuOpen}
+                    endIcon={<ExpandMoreIcon />}
+                    sx={{
+                      color: "text.secondary",
+                      textTransform: "none",
+                      display: { xs: "none", lg: "flex" },
+                      "&:hover": {
+                        bgcolor: "transparent",
+                        color: "primary.main",
+                      },
+                    }}
+                  >
+                    Explore Services
+                  </Button>
+                )}
                 <Menu
                   anchorEl={servicesMenuAnchor}
                   open={Boolean(servicesMenuAnchor)}
@@ -607,57 +556,47 @@ export default function Header({
                 </Menu>
 
                 {/* My Requests Link - Only show when authenticated and not on professional dashboard */}
-                {!isProfessionalDashboard &&
-                  showMyRequests &&
-                  isAuthenticated && (
-                    <Button
-                      component={Link}
-                      href={ROUTES.MY_REQUESTS}
-                      sx={{
-                        color:
-                          pathname === ROUTES.MY_REQUESTS
-                            ? "primary.main"
-                            : "text.secondary",
-                        textTransform: "none",
-                        display: { xs: "none", lg: "block" },
-                        borderBottom:
-                          pathname === ROUTES.MY_REQUESTS
-                            ? "2px solid"
-                            : "none",
-                        borderColor: "primary.main",
-                        borderRadius: 0,
-                        pb: pathname === ROUTES.MY_REQUESTS ? 1 : 0,
-                        "&:hover": {
-                          bgcolor: "transparent",
-                          color: "primary.main",
-                        },
-                      }}
-                    >
-                      My Requests
-                    </Button>
-                  )}
+                {!isProfessionalDashboard && showMyRequests && isAuthenticated && (
+                  <Button
+                    component={Link}
+                    href={ROUTES.MY_REQUESTS}
+                    sx={{
+                      color: pathname === ROUTES.MY_REQUESTS ? "primary.main" : "text.secondary",
+                      textTransform: "none",
+                      display: { xs: "none", lg: "block" },
+                      borderBottom: pathname === ROUTES.MY_REQUESTS ? "2px solid" : "none",
+                      borderColor: "primary.main",
+                      borderRadius: 0,
+                      pb: pathname === ROUTES.MY_REQUESTS ? 1 : 0,
+                      "&:hover": {
+                        bgcolor: "transparent",
+                        color: "primary.main",
+                      },
+                    }}
+                  >
+                    My Requests
+                  </Button>
+                )}
 
                 {/* Book a Service Button - Only show when authenticated and not on professional dashboard */}
-                {!isProfessionalDashboard &&
-                  showBookServiceButton &&
-                  isAuthenticated && (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => setBookServiceModalOpen(true)}
-                      sx={{
-                        textTransform: "none",
-                        px: 2,
-                        py: 1,
-                        borderRadius: 2,
-                        display: { xs: "none", sm: "flex" },
-                        gap: 0.5,
-                      }}
-                      endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
-                    >
-                      Book a Service
-                    </Button>
-                  )}
+                {!isProfessionalDashboard && showBookServiceButton && isAuthenticated && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setBookServiceModalOpen(true)}
+                    sx={{
+                      textTransform: "none",
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      display: { xs: "none", sm: "flex" },
+                      gap: 0.5,
+                    }}
+                    endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
+                  >
+                    Book a Service
+                  </Button>
+                )}
 
                 {/* Get Started Button - Only show when NOT authenticated */}
                 {showAuthButtons && !isAuthenticated && (
@@ -703,7 +642,7 @@ export default function Header({
                 )}
 
                 {/* User Icons - Only show when authenticated */}
-                {showUserIcons && isAuthenticated && (
+                {showUserIcons && isAuthenticated && user && (
                   <Box
                     sx={{
                       display: { xs: "none", md: "flex" },
@@ -1213,7 +1152,7 @@ export default function Header({
                           textDecoration: "none",
                         }}
                       >
-                        {userInitial}
+                        {user.initial}
                       </Box>
                       <IconButton
                         onClick={handleProfileMenuOpen}

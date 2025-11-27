@@ -1,6 +1,7 @@
+// app/login/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Box,
@@ -15,18 +16,35 @@ import {
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import { validateLoginForm } from '@/utils/validation';
 import { ROUTES } from '@/constants/routes';
+import { loginUser, clearAuthError } from '@/lib/redux/authSlice';
+import { AppDispatch, RootState } from '@/lib/redux/store';
 
 export default function LoginPage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  
   const [formData, setFormData] = useState({
     emailOrMobile: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Clear any existing auth errors when component mounts
+    dispatch(clearAuthError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Redirect if already authenticated
+    if (isAuthenticated) {
+      router.push(ROUTES.AUTH_HOME);
+    }
+  }, [isAuthenticated, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,6 +52,10 @@ export default function LoginPage() {
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+    // Clear auth error when user starts typing
+    if (error) {
+      dispatch(clearAuthError());
     }
   };
 
@@ -47,30 +69,11 @@ export default function LoginPage() {
       return;
     }
 
-    setLoading(true);
-    try {
-      // TODO: Implement actual login API call
-      console.log('Login attempt:', formData);
-      
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Extract user initial from email (first letter, uppercase)
-      const email = formData.emailOrMobile;
-      const userInitial = email.charAt(0).toUpperCase();
-      
-      // Store user initial in localStorage
-      localStorage.setItem('userInitial', userInitial);
-      localStorage.setItem('userEmail', email);
-      
-      // Redirect to authenticated home page after successful login
-      router.push(ROUTES.AUTH_HOME);
-    } catch (error) {
-      console.error('Login error:', error);
-      setErrors({ submit: 'Invalid credentials. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
+    // Dispatch login action
+    dispatch(loginUser({
+      emailOrMobile: formData.emailOrMobile,
+      password: formData.password
+    }));
   };
 
   return (
@@ -202,9 +205,9 @@ export default function LoginPage() {
                 }}
               />
 
-              {errors.submit && (
+              {(errors.submit || error) && (
                 <Typography color="error" variant="body2" sx={{ mt: 1 }}>
-                  {errors.submit}
+                  {errors.submit || error}
                 </Typography>
               )}
 
@@ -246,4 +249,3 @@ export default function LoginPage() {
     </Box>
   );
 }
-

@@ -1,6 +1,7 @@
 // lib/redux/authSlice.ts
 "use client";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+
 export interface LoginPayload {
   emailOrMobile: string;
   password: string;
@@ -15,21 +16,14 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
 }
 
-// Helper: read from localStorage on client (for page refresh)
-const getInitialUser = (): User | null => {
-  if (typeof window === "undefined") return null;
-  const email = localStorage.getItem("userEmail");
-  const initial = localStorage.getItem("userInitial");
-  if (!email || !initial) return null;
-  return { email, initial };
-};
-
 const initialState: AuthState = {
-  user: getInitialUser(),
+  user: null,
   loading: false,
   error: null,
+  isAuthenticated: false,
 };
 
 export const loginUser = createAsyncThunk<
@@ -57,12 +51,6 @@ export const loginUser = createAsyncThunk<
         initial: email.charAt(0).toUpperCase(),
       };
 
-      // Persist to localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("userEmail", user.email);
-        localStorage.setItem("userInitial", user.initial);
-      }
-
       return user;
     } catch (err) {
       return rejectWithValue("Something went wrong. Please try again.");
@@ -77,13 +65,20 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.error = null;
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("userEmail");
-        localStorage.removeItem("userInitial");
-      }
+      state.isAuthenticated = false;
     },
     clearAuthError(state) {
       state.error = null;
+    },
+    setUserFromStorage(state) {
+      if (typeof window !== "undefined") {
+        const email = localStorage.getItem("userEmail");
+        const initial = localStorage.getItem("userInitial");
+        if (email && initial) {
+          state.user = { email, initial };
+          state.isAuthenticated = true;
+        }
+      }
     },
   },
   extraReducers: (builder) => {
@@ -95,13 +90,21 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false;
         state.user = action.payload;
+        state.isAuthenticated = true;
+        
+        // Persist to localStorage for page refresh
+        if (typeof window !== "undefined") {
+          localStorage.setItem("userEmail", action.payload.email);
+          localStorage.setItem("userInitial", action.payload.initial);
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Login failed";
+        state.isAuthenticated = false;
       });
   },
 });
 
-export const { logout, clearAuthError } = authSlice.actions;
+export const { logout, clearAuthError, setUserFromStorage } = authSlice.actions;
 export default authSlice.reducer;
