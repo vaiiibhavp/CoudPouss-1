@@ -11,8 +11,11 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 
 export default function Footer() {
   return (
-    <Box sx={{ bgcolor: "primary.main", color: "white", py: 6 }}>
-      <Container maxWidth="lg">
+    <Box sx={{ bgcolor: "primary.main", color: "white" }}>
+      <Box sx={{
+        px: "7.5rem",
+        py: "6.25rem"
+      }}>
         {/* Top Section */}
         <Box
           sx={{
@@ -47,7 +50,7 @@ export default function Footer() {
                 style={{ objectFit: "contain" }}
               />
             </Box>
-            <Typography variant="h6" fontWeight="bold" sx={{ color: "white" }}>
+            <Typography sx={{ color: "white", fontWeight: 600, fontSize: "1.25rem", lineHeight: "2rem" }}>
               CoudPouss
             </Typography>
           </Box>
@@ -65,36 +68,60 @@ export default function Footer() {
               href={ROUTES.HOME}
               style={{ color: "white", textDecoration: "none" }}
             >
-              <Typography variant="body2" sx={{ "&:hover": { opacity: 0.8 } }}>
+              <Typography sx={{
+                fontWeight: 500,
+                fontSize: "1.125rem"
+              }} >
                 Home
               </Typography>
             </Link>
             <Link
-              href={ROUTES.SERVICES}
+              href={ROUTES.HOME}
               style={{ color: "white", textDecoration: "none" }}
             >
-              <Typography variant="body2" sx={{ "&:hover": { opacity: 0.8 } }}>
+              <Typography sx={{
+                fontWeight: 500,
+                fontSize: "1.125rem"
+              }} >
                 Services
               </Typography>
             </Link>
-            <Typography
-              variant="body2"
-              sx={{ cursor: "pointer", "&:hover": { opacity: 0.8 } }}
+            <Link
+              href={ROUTES.HOME}
+              style={{ color: "white", textDecoration: "none" }}
             >
-              Contact us
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ cursor: "pointer", "&:hover": { opacity: 0.8 } }}
+              <Typography sx={{
+                fontWeight: 500,
+                fontSize: "1.125rem"
+              }} >
+                Contact us
+              </Typography>
+            </Link>
+            <Link
+              href={ROUTES.HOME}
+              style={{ color: "white", textDecoration: "none" }}
             >
-              Support
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ cursor: "pointer", "&:hover": { opacity: 0.8 } }}
+              <Typography sx={{
+                fontWeight: 500,
+                fontSize: "1.125rem"
+              }} >
+                Support
+              </Typography>
+            </Link>
+
+
+            <Link
+              href={ROUTES.HOME}
+              style={{ color: "white", textDecoration: "none" }}
             >
-              FAQ
-            </Typography>
+              <Typography sx={{
+                fontWeight: 500,
+                fontSize: "1.125rem"
+              }} >
+                FAQ
+              </Typography>
+            </Link>
+
           </Box>
         </Box>
 
@@ -117,7 +144,12 @@ export default function Footer() {
           }}
         >
           {/* Left Side - Copyright */}
-          <Typography variant="body2" sx={{ color: "white" }}>
+          <Typography sx={{
+            color: "white",
+            lineHeight: "2rem",
+            fontSize: "1.125rem",
+
+          }}>
             © 2025 Copyright by CoudPouss
           </Typography>
 
@@ -128,79 +160,55 @@ export default function Footer() {
               sx={{
                 width: 40,
                 height: 40,
-                bgcolor: "white",
                 border: "2px solid",
-                borderColor: "primary.main",
-                color: "primary.main",
-                "&:hover": {
-                  bgcolor: "rgba(255,255,255,0.9)",
-                },
+                borderColor: "primary.normal",
+
               }}
             >
-              <FacebookIcon sx={{ fontSize: "1.2rem" }} />
+              <Image
+                alt="facebook"
+                width={11}
+                height={18}
+                src={"/icons/evaFacebookFill1.png"}
+              />
             </IconButton>
-
-            {/* Twitter */}
             <IconButton
               sx={{
                 width: 40,
                 height: 40,
-                bgcolor: "white",
                 border: "2px solid",
-                borderColor: "primary.main",
-                color: "primary.main",
-                "&:hover": {
-                  bgcolor: "rgba(255,255,255,0.9)",
-                },
+                borderColor: "primary.normal",
+
               }}
             >
-              <TwitterIcon sx={{ fontSize: "1.2rem" }} />
+              <Image
+                alt="facebook"
+                width={20}
+                height={20}
+                src={"/icons/Twitter.png"}
+              />
             </IconButton>
-
-            {/* X (Twitter alternative) */}
             <IconButton
               sx={{
                 width: 40,
                 height: 40,
-                bgcolor: "white",
                 border: "2px solid",
-                borderColor: "primary.main",
-                color: "primary.main",
-                "&:hover": {
-                  bgcolor: "rgba(255,255,255,0.9)",
-                },
+                borderColor: "primary.normal",
+
               }}
             >
-              <Typography
-                sx={{
-                  fontSize: "1.2rem",
-                  fontWeight: "bold",
-                  fontFamily: "Arial, sans-serif",
-                }}
-              >
-                X
-              </Typography>
+              <Image
+                alt="facebook"
+                width={19}
+                height={18}
+                src={"/icons/linkdin.png"}
+              />
             </IconButton>
 
-            {/* LinkedIn */}
-            <IconButton
-              sx={{
-                width: 40,
-                height: 40,
-                bgcolor: "white",
-                border: "2px solid",
-                borderColor: "primary.main",
-                color: "primary.main",
-                "&:hover": {
-                  bgcolor: "rgba(255,255,255,0.9)",
-                },
-              }}
-            >
-              <LinkedInIcon sx={{ fontSize: "1.2rem" }} />
-            </IconButton>
+
           </Box>
         </Box>
-      </Container>
+      </Box>
     </Box>
   );
 }

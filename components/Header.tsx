@@ -14,6 +14,7 @@ import {
   IconButton,
   InputBase,
   Menu,
+  Divider,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
@@ -99,7 +100,10 @@ export default function Header({
 
   return (
     <>
-      <AppBar position="static" elevation={0} sx={{ bgcolor: "white" }}>
+      <AppBar position="static" elevation={0} sx={{ bgcolor: "white",
+        borderBottom:"1px solid #DFE8ED"
+
+       }}>
         <Toolbar sx={{ py: 2 }}>
           <Container maxWidth="xl">
             <Box
@@ -112,7 +116,7 @@ export default function Header({
               }}
             >
               {/* Logo and Brand Name */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
                 <Box
                   component={Link}
                   href={finalHomeRoute}
@@ -144,9 +148,10 @@ export default function Header({
                   component={Link}
                   href={finalHomeRoute}
                   sx={{
-                    color: "primary.main",
+                    color: "primary.normal",
                     fontWeight: "bold",
-                    fontSize: "1.5rem",
+                    fontSize: "20px",
+                    lineHeight: "24px",
                     display: { xs: "none", sm: "block" },
                     textDecoration: "none",
                   }}
@@ -184,6 +189,7 @@ export default function Header({
                         color: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
+                        fontWeight: "400",
                         borderBottom: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "2px solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
@@ -239,6 +245,7 @@ export default function Header({
                     border: "1px solid",
                     borderColor: "grey.300",
                     overflow: "hidden",
+                    paddingRight: "1rem"
                   }}
                 >
                   <InputBase
@@ -259,15 +266,20 @@ export default function Header({
                   />
                   <IconButton
                     sx={{
-                      bgcolor: "primary.main",
-                      borderRadius: 0,
+                      bgcolor: "primary.normal",
+                      borderRadius: "50%",
                       color: "white",
                       "&:hover": {
                         bgcolor: "primary.dark",
                       },
                     }}
                   >
-                    <SearchIcon />
+                    <Image
+                      src={"/icons/searhIcon.png"}
+                      alt="Search Icon"
+                      width={16}
+                      height={16}
+                    />
                   </IconButton>
                 </Box>
               </Box>
@@ -282,7 +294,7 @@ export default function Header({
                     sx={{
                       color: "text.secondary",
                       textTransform: "none",
-                      display: { xs: "none", lg: "flex" },
+                      display: { xs: "none", lg: "flex", fontSize: "1rem", lineHeight: "140%" },
                       "&:hover": {
                         bgcolor: "transparent",
                         color: "primary.main",
@@ -303,7 +315,8 @@ export default function Header({
                       maxWidth: 600,
                       borderRadius: 2,
                       boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                      p: 2,
+                      px: "2rem",
+                      py: "1.25rem"
                     },
                   }}
                   transformOrigin={{ horizontal: "left", vertical: "top" }}
@@ -311,12 +324,12 @@ export default function Header({
                 >
                   <Box>
                     <Typography
-                      variant="h6"
                       sx={{
-                        color: "#2F6B8E",
-                        fontWeight: "bold",
+                        color: "primary.normal",
+                        fontWeight: 600,
+                        lineHeight: "1.125rem",
                         mb: 2,
-                        fontSize: "1.25rem",
+                        fontSize: "1rem",
                       }}
                     >
                       Explore Services
@@ -329,7 +342,7 @@ export default function Header({
                       }}
                     >
                       {/* Home Assistance */}
-                      <Card
+                      <Box
                         component={Link}
                         href={ROUTES.HOME_ASSISTANCE}
                         sx={{
@@ -339,11 +352,8 @@ export default function Header({
                           border: "1px solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          "&:hover": {
-                            boxShadow: 4,
-                            borderColor: "primary.main",
-                          },
-                          transition: "all 0.2s ease",
+                          bgcolor: "#F7F7F7"
+
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -353,6 +363,7 @@ export default function Header({
                             flexDirection: "column",
                             alignItems: "center",
                             gap: 1.5,
+
                           }}
                         >
                           <Box
@@ -362,7 +373,6 @@ export default function Header({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              bgcolor: "grey.50",
                               borderRadius: 2,
                             }}
                           >
@@ -377,15 +387,15 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "text.primary" }}
+                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
                           >
                             Home Assistance
                           </Typography>
                         </Box>
-                      </Card>
+                      </Box>
 
                       {/* Transport */}
-                      <Card
+                      <Box
                         component={Link}
                         href={ROUTES.TRANSPORT}
                         sx={{
@@ -395,11 +405,9 @@ export default function Header({
                           border: "1px solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          "&:hover": {
-                            boxShadow: 4,
-                            borderColor: "primary.main",
-                          },
+
                           transition: "all 0.2s ease",
+                          bgcolor: "#F7F7F7"
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -418,7 +426,7 @@ export default function Header({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              bgcolor: "grey.50",
+
                               borderRadius: 2,
                             }}
                           >
@@ -433,15 +441,15 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "text.primary" }}
+                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
                           >
                             Transport
                           </Typography>
                         </Box>
-                      </Card>
+                      </Box>
 
                       {/* Personal Care */}
-                      <Card
+                      <Box
                         component={Link}
                         href={ROUTES.PERSONAL_CARE}
                         sx={{
@@ -451,11 +459,9 @@ export default function Header({
                           border: "1px solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          "&:hover": {
-                            boxShadow: 4,
-                            borderColor: "primary.main",
-                          },
+
                           transition: "all 0.2s ease",
+                          bgcolor: "#F7F7F7"
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -474,7 +480,7 @@ export default function Header({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              bgcolor: "grey.50",
+
                               borderRadius: 2,
                             }}
                           >
@@ -489,15 +495,15 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "text.primary" }}
+                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
                           >
                             Personal Care
                           </Typography>
                         </Box>
-                      </Card>
+                      </Box>
 
                       {/* Tech Support */}
-                      <Card
+                      <Box
                         component={Link}
                         href={ROUTES.TECH_SUPPORT}
                         sx={{
@@ -507,11 +513,7 @@ export default function Header({
                           border: "1px solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          "&:hover": {
-                            boxShadow: 4,
-                            borderColor: "primary.main",
-                          },
-                          transition: "all 0.2s ease",
+                          bgcolor: "#F7F7F7"
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -530,7 +532,7 @@ export default function Header({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              bgcolor: "grey.50",
+
                               borderRadius: 2,
                             }}
                           >
@@ -545,12 +547,12 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "text.primary" }}
+                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
                           >
                             Tech Support
                           </Typography>
                         </Box>
-                      </Card>
+                      </Box>
                     </Box>
                   </Box>
                 </Menu>
@@ -567,7 +569,7 @@ export default function Header({
                       borderBottom: pathname === ROUTES.MY_REQUESTS ? "2px solid" : "none",
                       borderColor: "primary.main",
                       borderRadius: 0,
-                      pb: pathname === ROUTES.MY_REQUESTS ? 1 : 0,
+                      pb: 1,
                       "&:hover": {
                         bgcolor: "transparent",
                         color: "primary.main",
@@ -582,9 +584,9 @@ export default function Header({
                 {!isProfessionalDashboard && showBookServiceButton && isAuthenticated && (
                   <Button
                     variant="contained"
-                    color="primary"
                     onClick={() => setBookServiceModalOpen(true)}
                     sx={{
+                      bgcolor: "primary.normal",
                       textTransform: "none",
                       px: 2,
                       py: 1,
@@ -659,7 +661,14 @@ export default function Header({
                         },
                       }}
                     >
-                      <NotificationsIcon />
+                      {/* <NotificationsIcon /> */}
+                      <Image
+                        width={20}
+                        height={20}
+                        alt="notification"
+                        src={"/icons/bellIcon.png"}
+
+                      />
                     </IconButton>
                     <Menu
                       anchorEl={notificationsMenuAnchor}
@@ -1130,7 +1139,14 @@ export default function Header({
                         },
                       }}
                     >
-                      <MessageIcon />
+                      {/* <MessageIcon /> */}
+                      <Image
+                        width={24}
+                        height={24}
+                        alt="chaticon"
+                        // unoptimized\
+                        src={"/icons/headerChat.png"}
+                      />
                     </IconButton>
                     <Box
                       sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
@@ -1175,11 +1191,14 @@ export default function Header({
                       onClose={handleProfileMenuClose}
                       PaperProps={{
                         sx: {
-                          mt: 1.5,
-                          minWidth: 280,
-                          borderRadius: 3,
+                          borderRadius: "1rem",
                           boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                          p: 2,
+                          p: "1.25rem",
+                          "& .MuiMenu-list": {
+                            padding: 0,
+                            margin: 0
+                          },
+
                         },
                       }}
                       transformOrigin={{ horizontal: "right", vertical: "top" }}
@@ -1188,9 +1207,8 @@ export default function Header({
                       <Box>
                         {/* User Name */}
                         <Typography
-                          variant="h6"
-                          fontWeight="600"
-                          sx={{ color: "#2F6B8E", mb: 0.5 }}
+
+                          sx={{ color: "primary.normal", fontSize: "1.125rem", lineHeight: "1.25rem", fontWeight: 500, mb: "0.25rem" }}
                         >
                           Cameron Williamson
                         </Typography>
@@ -1200,10 +1218,10 @@ export default function Header({
                           onClick={handleProfileMenuClose}
                           sx={{
                             textTransform: "none",
-                            color: "#6B7280",
+                            color: "#989898",
                             fontSize: "0.9rem",
                             p: 0,
-                            mb: 2,
+                            mb: "0.9rem",
                             justifyContent: "flex-start",
                             "&:hover": {
                               bgcolor: "transparent",
@@ -1213,120 +1231,66 @@ export default function Header({
                         >
                           View my profile
                         </Button>
-
+                        <Divider color={"#E7E7E7"} />
                         {/* Menu Items */}
+
+
+
                         <Box
                           sx={{
                             display: "flex",
                             flexDirection: "column",
-                            gap: 0.5,
+                            gap: "1rem",
+                            margin: 0,
+                            marginTop: "0.9rem"
                           }}
                         >
-                          <Button
-                            fullWidth
+                          <Typography
                             sx={{
-                              textTransform: "none",
-                              color: "#6B7280",
-                              fontSize: "0.95rem",
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                                color: "#2F6B8E",
-                              },
+                              color: "#989898",
+                              lineHeight: "1.125rem"
                             }}
                           >
-                            My Earnings
-                          </Button>
-                          <Button
-                            fullWidth
+                            My Requests
+                          </Typography>
+                          <Typography
                             sx={{
-                              textTransform: "none",
-                              color: "#6B7280",
-                              fontSize: "0.95rem",
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                                color: "#2F6B8E",
-                              },
+                              color: "#989898",
+                              lineHeight: "1.125rem",
+                              cursor: "pointer"
                             }}
                           >
-                            Manage Services
-                          </Button>
-                          <Button
-                            fullWidth
+                            My Favorite Professionals
+                          </Typography>
+                          <Typography
                             sx={{
-                              textTransform: "none",
-                              color: "#6B7280",
-                              fontSize: "0.95rem",
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                                color: "#2F6B8E",
-                              },
+                              color: "#989898",
+                              lineHeight: "1.125rem", cursor: "pointer"
                             }}
                           >
-                            Manage Subscription
-                          </Button>
-                          <Button
-                            fullWidth
+                            My Transactions
+                          </Typography>
+                          <Typography
                             sx={{
-                              textTransform: "none",
-                              color: "#6B7280",
-                              fontSize: "0.95rem",
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                                color: "#2F6B8E",
-                              },
+                              color: "#989898",
+                              lineHeight: "1.125rem",
+                              cursor: "pointer"
                             }}
                           >
-                            Ratings & Reviews
-                          </Button>
+                            Help Center
+                          </Typography>
+                          <Divider color={"#E7E7E7"} />
 
-                          {/* Divider */}
-                          <Box
+                          <Typography
                             sx={{
-                              height: 1,
-                              bgcolor: "#E5E7EB",
-                              my: 1,
-                            }}
-                          />
-
-                          {/* Sign Out */}
-                          <Button
-                            fullWidth
-                            onClick={() => {
-                              handleProfileMenuClose();
-                              handleLogout();
-                            }}
-                            sx={{
-                              textTransform: "none",
-                              color: "#2F6B8E",
-                              fontSize: "0.95rem",
-                              fontWeight: 600,
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                              },
+                              color: "primary.normal",
+                              lineHeight: "1.125rem",
+                              cursor: "pointer"
                             }}
                           >
                             Sign Out
-                          </Button>
+                          </Typography>
+
                         </Box>
                       </Box>
                     </Menu>
@@ -1352,7 +1316,7 @@ export default function Header({
                 alignItems: "center",
                 mt: 2,
                 width: "100%",
-                bgcolor: "grey.50",
+
                 borderRadius: 2,
                 border: "1px solid",
                 borderColor: "grey.300",

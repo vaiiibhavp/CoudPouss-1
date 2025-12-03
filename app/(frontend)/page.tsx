@@ -33,8 +33,8 @@ export default function HomePage() {
       id: 1,
       title: "Want a help in Furniture Fixing ?",
       description: "Lorem Ipsum dit.",
-      bgColor: "#7A4A2E",
-      buttonColor: "#5C3823",
+      bgColor: "#7C3B16",
+      buttonColor: "#693111",
       buttonHover: "#4A2E1A",
       image: "/image/explore-service-section-1.png",
       alt: "Furniture Fixing",
@@ -44,7 +44,7 @@ export default function HomePage() {
       title: "Pet care with experts",
       description: "Lorem Ipsum dit.",
       bgColor: "#4A4A4A",
-      buttonColor: "#3A3A3A",
+      buttonColor: "#3B3C3A",
       buttonHover: "#2A2A2A",
       image: "/image/explore-service-section-2.png",
       alt: "Pet Care",
@@ -54,7 +54,7 @@ export default function HomePage() {
       title: "Clean your kitchen by experts",
       description: "Lorem Ipsum dit.",
       bgColor: "#A38B7D",
-      buttonColor: "#8C756A",
+      buttonColor: "#977665",
       buttonHover: "#75655A",
       image: "/image/explore-service-section-3.png",
       alt: "Kitchen Cleaning",
@@ -73,7 +73,7 @@ export default function HomePage() {
       id: 5,
       title: "Want a help in Furniture Fixing ?",
       description: "Lorem Ipsum dit.",
-      bgColor: "#7A4A2E",
+      bgColor: "#7C3B16",
       buttonColor: "#5C3823",
       buttonHover: "#4A2E1A",
       image: "/image/explore-service-section-1.png",
@@ -115,7 +115,7 @@ export default function HomePage() {
       const newIndex = Math.round(scrollPosition / (cardWidth + gap));
       const maxIndex = serviceCards.length - 3;
       setCurrentIndex(Math.max(0, Math.min(newIndex, maxIndex)));
-      
+
       // Snap to nearest card
       const snapPosition = newIndex * (cardWidth + gap);
       carouselRef.current.scrollTo({
@@ -149,7 +149,7 @@ export default function HomePage() {
       const newIndex = Math.round(scrollPosition / (cardWidth + gap));
       const maxIndex = serviceCards.length - 3;
       setCurrentIndex(Math.max(0, Math.min(newIndex, maxIndex)));
-      
+
       // Snap to nearest card
       const snapPosition = newIndex * (cardWidth + gap);
       carouselRef.current.scrollTo({
@@ -244,17 +244,17 @@ export default function HomePage() {
   return (
     <Box sx={{ bgcolor: "background.default" }}>
       {/* Top Bar */}
-      <Box sx={{ bgcolor: "grey.800", height: "2px" }} />
-
-
-
+      <Box sx={{ bgcolor: "#DFE8ED", height: "0.063rem" }} />
       {/* Hero Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Box sx={{
+        py: "5.563rem",
+        px: "5rem"
+      }}>
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-            gap: 4,
+            gap: "6.5rem",
             alignItems: "center",
           }}
         >
@@ -264,23 +264,28 @@ export default function HomePage() {
               fontWeight="bold"
               gutterBottom
               sx={{
-                fontSize: { xs: "2rem", md: "3rem" },
-                lineHeight: 1.2,
-                color: "primary.main",
+                fontSize: { xs: "2rem", md: "3.125rem" },
+                lineHeight: "150%",
+                fontWeight: 600,
+                color: "primary.normal",
               }}
             >
               Your Trusted Partner For All Home Needs, At Your{" "}
-              <Box component="span" sx={{ color: "secondary.main" }}>
-                 Doorstep.
+              <Box component="span" sx={{
+                fontSize: { xs: "2rem", md: "3.125rem" },
+                lineHeight: "150%",
+                fontWeight: 600,
+                color: "secondary.main",
+              }}>
+                Doorstep.
               </Box>
             </Typography>
             <Typography
               variant="body1"
-              color="text.secondary"
+              color="secondary.naturalGray"
               sx={{
                 mb: 4,
-                fontSize: "1.1rem",
-                lineHeight: 1.6,
+                fontSize: "1.25rem",
                 mt: 2,
               }}
             >
@@ -288,7 +293,7 @@ export default function HomePage() {
               trusted professionals for repairs, cleaning, and more — right at
               your doorstep.
             </Typography>
-            <Stack direction="row" spacing={2}>
+            {/* <Stack direction="row" spacing={2}>
               <Button
                 component={Link}
                 href={ROUTES.LOGIN}
@@ -306,117 +311,123 @@ export default function HomePage() {
               >
                 Learn More
               </Button>
-            </Stack>
+            </Stack> */}
           </Box>
-          <Box>
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: 2,
-                width: "100%",
-              }}
-            >
-              <Box
-                sx={{
-                  position: "relative",
-                  borderRadius: 3,
-                  overflow: "hidden",
-                  aspectRatio: "1 / 1",
-                  bgcolor: "grey.200",
-                  width: "100%",
-                  height: "100%",
-                  minHeight: { xs: 150, sm: 200, md: 250 },
-                }}
-              >
-                <Image
-                  src="/image/service-image-1.png"
-                  alt="Service - TV Installation"
-                  fill
-                  priority
-                  style={{ objectFit: "cover" }}
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
-              </Box>
-              <Box
-                sx={{
-                  position: "relative",
-                  borderRadius: 3,
-                  overflow: "hidden",
-                  aspectRatio: "1 / 1",
-                  bgcolor: "grey.200",
-                  width: "100%",
-                  height: "100%",
-                  minHeight: { xs: 150, sm: 200, md: 250 },
-                }}
-              >
-                <Image
-                  src="/image/service-image-2.png"
-                  alt="Service - Tools and Equipment"
-                  fill
-                  priority
-                  style={{ objectFit: "cover" }}
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
-              </Box>
-              <Box
-                sx={{
-                  position: "relative",
-                  borderRadius: 3,
-                  overflow: "hidden",
-                  aspectRatio: "1 / 1",
-                  bgcolor: "grey.200",
-                  width: "100%",
-                  height: "100%",
-                  minHeight: { xs: 150, sm: 200, md: 250 },
-                }}
-              >
-                <Image
-                  src="/image/service-image-3.png"
-                  alt="Service - Beauty Treatment"
-                  fill
-                  priority
-                  style={{ objectFit: "cover" }}
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
-              </Box>
-              <Box
-                sx={{
-                  position: "relative",
-                  borderRadius: 3,
-                  overflow: "hidden",
-                  aspectRatio: "1 / 1",
-                  bgcolor: "grey.200",
-                  width: "100%",
-                  height: "100%",
-                  minHeight: { xs: 150, sm: 200, md: 250 },
-                }}
-              >
-                <Image
-                  src="/image/service-image-4.png"
-                  alt="Service - Delivery and Assistance"
-                  fill
-                  priority
-                  style={{ objectFit: "cover" }}
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
-              </Box>
-            </Box>
-          </Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        width: "100%",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                        height: "100%",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: "50%",
+                          height: "100%",
+                          flexDirection: "column",
+                          gap: "0.75rem",
+                          display: "flex",
+                          borderTopLeftRadius: "2.75rem",
+                          overflow: "hidden",
+                          borderBottomLeftRadius: "0.75rem"
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "50%"
+                          }}
+                        >
+                          <Image
+                            height={500}
+                            width={500}
+                            className="size-full"
+                            src="/image/service-image-2.png"
+                            alt="Service - TV Installation"
+          
+                            style={{ objectFit: "cover" }}
+          
+                          />
+                        </Box>
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "50%"
+                          }}
+                        >
+                          <Image
+                            height={500}
+                            width={500}
+                            className="size-full"
+                            src="/image/service-image-3.png"
+                            alt="Service - TV Installation"
+          
+                            style={{ objectFit: "cover" }}
+                          />
+                        </Box>
+                      </Box>
+                      <Box
+                        sx={{
+                          width: "50%",
+                          height: "100%",
+                          flexDirection: "column",
+                          gap: "0.75rem",
+                          display: "flex",
+                          borderTopRightRadius: "0.75rem",
+                          overflow: "hidden",
+                          borderBottomRightRadius: "2.75rem"
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "30%"
+                          }}
+                        >
+                          <Image
+                            height={500}
+                            width={500}
+                            className="size-full"
+                            src="/image/service-image-3.png"
+                            alt="Service - TV Installation"
+          
+                            style={{ objectFit: "cover" }}
+          
+                          />
+                        </Box>
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "70%"
+                          }}
+                        >
+                          <Image
+                            height={500}
+                            width={500}
+                            className="size-full"
+                            src="/image/service-image-4.png"
+                            alt="Service - TV Installation"
+          
+                            style={{ objectFit: "cover" }}
+                          />
+                        </Box>
+          
+                      </Box>
+                    </Box>
         </Box>
-      </Container>
+      </Box>
 
       {/* Statistics Section */}
-      <Box sx={{ bgcolor: "grey.50", py: 6 }}>
-        <Container maxWidth="lg">
+      <Box sx={{ bgcolor: "#F3FBFF", p: 5 }}>
+        <Box >
           <Box
             sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "repeat(2, 1fr)",
-                md: "repeat(4, 1fr)",
-              },
-              gap: 4,
+              display: "flex",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 3
             }}
           >
             {[
@@ -426,142 +437,174 @@ export default function HomePage() {
               { number: "100%", label: "Satisfaction Guarantee" },
             ].map((stat, index) => (
               <Box key={index} sx={{ textAlign: "center" }}>
-                <Typography variant="h3" fontWeight="bold" color="primary.main">
+                <Typography sx={{
+                  fontSize: "3.125rem",
+                  fontWeight: "600",
+                  lineHeight: "150%"
+                }} color="primary.normal">
                   {stat.number}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography sx={{
+
+                  fontSize: "1.25rem",
+                  lineHeight: "100%",
+                }} color="secondary.naturalGray">
                   {stat.label}
                 </Typography>
               </Box>
             ))}
           </Box>
-        </Container>
+        </Box>
       </Box>
 
       {/* Why Choose Us Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ textAlign: "center", mb: 6 }}>
-          <Typography variant="h3" fontWeight="bold" gutterBottom>
+      <Box sx={{
+        mt: "8.875rem",
+      }}>
+        <Box sx={{
+          textAlign: "center",
+
+        }}>
+          <Typography sx={{
+            lineHeight: "150%",
+            fontSize: "3.125rem",
+            color: "primary.normal",
+            fontWeight: "600",
+            mb: "1.25rem"
+          }} >
             Why Choose Us
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            We are committed to providing quality service and customer
-            satisfaction
+          <Typography sx={{
+            color: "secondary.naturalGray",
+            fontSize: "1.25rem",
+            lineHeight: "100%",
+            mb: '5rem',
+          }}>
+            Experience the difference with our commitment to quality, safety, and customer satisfaction.
           </Typography>
         </Box>
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
-            gap: 4,
+            display: "flex",
+            p: "5rem",
+            gap: "5.281rem",
+            flexDirection: { xs: "column", md: "row" }
           }}
         >
           {[
             {
               title: "Reliable & Fast",
               description:
-                "Quick response times and reliable service delivery when you need it most.",
+                "Quick response times and punctual service. We value your time and ensure prompt assistance for all your home needs.",
               icon: "/icons/why-choose-section-1.png",
             },
             {
               title: "Trained Experts",
               description:
-                "Our professionals are thoroughly vetted and trained to meet your needs.",
+                "All professionals are thoroughly vetted and background-checked. Your safety and peace of mind are our top priorities.",
               icon: "/icons/why-choose-section-2.png",
             },
             {
               title: "Transparent Pricing",
               description:
-                "No hidden fees. Clear, upfront pricing for all our services.",
+                "No hidden fees or surprises. Get clear, upfront pricing before any work begins. Fair rates for quality service.",
               icon: "/icons/why-choose-section-3.png",
             },
           ].map((feature, index) => (
-            <Box key={index}>
-              <Card
-                elevation={2}
-                sx={{ height: "100%", textAlign: "center", p: 3 }}
+
+            <Box
+              key={index}
+              sx={{ height: "100%", textAlign: "center", borderRadius: "2.125rem", border: "1px solid #DFE8ED", p: "3.73rem", flex: 1 }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  mb: "1.875rem"
+                }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    mb: 2,
-                  }}
-                >
-                  <Image
-                    src={feature.icon}
-                    alt={feature.title}
-                    width={80}
-                    height={80}
-                    style={{ objectFit: "contain" }}
-                  />
-                </Box>
-                <Typography variant="h5" fontWeight="600" gutterBottom>
-                  {feature.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {feature.description}
-                </Typography>
-              </Card>
+                <Image
+                  src={feature.icon}
+                  alt={feature.title}
+                  width={80}
+                  height={80}
+                  style={{ objectFit: "contain" }}
+                />
+              </Box>
+              <Typography sx={{
+                color: "primary.normal",
+                fontWeight: "600",
+                fontSize: "1.5rem",
+                lineHeight: "1.75rem",
+                mb: "1.25rem"
+              }}>
+                {feature.title}
+              </Typography>
+              <Typography sx={{
+                fontSize: "1.25rem",
+                color: "secondary.naturalGray",
+              }}>
+                {feature.description}
+              </Typography>
             </Box>
+
           ))}
         </Box>
-      </Container>
+      </Box>
 
       {/* Explore Our Services Section */}
-      <Box sx={{ bgcolor: "white", py: 8 }}>
-        <Container maxWidth="lg">
+      <Box sx={{ bgcolor: "white", pt: "4.375rem" }}>
+        <Box  >
           <Box sx={{ textAlign: "center", mb: 6 }}>
             <Typography
-              variant="h3"
-              fontWeight="bold"
-              gutterBottom
               sx={{
-                color: "#2F6B8E",
-                fontSize: { xs: "2rem", md: "2.5rem" },
+                color: "primary.normal",
+                fontSize: "3.125rem",
+                lineHeight: "150%",
+                fontWeight: 600
+
               }}
             >
               Explore Our Services
             </Typography>
             <Typography
-              variant="body1"
               sx={{
-                color: "#6C757D",
-                fontSize: "1rem",
-                maxWidth: "700px",
-                mx: "auto",
+                mt: "1.25rem",
+                mb: "5rem",
+                fontSize: "1.25rem",
+                color: "secondary.naturalGray",
               }}
             >
-              From routine maintenance to emergency repairs, we&apos;ve got you
-              covered with comprehensive home services.
+              From routine maintenance to emergency repairs, we've got you covered with comprehensive home services.
             </Typography>
           </Box>
 
           {/* First Row - Static Grid */}
           <Box
             sx={{
+              px: "5rem",
               display: "grid",
               gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
-              gap: 3,
+              gap: "2.5rem",
               mb: 3,
             }}
           >
             {serviceCards.slice(0, 3).map((card) => (
-              <Card
+              <Box
                 key={card.id}
                 sx={{
-                  borderRadius: 3,
                   overflow: "hidden",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                   display: "flex",
                   flexDirection: "row",
-                  height: { xs: "auto", md: 200 },
+                  borderRadius: "1.25rem"
                 }}
               >
                 <Box
                   sx={{
                     bgcolor: card.bgColor,
-                    p: 3,
+                    py: "2.188rem",
+                    px: "1.438rem",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
@@ -571,15 +614,12 @@ export default function HomePage() {
                 >
                   <Box>
                     <Typography
-                      variant="h6"
-                      fontWeight="bold"
-                      sx={{ mb: 1, fontSize: "1.1rem", color: "white" }}
+                      sx={{ fontSize: "2rem", color: "white", fontWeight: 500, lineHeight: "1.75rem" }}
                     >
                       {card.title}
                     </Typography>
                     <Typography
-                      variant="body2"
-                      sx={{ color: "rgba(255,255,255,0.9)", mb: 2 }}
+                      sx={{ fontSize: "0.75rem", lineHeight: "150%", mb: "1.25rem", mt: "0.375rem", }}
                     >
                       {card.description}
                     </Typography>
@@ -589,12 +629,12 @@ export default function HomePage() {
                     sx={{
                       bgcolor: card.buttonColor,
                       color: "white",
-                      textTransform: "none",
-                      borderRadius: 2,
-                      py: 1,
-                      "&:hover": {
-                        bgcolor: card.buttonHover,
-                      },
+                      marginRight: "auto",
+                      lineHeight: "150%",
+                      fontSize: "0.875rem",
+                      borderRadius: "6.25rem ",
+                      py: "0.375rem",
+                      px: "0.813rem",
                     }}
                   >
                     Book Now
@@ -615,7 +655,7 @@ export default function HomePage() {
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </Box>
-              </Card>
+              </Box>
             ))}
           </Box>
 
@@ -625,6 +665,7 @@ export default function HomePage() {
               position: "relative",
               width: "100%",
               overflow: "hidden",
+              mb: "5rem"
             }}
           >
             <Box
@@ -638,7 +679,7 @@ export default function HomePage() {
               onMouseLeave={handleMouseLeave}
               sx={{
                 display: "flex",
-                gap: 3,
+                gap: "2.5rem",
                 overflowX: "auto",
                 overflowY: "hidden",
                 scrollSnapType: "x mandatory",
@@ -650,20 +691,18 @@ export default function HomePage() {
                 },
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
-                pb: 2,
+
               }}
             >
               {serviceCards.map((card) => (
-                <Card
+                <Box
                   key={card.id}
                   sx={{
-                    borderRadius: 3,
                     overflow: "hidden",
                     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                     display: "flex",
                     flexDirection: "row",
-                    height: { xs: "auto", md: 200 },
-                    minWidth: { xs: "85%", md: "calc(33.333% - 16px)" },
+                    borderRadius: "1.25rem",
                     flexShrink: 0,
                     scrollSnapAlign: "start",
                     userSelect: "none",
@@ -673,7 +712,8 @@ export default function HomePage() {
                   <Box
                     sx={{
                       bgcolor: card.bgColor,
-                      p: 3,
+                      py: "2.188rem",
+                      px: "1.438rem",
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
@@ -683,15 +723,12 @@ export default function HomePage() {
                   >
                     <Box>
                       <Typography
-                        variant="h6"
-                        fontWeight="bold"
-                        sx={{ mb: 1, fontSize: "1.1rem", color: "white" }}
+                        sx={{ fontSize: "2rem", color: "white", fontWeight: 500, lineHeight: "1.75rem" }}
                       >
                         {card.title}
                       </Typography>
                       <Typography
-                        variant="body2"
-                        sx={{ color: "rgba(255,255,255,0.9)", mb: 2 }}
+                        sx={{ fontSize: "0.75rem", lineHeight: "150%", mb: "1.25rem", mt: "0.375rem", }}
                       >
                         {card.description}
                       </Typography>
@@ -701,12 +738,12 @@ export default function HomePage() {
                       sx={{
                         bgcolor: card.buttonColor,
                         color: "white",
-                        textTransform: "none",
-                        borderRadius: 2,
-                        py: 1,
-                        "&:hover": {
-                          bgcolor: card.buttonHover,
-                        },
+                        marginRight: "auto",
+                        lineHeight: "150%",
+                        fontSize: "0.875rem",
+                        borderRadius: "6.25rem ",
+                        py: "0.375rem",
+                        px: "0.813rem",
                       }}
                     >
                       Book Now
@@ -728,7 +765,7 @@ export default function HomePage() {
                       draggable={false}
                     />
                   </Box>
-                </Card>
+                </Box>
               ))}
             </Box>
 
@@ -762,31 +799,28 @@ export default function HomePage() {
               ))}
             </Box>
           </Box>
-        </Container>
+        </Box>
       </Box>
 
       {/* How CoudPouss Works Section */}
-      <Box sx={{ bgcolor: "grey.50", py: 8 }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: "center", mb: 6 }}>
+      <Box sx={{ bgcolor: "grey.50", pt: "7.813rem", pb: "9.625rem" }}>
+        <Box sx={{
+          px: "5.375rem"
+        }} >
+          <Box sx={{ textAlign: "center", mb: "5.625rem" }}>
             <Typography
-              variant="h3"
-              fontWeight="bold"
-              gutterBottom
               sx={{
-                color: "text.primary",
-                fontSize: { xs: "2rem", md: "2.5rem" },
+                color: "primary.normal",
+                fontSize: "3.125rem",
+                fontWeight: 600
               }}
             >
               How CoudPouss Works?
             </Typography>
             <Typography
-              variant="body1"
               sx={{
-                color: "text.secondary",
-                fontSize: "1rem",
-                maxWidth: "700px",
-                mx: "auto",
+                color: "secondary.naturalGray",
+                fontSize: "1.25rem",
               }}
             >
               Getting help for your home has never been easier. Just four simple
@@ -799,16 +833,15 @@ export default function HomePage() {
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" },
-              gap: 3,
+              gap: "2.5rem",
             }}
           >
             {/* Step 1: Book Your Service */}
-            <Card
+            <Box
               sx={{
                 bgcolor: "white",
                 borderRadius: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                p: 3,
+                pl: "1.875rem",
                 display: "flex",
                 flexDirection: "row",
                 position: "relative",
@@ -818,30 +851,7 @@ export default function HomePage() {
               }}
             >
               {/* Blue Number Circle */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: -15,
-                  left: 0,
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "#2F6B8E",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 1,
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ color: "white", fontSize: "1.25rem" }}
-                >
-                  1
-                </Typography>
-              </Box>
+
 
               {/* Text Content */}
               <Box
@@ -855,16 +865,33 @@ export default function HomePage() {
                   pl: 3,
                 }}
               >
+                <Box
+                  sx={{
+                    px: "0.375rem",
+                    py: "1.063rem",
+                    height: "2.625rem",
+                    width: "2.625rem",
+                    borderRadius: "50%",
+                    bgcolor: "primary.normal",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: "0.75rem"
+                  }}
+                >
+                  <Typography
+                    sx={{ color: "#FEFEFE", fontSize: "2rem" }}
+                  >
+                    1
+                  </Typography>
+                </Box>
                 <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ mb: 1.5, color: "text.primary", fontSize: "1.1rem" }}
+                  sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
                 >
                   Book Your Service
                 </Typography>
                 <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", lineHeight: 1.6, fontSize: "0.9rem" }}
+                  sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}
                 >
                   Browse our services and select what you need. Easy online
                   booking or call us directly.
@@ -889,15 +916,14 @@ export default function HomePage() {
                   sizes="(max-width: 768px) 100vw, 45vw"
                 />
               </Box>
-            </Card>
+            </Box>
 
             {/* Step 2: Get a Free Estimate */}
-            <Card
+            <Box
               sx={{
                 bgcolor: "white",
                 borderRadius: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                p: 3,
+                pl: "1.875rem",
                 display: "flex",
                 flexDirection: "row",
                 position: "relative",
@@ -907,30 +933,7 @@ export default function HomePage() {
               }}
             >
               {/* Blue Number Circle */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: -15,
-                  left: 0,
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "#2F6B8E",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 1,
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ color: "white", fontSize: "1.25rem" }}
-                >
-                  2
-                </Typography>
-              </Box>
+
 
               {/* Text Content */}
               <Box
@@ -944,16 +947,35 @@ export default function HomePage() {
                   pl: 3,
                 }}
               >
+
+
+                <Box
+                  sx={{
+                    px: "0.375rem",
+                    py: "1.063rem",
+                    height: "2.625rem",
+                    width: "2.625rem",
+                    borderRadius: "50%",
+                    bgcolor: "primary.normal",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: "0.75rem"
+                  }}
+                >
+                  <Typography
+                    sx={{ color: "#FEFEFE", fontSize: "2rem" }}
+                  >
+                    2
+                  </Typography>
+                </Box>
                 <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ mb: 1.5, color: "text.primary", fontSize: "1.1rem" }}
+                  sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
                 >
                   Get a Free Estimate
                 </Typography>
                 <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", lineHeight: 1.6, fontSize: "0.9rem" }}
+                  sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}
                 >
                   Receive a transparent quote with no hidden costs. Know exactly
                   what to expect.
@@ -978,15 +1000,12 @@ export default function HomePage() {
                   sizes="(max-width: 768px) 100vw, 45vw"
                 />
               </Box>
-            </Card>
-
-            {/* Step 3: Get Professional Help */}
-            <Card
+            </Box>
+            <Box
               sx={{
                 bgcolor: "white",
                 borderRadius: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                p: 3,
+                pl: "1.875rem",
                 display: "flex",
                 flexDirection: "row",
                 position: "relative",
@@ -996,30 +1015,7 @@ export default function HomePage() {
               }}
             >
               {/* Blue Number Circle */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: -15,
-                  left: 0,
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "#2F6B8E",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 1,
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ color: "white", fontSize: "1.25rem" }}
-                >
-                  3
-                </Typography>
-              </Box>
+
 
               {/* Text Content */}
               <Box
@@ -1033,19 +1029,39 @@ export default function HomePage() {
                   pl: 3,
                 }}
               >
+
+
+                <Box
+                  sx={{
+                    px: "0.375rem",
+                    py: "1.063rem",
+                    height: "2.625rem",
+                    width: "2.625rem",
+                    borderRadius: "50%",
+                    bgcolor: "primary.normal",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: "0.75rem"
+                  }}
+                >
+                  <Typography
+                    sx={{ color: "#FEFEFE", fontSize: "2rem" }}
+                  >
+                    3
+                  </Typography>
+                </Box>
                 <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ mb: 1.5, color: "text.primary", fontSize: "1.1rem" }}
+                  sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
                 >
                   Get Professional Help
                 </Typography>
                 <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", lineHeight: 1.6, fontSize: "0.9rem" }}
+                  sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}
                 >
-                  Our verified expert arrives on time and completes the job with
-                  care and expertise.
+                  Our verified expert arrives on time and
+                  completes the job with care and expertise.
+
                 </Typography>
               </Box>
 
@@ -1061,54 +1077,28 @@ export default function HomePage() {
               >
                 <Image
                   src="/image/how-work-img-3.png"
-                  alt="Get Professional Help"
+                  alt="Get a Free Estimate"
                   fill
                   style={{ objectFit: "contain" }}
                   sizes="(max-width: 768px) 100vw, 45vw"
                 />
               </Box>
-            </Card>
-
-            {/* Step 4: Enjoy Hassle-Free Living */}
-            <Card
+            </Box>
+            <Box
               sx={{
                 bgcolor: "white",
                 borderRadius: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                p: 3,
+                pl: "1.875rem",
                 display: "flex",
                 flexDirection: "row",
                 position: "relative",
-                overflow: "visible",
                 height: { xs: "auto", md: 280 },
                 gap: 2,
+                overflow: "hidden",
               }}
             >
               {/* Blue Number Circle */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: -15,
-                  left: 0,
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "#2F6B8E",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 1,
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ color: "white", fontSize: "1.25rem" }}
-                >
-                  4
-                </Typography>
-              </Box>
+
 
               {/* Text Content */}
               <Box
@@ -1122,19 +1112,37 @@ export default function HomePage() {
                   pl: 3,
                 }}
               >
+
+
+                <Box
+                  sx={{
+                    px: "0.375rem",
+                    py: "1.063rem",
+                    height: "2.625rem",
+                    width: "2.625rem",
+                    borderRadius: "50%",
+                    bgcolor: "primary.normal",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: "0.75rem"
+                  }}
+                >
+                  <Typography
+                    sx={{ color: "#FEFEFE", fontSize: "2rem" }}
+                  >
+                    4
+                  </Typography>
+                </Box>
                 <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ mb: 1.5, color: "text.primary", fontSize: "1.1rem" }}
+                  sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
                 >
                   Enjoy Hassle-Free Living
                 </Typography>
                 <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", lineHeight: 1.6, fontSize: "0.9rem" }}
+                  sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}
                 >
-                  Relax knowing your home is in good hands. We ensure quality
-                  and your complete satisfaction.
+                  Relax knowing your home is in good hands. We ensure quality and your complete satisfaction.
                 </Typography>
               </Box>
 
@@ -1145,20 +1153,24 @@ export default function HomePage() {
                   position: "relative",
                   minHeight: { xs: 200, md: "100%" },
                   borderRadius: 2,
-                  overflow: "hidden",
+
+
                 }}
               >
                 <Image
                   src="/image/how-work-img-4.png"
-                  alt="Enjoy Hassle-Free Living"
+                  alt="Get a Free Estimate"
                   fill
                   style={{ objectFit: "contain" }}
                   sizes="(max-width: 768px) 100vw, 45vw"
                 />
               </Box>
-            </Card>
+            </Box>
+
+
+
           </Box>
-        </Container>
+        </Box>
       </Box>
 
       {/* App Download Section */}
@@ -1179,45 +1191,23 @@ export default function HomePage() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 position: 'relative',
-                gap: 2,
+
               }}
             >
               {/* Left Phone */}
               <Box
                 sx={{
                   position: 'relative',
-                  width: { xs: 150, md: 220 },
-                  height: { xs: 300, md: 440 },
-                  transform: 'rotate(-5deg)',
+                  width: { xs: 150, md: "29.75rem" },
+                  height: { xs: 300, md: "44.5rem" },
                   zIndex: 2,
                 }}
               >
                 <Image
-                  src="/icons/iPhone-left.png"
+                  src="/icons/dualMobile.png"
                   alt="CoudPouss App - Home Screen"
                   fill
                   style={{ objectFit: 'contain' }}
-                  sizes="(max-width: 768px) 150px, 220px"
-                />
-              </Box>
-
-              {/* Right Phone */}
-              <Box
-                sx={{
-                  position: 'relative',
-                  width: { xs: 150, md: 220 },
-                  height: { xs: 300, md: 440 },
-                  transform: 'rotate(5deg)',
-                  zIndex: 1,
-                  mt: { xs: 4, md: 6 },
-                }}
-              >
-                <Image
-                  src="/icons/iPhone-right.png"
-                  alt="CoudPouss App - Task Details Screen"
-                  fill
-                  style={{ objectFit: 'contain' }}
-                  sizes="(max-width: 768px) 150px, 220px"
                 />
               </Box>
             </Box>
@@ -1225,150 +1215,102 @@ export default function HomePage() {
             {/* Right Side - Text and Download Links */}
             <Box>
               <Typography
-                variant="h3"
-                fontWeight="bold"
-                gutterBottom
                 sx={{
-                  color: '#374151',
-                  fontSize: { xs: '2rem', md: '2.5rem' },
-                  mb: 3,
+                  color: '#222222',
+                  fontWeight: 600,
+                  lineHeight: "100%",
+                  mb: "1.75rem",
+                  fontSize: { xs: '2rem', md: '3.125rem' }
                 }}
               >
                 Download the new CoudPouss app
               </Typography>
 
               {/* Download For Free Button */}
-              <Button
-                variant="contained"
-                sx={{
-                  bgcolor: '#F59E0B',
-                  color: 'white',
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  px: 4,
-                  py: 1.5,
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold',
-                  mb: 3,
-                  '&:hover': {
-                    bgcolor: '#D97706',
-                  },
-                }}
-              >
-                Download For Free
-              </Button>
+
 
               {/* App Store Badges */}
-              <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', gap: 2 }}>
+              <Box>
                 {/* Apple App Store Badge */}
-                <Box
-                  component="a"
-                  href="#"
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    bgcolor: '#000000',
-                    borderRadius: 2,
-                    px: 2,
-                    py: 1.5,
-                    textDecoration: 'none',
-                    color: 'white',
-                    '&:hover': {
-                      bgcolor: '#1F2937',
-                    },
-                    minWidth: { xs: '100%', sm: 180 },
-                  }}
-                >
-                  <Box sx={{ mr: 1 }}>
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-                    </svg>
+
+
+
+
+                <Box sx={{
+                  alignItems: "center",
+                  display: "flex",
+                  gap: "0.75rem"
+                }}  >
+
+
+                  <Button
+                    variant="contained"
+                    sx={{
+                      bgcolor: 'secondary.main',
+                      color: 'white',
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      px: 4,
+                      py: 1.5,
+                      fontSize: '1rem',
+                      fontWeight: 'bold',
+                      lineHeight: "1.125rem",
+
+                      '&:hover': {
+                        bgcolor: '#D97706',
+                      },
+                    }}
+                  >
+                    Download For Free
+                  </Button>
+                  <Box
+                  >
+                    <Image
+                      alt="download"
+                      width={118}
+                      height={36}
+                      src={"/icons/downloadAppStoreButton.png"}
+                    />
                   </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ fontSize: '0.65rem', display: 'block' }}>
-                      Download on the
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
-                      App Store
-                    </Typography>
+
+
+                  <Box
+                  >
+                    <Image
+                      alt="download"
+                      width={118}
+                      height={36}
+                      src={"/icons/googlePlayDownloadButton.png"}
+                    />
                   </Box>
                 </Box>
 
-                {/* Google Play Badge */}
-                <Box
-                  component="a"
-                  href="#"
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    bgcolor: '#000000',
-                    borderRadius: 2,
-                    px: 2,
-                    py: 1.5,
-                    textDecoration: 'none',
-                    color: 'white',
-                    '&:hover': {
-                      bgcolor: '#1F2937',
-                    },
-                    minWidth: { xs: '100%', sm: 180 },
-                  }}
-                >
-                  <Box sx={{ mr: 1 }}>
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path d="M3 20.5v-17c0-.59.34-1.11.84-1.35L13.69 12l-9.85 9.85c-.5-.24-.84-.76-.84-1.35zm13.81-5.38L6.05 21.34l8.49-8.49 2.27 2.27zm-4.81-4.81L6.05 2.66l10.76 6.44-2.81 2.81zM20.16 12.45l-2.85-2.85-2.85 2.85 2.85 2.85 2.85-2.85z" />
-                    </svg>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ fontSize: '0.65rem', display: 'block' }}>
-                      GET IT ON
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
-                      Google Play
-                    </Typography>
-                  </Box>
-                </Box>
-              </Stack>
+              </Box>
             </Box>
           </Box>
         </Container>
       </Box>
 
       {/* Testimonials Section */}
-      <Box sx={{ bgcolor: 'grey.50', py: 8, color: 'black', overflow: 'visible' }}>
-        <Container maxWidth="lg" sx={{ py: 8, overflow: 'visible' }}>
-          <Box sx={{ textAlign: "center", mb: 6 }}>
-            <Typography 
-              variant="h3" 
-              fontWeight="bold" 
-              gutterBottom
+      <Box sx={{ bgcolor: 'grey.50',py:"4.375rem", color: 'black', overflow: 'visible' }}>
+        <Box  sx={{  overflow: 'visible' }}>
+          <Box sx={{ textAlign: "center"}}>
+            <Typography
               sx={{
-                color: "text.primary",
-                fontSize: { xs: "2rem", md: "2.5rem" },
+                lineHeight:"130%",
+                fontSize: { md: "4.063rem" },
               }}
             >
               Testimonials
             </Typography>
           </Box>
-          
+
           {/* Testimonials Carousel */}
           <Box
             sx={{
               position: "relative",
               width: "100%",
               overflow: "visible",
-              px: { xs: 2, md: 8 },
               pt: 10,
               mb: 4,
             }}
@@ -1504,7 +1446,7 @@ export default function HomePage() {
               ))}
             </Box>
           </Box>
-        </Container>
+        </Box>
       </Box>
     </Box>
   );

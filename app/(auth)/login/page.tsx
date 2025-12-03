@@ -9,10 +9,10 @@ import {
   Container,
   TextField,
   Typography,
-  Link,
   InputAdornment,
   IconButton,
   Paper,
+  Link,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
@@ -22,11 +22,12 @@ import { ROUTES } from '@/constants/routes';
 import { loginUser, clearAuthError } from '@/lib/redux/authSlice';
 import { AppDispatch, RootState } from '@/lib/redux/store';
 
+
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  
+
   const [formData, setFormData] = useState({
     emailOrMobile: '',
     password: '',
@@ -61,9 +62,9 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validation = validateLoginForm(formData.emailOrMobile, formData.password);
-    
+
     if (!validation.valid) {
       setErrors(validation.errors);
       return;
@@ -85,12 +86,14 @@ export default function LoginPage() {
       }}
     >
       {/* Left side - Image Section */}
+
+
       <Box
         sx={{
-          display: { xs: 'none', md: 'block' },
-          width: { md: '66.666%' },
+          display: { xs: 'none', lg: 'flex' },
+          width: '806px',
           position: 'relative',
-          bgcolor: 'grey.100',
+          overflow: 'hidden',
         }}
       >
         <Box
@@ -103,23 +106,29 @@ export default function LoginPage() {
         >
           <Image
             src="/image/main.png"
-            alt="CoudPouss Service"
+            alt="Codimous Service"
             fill
-            style={{ objectFit: 'cover' }}
-            sizes="66.666vw"
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+            sizes="50vw"
             priority
+            quality={90}
           />
+          {/* Overlay for better text readability */}
+
         </Box>
       </Box>
 
       {/* Right side - Login Form */}
       <Box
         sx={{
-          width: { xs: '100%', md: '33.333%' },
+          width: { xs: '100%', md: '643px' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 4,
+          // padding: 4,
         }}
       >
         <Container maxWidth="sm">
@@ -131,7 +140,7 @@ export default function LoginPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
                   width: 80,
@@ -144,91 +153,180 @@ export default function LoginPage() {
                   margin: '0 auto 16px',
                 }}
               >
-                <Typography variant="h4" sx={{ color: 'white' }}>
-                  🏠
-                </Typography>
+                <Image
+                  alt='appLogo'
+                  width={140}
+                  height={140}
+                  src={"/icons/appLogo.png"}
+                />
               </Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
+              <Typography
+
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `24px`,
+                  color: `primary.normal`,
+                  mb: "12px",
+                  lineHeight: "28px",
+
+                }}
+              >
                 CoudPouss
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Empowering seniors with easy access to trusted help, care, and
-                companionship whenever needed.
+              <Typography
+
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "16px",
+                  lineHeight: "140%",
+                  color: "secondary.neutralWhiteDark",
+                }}
+              >
+                Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
               </Typography>
             </Box>
 
             {/* Login Form */}
             <Box component="form" onSubmit={handleSubmit}>
-              <Typography variant="h5" fontWeight="600" gutterBottom>
+              <Typography sx={{
+                textAlign: 'center',
+                fontWeight: 700,
+                fontSize: "20px",
+                lineHeight: "24px",
+                color: 'primary.normal',
+                mb: "12px",
+              }}>
                 Welcome Back!
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography sx={{
+                fontWeight: 400,
+                size: "16px",
+                textAlign: "center",
+                lineHeight: "140%",
+                color: "secondary.neutralWhiteDark",
+                mb: "34px"
+              }}>
                 Enter your email and password to login
               </Typography>
 
-              <TextField
-                fullWidth
-                label="Email/ Mobile No"
-                name="emailOrMobile"
-                placeholder="Enter Email/ Mobile No"
-                value={formData.emailOrMobile}
-                onChange={handleChange}
-                error={!!errors.emailOrMobile}
-                helperText={errors.emailOrMobile}
-                margin="normal"
-                required
-              />
+              <Box sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px"
+              }} >
+                <Box>
+                  <Typography
 
-              <TextField
-                fullWidth
-                label="Password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter Password"
-                value={formData.password}
-                onChange={handleChange}
-                error={!!errors.password}
-                helperText={errors.password}
-                margin="normal"
-                required
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "17px",
+                      lineHeight: "20px",
+                      color: "#424242",
+                      mb: "8px"
+                    }}
+                  >
+                    Email/ Mobile No
+                  </Typography>
+                  <TextField
+                    sx={{
+                      m: 0
+                    }}
+                    fullWidth
+                    name="emailOrMobile"
+                    placeholder="Enter Email/ Mobile No"
+                    value={formData.emailOrMobile}
+                    onChange={handleChange}
+                    error={!!errors.emailOrMobile}
+                    helperText={errors.emailOrMobile}
+                    margin="normal"
+                    required
+                  />
+                </Box>
 
-              {(errors.submit || error) && (
-                <Typography color="error" variant="body2" sx={{ mt: 1 }}>
-                  {errors.submit || error}
-                </Typography>
-              )}
+                <Box>
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                size="large"
-                disabled={loading}
-                sx={{ mt: 3, mb: 2 }}
-              >
-                {loading ? 'Logging in...' : 'Log In'}
-              </Button>
 
-              <Box sx={{ textAlign: 'center', mt: 2 }}>
-                <Typography variant="body2">
+                  <Typography
+
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "17px",
+                      lineHeight: "20px",
+                      color: "#424242",
+                      mb: "8px"
+                    }}
+                  >
+                    Password
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    sx={{
+                      m: 0
+                    }}
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter Password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    error={!!errors.password}
+                    helperText={errors.password}
+                    margin="normal"
+                    required
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Box>
+                {(errors.submit || error) && (
+                  <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                    {errors.submit || error}
+                  </Typography>
+                )}
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  sx={{
+                    bgcolor: "primary.dark"
+                  }}
+                  size="large"
+                  disabled={loading}
+                >
+                  {loading ? 'Logging in...' : 'Log In'}
+                </Button>
+
+              </Box>
+
+
+              <Box sx={{ textAlign: 'center', mt: "34px" }}>
+                <Typography sx={{
+                  color: 'secondary.naturalGray',
+                  fontSize: "18px",
+                  lineHeight: "20px"
+                }}>
                   Don&apos;t have an account?{' '}
                   <Link
                     href={ROUTES.SIGNUP}
-                    sx={{ color: 'primary.main', textDecoration: 'none' }}
+                    sx={{
+                      color: 'primary.normal',
+                      textDecoration: 'none',
+                      offset: "3%",
+                      fontWeight: 600,
+                      fontSize: "20px",
+                      lineHeight: "24px"
+
+                    }}
                   >
                     Sign up
                   </Link>
@@ -236,7 +334,12 @@ export default function LoginPage() {
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   <Link
                     href={ROUTES.RESET_PASSWORD}
-                    sx={{ color: 'primary.main', textDecoration: 'none' }}
+                    sx={{
+                      color: 'secondary.naturalGray',
+                      fontSize: "18px",
+                      lineHeight: "20px",
+                      textDecoration: 'none',
+                    }}
                   >
                     Forgot password?
                   </Link>

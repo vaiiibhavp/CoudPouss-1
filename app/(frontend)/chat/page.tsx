@@ -16,8 +16,7 @@ import SendIcon from "@mui/icons-material/Send";
 import SearchIcon from "@mui/icons-material/Search";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import Image from "next/image";
 
 interface Chat {
   id: string;
@@ -118,10 +117,10 @@ export default function ChatPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      
+
 
       {/* Main Chat Content */}
-      <Container maxWidth="xl" sx={{ flex: 1, py: 4 }}>
+      <Box sx={{ flex: 1, px: "7.5rem", py: "1.875rem" }}>
         <Paper
           elevation={0}
           sx={{
@@ -137,8 +136,8 @@ export default function ChatPage() {
           {/* Left Panel - Chats List */}
           <Box
             sx={{
-              width: { xs: "100%", md: 350 },
-              borderRight: { xs: "none", md: "1px solid" },
+              width: { xs: "100%", md: "27.813rem" },
+              borderRight: " 1px solid   #E6E6E6",
               borderColor: "grey.200",
               display: "flex",
               flexDirection: "column",
@@ -147,40 +146,73 @@ export default function ChatPage() {
           >
             {/* Chats Header */}
             <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "grey.200" }}>
-              <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+              <Typography sx={{ mb: "2rem", color: "primary.normal", fontSize: "2rem", lineHeight: "1.75rem ", fontWeight: 600 }}>
                 Chats
               </Typography>
               {/* Search Bar */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  bgcolor: "grey.50",
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "grey.300",
-                  px: 1.5,
-                  py: 1,
-                }}
-              >
-                <SearchIcon sx={{ color: "text.secondary", mr: 1, fontSize: "1.2rem" }} />
-                <InputBase
-                  placeholder="Search"
+
+
+              <Box sx={{
+                display: "flex",
+                // justifyContent: "center",
+                alignItems: "center",
+                gap: "1.125rem",
+
+              }}  >
+                <Box
                   sx={{
-                    flex: 1,
-                    fontSize: "0.9rem",
-                    "& .MuiInputBase-input": {
-                      color: "text.primary",
-                    },
-                    "& .MuiInputBase-input::placeholder": {
-                      color: "text.secondary",
-                      opacity: 1,
-                    },
+                    display: "flex",
+                    alignItems: "center",
+                    bgcolor: "white",
+                    borderRadius: "0.625rem",
+                    border: "1px solid",
+                    borderColor: "grey.300",
+                    px: "1rem",
+                    py: "0.75rem",
                   }}
-                />
-                <IconButton size="small" sx={{ color: "text.secondary" }}>
-                  <MicIcon sx={{ fontSize: "1.2rem" }} />
-                </IconButton>
+                >
+                  {/* <SearchIcon sx={{ color: "text.secondary", mr: 1, fontSize: "1.2rem" }} /> */}
+                  <Image
+                    src={"/icons/Loupe.png"}
+                    width={24}
+                    height={24}
+                    alt="searchIcon"
+                    style={{
+                      marginRight: "0.625rem"
+                    }}
+                  />
+                  <InputBase
+                    placeholder="Search"
+                    sx={{
+                      flex: 1,
+                      fontSize: "0.9rem",
+
+                      "& .MuiInputBase-input": {
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "#939393",
+                        opacity: 1,
+                        fontSize: "1.25rem",
+                        m: 0,
+                        p: 0
+                      },
+                    }}
+                  />
+                </Box>
+
+                <Box sx={{
+                  py: "0.75rem",
+                  px: "1rem",
+                  border: "1px solid #BECFDA",
+                  borderRadius: "0.625rem"
+                }} >
+                  <Image
+                    height={24}
+                    width={24}
+                    alt="microphone"
+                    src={"/icons/Microphone.png"}
+                  />
+                </Box>
               </Box>
             </Box>
 
@@ -210,13 +242,15 @@ export default function ChatPage() {
                     sx={{ width: 50, height: 50 }}
                   />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body1" fontWeight="600" sx={{ mb: 0.5 }}>
+                    <Typography sx={{ mb: 0.5, fontWeight: 500, fontSize: "1.125rem", lineHeight: "1.25rem" }}>
                       {chat.name}
                     </Typography>
                     <Typography
-                      variant="body2"
+
                       sx={{
-                        color: "text.secondary",
+                        color: "#8A8A8A",
+                        fontSize: '0.875rem',
+                        lineHeight: "140%",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -226,7 +260,7 @@ export default function ChatPage() {
                     </Typography>
                   </Box>
                   <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.75rem" }}>
-                    Image
+                    1 hour ago
                   </Typography>
                 </Box>
               ))}
@@ -259,7 +293,12 @@ export default function ChatPage() {
                 alt={chats.find((c) => c.id === selectedChat)?.name}
                 sx={{ width: 50, height: 50 }}
               />
-              <Typography variant="h6" fontWeight="bold">
+              <Typography sx={{
+
+                fontSize: "1.25rem",
+                lineHeight: "2rem",
+                fontWeight: "600"
+              }}>
                 {chats.find((c) => c.id === selectedChat)?.name}
               </Typography>
             </Box>
@@ -270,7 +309,7 @@ export default function ChatPage() {
                 flex: 1,
                 overflowY: "auto",
                 p: 3,
-                bgcolor: "grey.50",
+
                 display: "flex",
                 flexDirection: "column",
                 gap: 2,
@@ -317,8 +356,8 @@ export default function ChatPage() {
                       sx={{
                         p: 1.5,
                         borderRadius: 2,
-                        bgcolor: message.sender === "user" ? "grey.200" : "primary.light",
-                        color: message.sender === "user" ? "text.primary" : "white",
+                        bgcolor: "#EAF0F3",
+                        color: "#0F232F",
                       }}
                     >
                       <Typography variant="body2">{message.text}</Typography>
@@ -339,22 +378,33 @@ export default function ChatPage() {
             </Box>
 
             {/* Message Input */}
-            <Box
-              sx={{
-                p: 2,
-                borderTop: "1px solid",
-                borderColor: "grey.200",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <IconButton sx={{ color: "text.secondary" }}>
-                <MicIcon />
-              </IconButton>
-              <InputBase
-                placeholder="Send a message here..."
-                value={messageInput}
+
+            <Box sx={{
+              px: "1.75rem",
+              py: "1.188rem",
+              borderTop: "1px solid",
+              borderColor: "#E6E6E6",
+            }}  >
+              <Box
+                sx={{
+                  px: "1.25rem",
+                  py: "1rem",
+                  borderRadius: "1rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  bgcolor: "#F6F7F7"
+                }}
+              >
+                <Image
+                  width={24}
+                  height={24}
+                  alt="mic"
+                  src={"/icons/micGray.png"}
+                />
+                <InputBase
+                  placeholder="Send a message here..."
+                  value={messageInput}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setMessageInput(e.target.value)
                   }
@@ -363,41 +413,41 @@ export default function ChatPage() {
                       handleSendMessage();
                     }
                   }}
-                sx={{
-                  flex: 1,
-                  bgcolor: "grey.50",
-                  borderRadius: 2,
-                  px: 2,
-                  py: 1.5,
-                  "& .MuiInputBase-input": {
-                    color: "text.primary",
-                    fontSize: "0.9rem",
-                  },
-                  "& .MuiInputBase-input::placeholder": {
-                    color: "text.secondary",
-                    opacity: 1,
-                  },
-                }}
-              />
-              <IconButton sx={{ color: "text.secondary" }}>
-                <AttachFileIcon />
-              </IconButton>
-              <IconButton
-                onClick={handleSendMessage}
-                sx={{
-                  bgcolor: "primary.main",
-                  color: "white",
-                  "&:hover": {
-                    bgcolor: "primary.dark",
-                  },
-                }}
-              >
-                <SendIcon />
-              </IconButton>
+                  sx={{
+                    flex: 1,
+                    // bgcolor: "grey.50",
+                    // borderRadius: 2,
+                    "& .MuiInputBase-input": {
+                      color: "text.primary",
+                      fontSize: "0.9rem",
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "#ACADAD",
+                      opacity: 1,
+                      fontSize: "1rem"
+
+                    },
+                  }}
+                />
+                <Image
+                  src={"/icons/attachment-line.png"}
+                  alt="file"
+                  width={24}
+                  height={24}
+                />
+
+                <Image
+                  onClick={handleSendMessage}
+                  src={"/icons/sendMsg.png"}
+                  alt="file"
+                  width={24}
+                  height={24}
+                />
+              </Box>
             </Box>
           </Box>
         </Paper>
-      </Container>
+      </Box>
 
 
     </Box>

@@ -43,6 +43,7 @@ export const ROUTES = {
   PERSONAL_CARE: '/services/personal-care',
   TECH_SUPPORT: '/services/tech-support',
   CHAT: '/chat',
+  Favorite:"/favorites"
 } as const;
 
 export type Route = typeof ROUTES[keyof typeof ROUTES];

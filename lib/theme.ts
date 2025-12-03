@@ -8,14 +8,18 @@ const theme = createTheme({
     primary: {
       main: '#1A3D51', // Teal color from the design
       light: '#5EEAD4',
-      dark: '#0F766E',
+      // dark: '#0F766E',
+      dark: '#214C65',
       contrastText: '#ffffff',
+      normal: '#2C6587',
     },
     secondary: {
-      main: '#F59E0B', // Yellow/Amber accent color
+      main: '#F0B52C', // Yellow/Amber accent color
       light: '#FCD34D',
       dark: '#D97706',
       contrastText: '#ffffff',
+      neutralWhiteDark :"#737373",
+      naturalGray:"#6D6D6D",
     },
     error: {
       main: '#EF4444',

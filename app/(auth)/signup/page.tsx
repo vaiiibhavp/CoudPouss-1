@@ -29,7 +29,6 @@ export default function SignupPage() {
     otp: ["", "", "", ""],
     password: "",
     confirmPassword: "",
-    reEnterPassword: "",
     name: "",
     mobileNo: "",
     email: "",
@@ -95,14 +94,6 @@ export default function SignupPage() {
       }
       setStep("create-password");
     } else if (step === "create-password") {
-      if (!formData.password || !formData.confirmPassword || !formData.reEnterPassword) {
-        setErrors({ password: "Please fill all password fields" });
-        return;
-      }
-      if (formData.password !== formData.confirmPassword || formData.password !== formData.reEnterPassword) {
-        setErrors({ password: "Passwords do not match" });
-        return;
-      }
       setStep("add-details");
     }
   };
@@ -128,19 +119,42 @@ export default function SignupPage() {
       case "select-profile":
         return (
           <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: "#2F6B8E", mb: 1 }}>
-              Welcome To CoudPouss!
+            <Typography
+
+              sx={{
+                fontWeight: `700`,
+                fontSize: `24px`,
+                color: `primary.normal`,
+                mb: "12px",
+                lineHeight: "28px",
+                textAlign: "center"
+
+
+              }}
+            >
+              Welcome To CoudPouss
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+            <Typography
+
+              sx={{
+                fontWeight: 400,
+                fontSize: "16px",
+                textAlign: "center",
+                lineHeight: "140%",
+                mb: "40px",
+                color: "secondary.neutralWhiteDark",
+              }}
+            >
               Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
             </Typography>
+
             <Button
               fullWidth
               variant="contained"
               size="large"
               onClick={() => handleProfileSelect("elder")}
               sx={{
-                bgcolor: "#2F6B8E",
+                bgcolor: "primary.dark",
                 color: "white",
                 py: 1.5,
                 mb: 2,
@@ -154,7 +168,14 @@ export default function SignupPage() {
               Sign up as Elder
             </Button>
             <Box sx={{ textAlign: "center", my: 2 }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+
+                sx={{
+                  fontSize: "18px",
+                  color: "#818285",
+
+                }}
+              >
                 OR
               </Typography>
             </Box>
@@ -164,8 +185,8 @@ export default function SignupPage() {
               size="large"
               onClick={() => handleProfileSelect("professional")}
               sx={{
-                borderColor: "#2F6B8E",
-                color: "#2F6B8E",
+                borderColor: "primary.dark",
+                color: "primary.dark",
                 py: 1.5,
                 textTransform: "none",
                 fontSize: "1rem",
@@ -183,18 +204,50 @@ export default function SignupPage() {
       case "enter-contact":
         return (
           <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: "#2F6B8E", mb: 1 }}>
-              Welcome To CoudPouss!
+            <Typography
+
+              sx={{
+                fontWeight: `700`,
+                fontSize: `24px`,
+                color: `primary.normal`,
+                mb: "12px",
+                lineHeight: "28px",
+                textAlign: "center"
+
+
+              }}
+            >
+              Welcome To CoudPouss
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+            <Typography
+
+              sx={{
+                fontWeight: 400,
+                fontSize: "16px",
+                textAlign: "center",
+                lineHeight: "140%",
+                mb: "40px",
+                color: "secondary.neutralWhiteDark",
+              }}
+            >
               Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
             </Typography>
-            <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 3 }}>
+
+            <Typography sx={{
+              fontWeight: 500,
+              fontSize: "17px",
+              lineHeight: "20px",
+              color: "#424242",
+              mb: "8px"
+            }}>
               Enter Email / Mobile No
             </Typography>
             <TextField
+              sx={{
+                m: 0,
+                mb: 3
+              }}
               fullWidth
-              label="Email/ Mobile No"
               name="emailOrMobile"
               placeholder="Enter Email/ Mobile No"
               value={formData.emailOrMobile}
@@ -202,7 +255,6 @@ export default function SignupPage() {
               error={!!errors.emailOrMobile}
               helperText={errors.emailOrMobile}
               margin="normal"
-              sx={{ mb: 3 }}
             />
             <Button
               fullWidth
@@ -210,7 +262,7 @@ export default function SignupPage() {
               size="large"
               onClick={handleContinue}
               sx={{
-                bgcolor: "#2F6B8E",
+                bgcolor: "primary.dark",
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
@@ -228,19 +280,59 @@ export default function SignupPage() {
       case "verify-otp":
         return (
           <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: "#2F6B8E", mb: 1 }}>
-              Welcome To CoudPouss!
+            <Typography
+
+              sx={{
+                fontWeight: `700`,
+                fontSize: `24px`,
+                color: `primary.normal`,
+                mb: "12px",
+                lineHeight: "28px",
+                textAlign: "center"
+
+
+              }}
+            >
+              Welcome To CoudPouss
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+            <Typography
+
+              sx={{
+                fontWeight: 400,
+                fontSize: "16px",
+                textAlign: "center",
+                lineHeight: "140%",
+                mb: "40px",
+                color: "secondary.neutralWhiteDark",
+              }}
+            >
               Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
             </Typography>
-            <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 1 }}>
-              Create Your Account
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+
+
+            <Typography sx={{
+              fontWeight: 400,
+              fontSize: "16px",
+              textAlign: "center",
+              lineHeight: "140%",
+              mb: "20px",
+              color: "secondary.neutralWhiteDark",
+            }}>
               To continue Please enter the 4 Digit OTP sent to your Email or Phone Number.
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mb: 2 }}>
+            <Typography
+
+              sx={{
+                fontSize: "18px",
+                fontWeight: "500",
+                lineHeight: "100%",
+                color: "#555555",
+                mb: 2
+              }}
+            >
+              Code
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2, justifyContent: "space-between", mb: 2 }}>
               {formData.otp.map((digit, index) => (
                 <TextField
                   key={index}
@@ -250,12 +342,13 @@ export default function SignupPage() {
                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
                   inputProps={{
                     maxLength: 1,
-                    style: { textAlign: "center", fontSize: "1.5rem", fontWeight: "bold" },
+                    style: { textAlign: "center", fontSize: "1.5rem", fontWeight: "bold", width: "80px" },
                   }}
                   sx={{
                     width: 60,
                     "& .MuiOutlinedInput-root": {
                       height: 60,
+                      width: "80.5px"
                     },
                   }}
                 />
@@ -272,7 +365,9 @@ export default function SignupPage() {
                 display: "block",
                 textAlign: "center",
                 mb: 3,
-                color: "#2F6B8E",
+                fontSize: "20px",
+                lineHeight: "24px", fontWeight: 600,
+                color: "primary.normal",
                 textDecoration: "none",
                 "&:hover": {
                   textDecoration: "underline",
@@ -287,7 +382,7 @@ export default function SignupPage() {
               size="large"
               onClick={handleContinue}
               sx={{
-                bgcolor: "#2F6B8E",
+                bgcolor: "primary.dark",
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
@@ -297,7 +392,7 @@ export default function SignupPage() {
                 },
               }}
             >
-              Verify OTP
+              verify OTP
             </Button>
           </Box>
         );
@@ -305,19 +400,67 @@ export default function SignupPage() {
       case "create-password":
         return (
           <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: "#2F6B8E", mb: 1 }}>
-              Welcome To CoudPouss!
+            <Typography
+
+              sx={{
+                fontWeight: `700`,
+                fontSize: `24px`,
+                color: `primary.normal`,
+                mb: "12px",
+                lineHeight: "28px",
+                textAlign: "center"
+
+
+              }}
+            >
+              Welcome To CoudPouss
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+            <Typography
+
+              sx={{
+                fontWeight: 400,
+                fontSize: "16px",
+                textAlign: "center",
+                lineHeight: "140%",
+                mb: "40px",
+                color: "secondary.neutralWhiteDark",
+              }}
+            >
               Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
             </Typography>
-            <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 3 }}>
+
+            <Typography
+              sx={{
+                fontWeight: `700`,
+                fontSize: `24px`,
+                color: `primary.normal`,
+                mb: "12px",
+                lineHeight: "28px",
+                textAlign: "center"
+
+
+              }}>
               Create a strong password
+            </Typography>
+            <Typography
+
+              sx={{
+                fontWeight: 500,
+                fontSize: "17px",
+                lineHeight: "20px",
+                color: "#6D6D6D",
+                mb: "8px"
+              }}
+            >
+              Password
             </Typography>
             <TextField
               fullWidth
-              label="Password"
               name="password"
+              sx={{
+                m: 0,
+                mb: 2
+              }}
               type={showPassword ? "text" : "password"}
               placeholder="Enter Password"
               value={formData.password}
@@ -335,12 +478,27 @@ export default function SignupPage() {
                 ),
               }}
             />
+
+            <Typography
+              sx={{
+                fontWeight: 500,
+                fontSize: "17px",
+                lineHeight: "20px",
+                color: "#6D6D6D",
+                mb: "8px"
+              }}
+            >
+              Confirm Password
+            </Typography>
             <TextField
+              sx={{
+                m: 0,
+                mb: "44px"
+              }}
               fullWidth
-              label="Confirm Password"
               name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm Password"
+              placeholder="Re-enter Password"
               value={formData.confirmPassword}
               onChange={handleChange}
               margin="normal"
@@ -354,33 +512,14 @@ export default function SignupPage() {
                 ),
               }}
             />
-            <TextField
-              fullWidth
-              label="Re-enter Password"
-              name="reEnterPassword"
-              type={showReEnterPassword ? "text" : "password"}
-              placeholder="Re-enter Password"
-              value={formData.reEnterPassword}
-              onChange={handleChange}
-              margin="normal"
-              sx={{ mb: 3 }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowReEnterPassword(!showReEnterPassword)} edge="end">
-                      {showReEnterPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+
             <Button
               fullWidth
               variant="contained"
               size="large"
               onClick={handleContinue}
               sx={{
-                bgcolor: "#2F6B8E",
+                bgcolor: "primary.dark",
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
@@ -398,16 +537,39 @@ export default function SignupPage() {
       case "add-details":
         return (
           <Box component="form" onSubmit={handleSubmit}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: "#2F6B8E", mb: 1 }}>
-              Welcome To CoudPouss!
+            <Typography
+
+              sx={{
+                fontWeight: `700`,
+                fontSize: `24px`,
+                color: `primary.normal`,
+                mb: "12px",
+                lineHeight: "28px",
+                textAlign: "center"
+
+
+              }}
+            >
+              Welcome To CoudPouss
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+            <Typography
+
+              sx={{
+                fontWeight: 400,
+                fontSize: "16px",
+                textAlign: "center",
+                lineHeight: "140%",
+                mb: "40px",
+                color: "secondary.neutralWhiteDark",
+              }}
+            >
               Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
             </Typography>
-            <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 1 }}>
+
+            <Typography gutterBottom sx={{ mb: 1, fontSize: "24px", fontWeight: 700, color: "#424242", lineHeight: "28px" }}>
               Add Personal Details
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography sx={{ mb: 3, color: "#6D6D6D", lineHeight: "20px", fontSize: "18px" }}>
               Enter profile details
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3 }}>
@@ -421,37 +583,37 @@ export default function SignupPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   mb: 1,
-                  border: "3px solid #2F6B8E",
+                  border: "3px solid primary.dark",
                 }}
               >
                 {formData.profilePicture ? (
-                  <Typography variant="h4" sx={{ color: "#2F6B8E" }}>
+                  <Typography variant="h4" sx={{ color: "primary.dark" }}>
                     {formData.name.charAt(0).toUpperCase()}
                     {formData.name.split(" ")[1]?.charAt(0).toUpperCase() || ""}
                   </Typography>
                 ) : (
-                  <Typography variant="h4" sx={{ color: "#2F6B8E" }}>
+                  <Typography variant="h4" sx={{ color: "primary.dark" }}>
                     BC
                   </Typography>
                 )}
               </Box>
-              <Link
-                href="#"
+              <Typography
                 onClick={(e) => {
                   e.preventDefault();
                   document.getElementById("profile-upload")?.click();
                 }}
                 sx={{
-                  color: "#2F6B8E",
+                  color: "primary.normal",
                   textDecoration: "none",
-                  fontSize: "0.875rem",
+                  lineHeight: "140%",
+                  fontSize: "16px",
                   "&:hover": {
                     textDecoration: "underline",
                   },
                 }}
               >
                 upload profile picture
-              </Link>
+              </Typography>
               <input
                 id="profile-upload"
                 type="file"
@@ -465,54 +627,131 @@ export default function SignupPage() {
                 }}
               />
             </Box>
-            <TextField
-              fullWidth
-              label="Name"
-              name="name"
-              placeholder="Enter Name"
-              value={formData.name}
-              onChange={handleChange}
-              error={!!errors.name}
-              helperText={errors.name}
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Mobile No."
-              name="mobileNo"
-              placeholder="Enter Mobile No."
-              value={formData.mobileNo}
-              onChange={handleChange}
-              error={!!errors.mobileNo}
-              helperText={errors.mobileNo}
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              type="email"
-              placeholder="Enter Email"
-              value={formData.email}
-              onChange={handleChange}
-              error={!!errors.email}
-              helperText={errors.email}
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Address"
-              name="address"
-              placeholder="Enter Address"
-              value={formData.address}
-              onChange={handleChange}
-              error={!!errors.address}
-              helperText={errors.address}
-              margin="normal"
-              multiline
-              rows={3}
-              sx={{ mb: 3 }}
-            />
+            <Box sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2
+            }}  >
+
+
+              <Box>
+                <Typography
+
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "17px",
+                    lineHeight: "20px",
+                    color: "#6D6D6D",
+                    mb: "8px"
+                  }}
+                >
+                  Name
+                </Typography>
+                <TextField
+                  fullWidth
+
+                  name="name"
+                  placeholder="Enter Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  error={!!errors.name}
+                  helperText={errors.name}
+                  margin="normal"
+                  sx={{
+                    m: 0
+                  }}
+                />
+              </Box>
+              <Box>
+
+                <Typography
+
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "17px",
+                    lineHeight: "20px",
+                    color: "#6D6D6D",
+                    mb: "8px"
+                  }}
+                >
+                  Mobile No.
+                </Typography>
+                <TextField
+                  fullWidth
+
+                  name="mobileNo"
+                  placeholder="Enter Mobile No."
+                  value={formData.mobileNo}
+                  onChange={handleChange}
+                  error={!!errors.mobileNo}
+                  helperText={errors.mobileNo}
+                  margin="normal" sx={{
+                    m: 0
+                  }}
+                />
+              </Box>
+
+              <Box>
+                <Typography
+
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "17px",
+                    lineHeight: "20px",
+                    color: "#6D6D6D",
+                    mb: "8px"
+                  }}
+                >
+                  Email
+                </Typography>
+                <TextField
+                  fullWidth
+
+                  name="email"
+                  type="email"
+                  placeholder="Enter Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  margin="normal"
+                  sx={{
+                    m: 0
+                  }}
+                />
+              </Box>
+
+              <Box>
+                <Typography
+
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "17px",
+                    lineHeight: "20px",
+                    color: "#6D6D6D",
+                    mb: "8px"
+                  }}
+                >
+                  Address
+                </Typography>
+                <TextField
+                  fullWidth
+
+                  name="address"
+                  placeholder="Enter Address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  error={!!errors.address}
+                  helperText={errors.address}
+                  margin="normal"
+                  multiline
+                  rows={3}
+                  sx={{
+                    m: 0
+                  }}
+                />
+              </Box>
+            </Box>
             {errors.submit && (
               <Typography color="error" variant="body2" sx={{ mb: 2 }}>
                 {errors.submit}
@@ -525,9 +764,10 @@ export default function SignupPage() {
               size="large"
               disabled={loading}
               sx={{
-                bgcolor: "#2F6B8E",
+                bgcolor: "primary.dark",
                 color: "white",
                 py: 1.5,
+                mt:"40px",
                 textTransform: "none",
                 fontSize: "1rem",
                 "&:hover": {
@@ -627,26 +867,27 @@ export default function SignupPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
                   width: 80,
                   height: 80,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 16px",
+                  borderRadius: '50%',
+                  bgcolor: 'primary.main',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
                 }}
               >
-                <Typography variant="h4" sx={{ color: "white" }}>
-                  🏠
-                </Typography>
+                <Image
+                  alt='appLogo'
+                  width={140}
+                  height={140}
+                  src={"/icons/appLogo.png"}
+                />
               </Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
-                CoudPouss!
-              </Typography>
+
             </Box>
 
             {/* Step Content */}
@@ -654,11 +895,23 @@ export default function SignupPage() {
 
             {/* Login Link */}
             <Box sx={{ textAlign: "center", mt: 3 }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography sx={{
+                color: 'secondary.naturalGray',
+                fontSize: "18px",
+                lineHeight: "20px"
+              }}>
                 Already have an account?{" "}
                 <Link
-                  href={ROUTES.LOGIN}
-                  sx={{ color: "#2F6B8E", textDecoration: "none", fontWeight: 500 }}
+                  href={ROUTES.SIGNUP}
+                  sx={{
+                    color: 'primary.normal',
+                    textDecoration: 'none',
+                    offset: "3%",
+                    fontWeight: 600,
+                    fontSize: "20px",
+                    lineHeight: "24px"
+
+                  }}
                 >
                   Log In
                 </Link>

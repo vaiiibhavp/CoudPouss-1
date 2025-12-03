@@ -36,9 +36,7 @@ export default function RootLayout({
       >
         <Providers>
           <ReduxProvider>
-            <Header />
             {children}
-            <Footer />
           </ReduxProvider>
         </Providers>
       </body>
