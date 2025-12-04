@@ -127,7 +127,7 @@ export default function RenegotiateModal({
                 display: "flex",
                 justifyContent: "space-between",
                 pt: 2,
-                borderTop: "1px dashed #D1D5DB",
+                borderTop: "0.0625rem dashed #D1D5DB",
               }}
             >
               <Typography variant="body1" fontWeight="600" sx={{ color: "#1F2937" }}>

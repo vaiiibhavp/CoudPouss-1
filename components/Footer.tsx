@@ -128,7 +128,7 @@ export default function Footer() {
         {/* Divider Line */}
         <Box
           sx={{
-            borderTop: "1px solid rgba(255,255,255,0.3)",
+            borderTop: "0.0625rem solid rgba(255,255,255,0.3)",
             mb: 4,
           }}
         />
@@ -160,7 +160,7 @@ export default function Footer() {
               sx={{
                 width: 40,
                 height: 40,
-                border: "2px solid",
+                border: "0.125rem solid",
                 borderColor: "primary.normal",
 
               }}
@@ -176,7 +176,7 @@ export default function Footer() {
               sx={{
                 width: 40,
                 height: 40,
-                border: "2px solid",
+                border: "0.125rem solid",
                 borderColor: "primary.normal",
 
               }}
@@ -192,7 +192,7 @@ export default function Footer() {
               sx={{
                 width: 40,
                 height: 40,
-                border: "2px solid",
+                border: "0.125rem solid",
                 borderColor: "primary.normal",
 
               }}

@@ -111,7 +111,7 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
                     height: 140,
                     borderRadius: 2,
                     overflow: "hidden",
-                    border: "1px solid #E5E7EB",
+                    border: "0.0625rem solid #E5E7EB",
                   }}
                 >
                   <Image
@@ -134,7 +134,7 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -185,7 +185,7 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -215,7 +215,7 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
             sx={{
               p: 3,
               borderRadius: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >

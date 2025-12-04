@@ -24,12 +24,12 @@ export default function RecentTaskCard({
   onChatClick,
 }: RecentTaskCardProps) {
   return (
-    <Box sx={{ minWidth: { xs: "300px", sm: "320px", md: "400px" }, flexShrink: 0 }}>
+    <Box sx={{ minWidth: { xs: "18.75rem", sm: "20rem", md: "25rem" }, flexShrink: 0 }}>
       {/* Category Header */}
       <Box
         sx={{
           bgcolor: "#E5E7EB",
-          borderRadius: "12px 12px 0 0",
+          borderRadius: "0.75rem 0.75rem 0 0",
           py: 1.5,
           px: 2,
           textAlign: "center",
@@ -47,14 +47,14 @@ export default function RecentTaskCard({
       {/* Card Content */}
       <Card
         sx={{
-          borderRadius: "0 0 12px 12px",
-          border: "1px solid #E5E7EB",
+          borderRadius: "0 0 0.75rem 0.75rem",
+          border: "0.0625rem solid #E5E7EB",
           borderTop: "none",
           boxShadow: "none",
           overflow: "hidden",
         }}
       >
-        <Box sx={{ display: "flex", gap: 2, p: 2.5, borderBottom: "1px solid #E5E7EB" }}>
+        <Box sx={{ display: "flex", gap: 2, p: 2.5, borderBottom: "0.0625rem solid #E5E7EB" }}>
           {/* Left Side - Task Info */}
           <Box sx={{ flex: 1 }}>
             <Typography
@@ -136,7 +136,7 @@ export default function RecentTaskCard({
             onClick={onTaskStatusClick}
             sx={{
               borderRadius: 0,
-              borderRight: "1px solid #E5E7EB",
+              borderRight: "0.0625rem solid #E5E7EB",
               textTransform: "none",
               color: "#2F6B8E",
               fontWeight: 600,

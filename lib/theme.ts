@@ -123,14 +123,14 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
-          padding: '10px 24px',
+          padding: '0.625rem 1.5rem',
           fontSize: '1rem',
           fontWeight: 500,
         },
         contained: {
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          boxShadow: '0 0.125rem 0.25rem rgba(0,0,0,0.1)',
           '&:hover': {
-            boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+            boxShadow: '0 0.25rem 0.5rem rgba(0,0,0,0.15)',
           },
         },
       },
@@ -148,7 +148,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 12,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          boxShadow: '0 0.125rem 0.5rem rgba(0,0,0,0.08)',
         },
       },
     },

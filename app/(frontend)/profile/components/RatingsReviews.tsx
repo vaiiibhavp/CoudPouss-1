@@ -94,11 +94,10 @@ const renderRating = (count: number) => (
 
 export default function RatingsReviews() {
   return (
-    <Card
+    <Box
       sx={{
         p: 4,
         borderRadius: 3,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         flex: 1,
         display: "flex",
         flexDirection: "column",
@@ -149,9 +148,9 @@ export default function RatingsReviews() {
             elevation={0}
             sx={{
               borderRadius: 3,
-              border: "1px solid",
+              border: "0.0625rem solid",
               borderColor: "grey.200",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+              boxShadow: "0 0.125rem 0.375rem rgba(0,0,0,0.08)",
               p: 3,
               display: "flex",
               flexDirection: "column",
@@ -217,7 +216,7 @@ export default function RatingsReviews() {
           </Card>
         ))}
       </Box>
-    </Card>
+    </Box>
   );
 }
 

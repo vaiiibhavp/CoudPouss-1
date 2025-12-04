@@ -122,8 +122,8 @@ export default function ProfessionalProfilePage() {
                     p: 3,
                     bgcolor: "white",
                     borderRadius: 2,
-                    border: "1px solid #E5E7EB",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    border: "0.0625rem solid #E5E7EB",
+                    boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
                   }}
                 >
                   <Box sx={{ position: "relative" }}>
@@ -184,8 +184,8 @@ export default function ProfessionalProfilePage() {
                     p: 3,
                     bgcolor: "white",
                     borderRadius: 2,
-                    border: "1px solid #E5E7EB",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    border: "0.0625rem solid #E5E7EB",
+                    boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
                   }}
                 >
                   <Typography
@@ -272,8 +272,8 @@ export default function ProfessionalProfilePage() {
                     p: 3,
                     bgcolor: "white",
                     borderRadius: 2,
-                    border: "1px solid #E5E7EB",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    border: "0.0625rem solid #E5E7EB",
+                    boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
                   }}
                 >
                   <Typography
@@ -323,8 +323,8 @@ export default function ProfessionalProfilePage() {
                     p: 3,
                     bgcolor: "white",
                     borderRadius: 2,
-                    border: "1px solid #E5E7EB",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    border: "0.0625rem solid #E5E7EB",
+                    boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
                   }}
                 >
                   <Typography
@@ -354,8 +354,8 @@ export default function ProfessionalProfilePage() {
                     p: 3,
                     bgcolor: "white",
                     borderRadius: 2,
-                    border: "1px solid #E5E7EB",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    border: "0.0625rem solid #E5E7EB",
+                    boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
                   }}
                 >
                   <Typography
@@ -368,7 +368,7 @@ export default function ProfessionalProfilePage() {
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(15.625rem, 1fr))",
                       gap: 2,
                     }}
                   >

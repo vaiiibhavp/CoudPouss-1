@@ -159,8 +159,8 @@ export default function TransactionHistoryPage() {
             p: 3,
             bgcolor: "white",
             borderRadius: 2,
-            border: "1px solid #E5E7EB",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "0.0625rem solid #E5E7EB",
+            boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
           }}
         >
           <Typography

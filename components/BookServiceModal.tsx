@@ -603,7 +603,7 @@ export default function BookServiceModal({
                   sx={{
                     p: 2,
                     borderRadius: "0.75rem",
-                    border: "1px solid",
+                    border: "0.0625rem solid",
                     borderColor:
                       serviceProvider === "professional"
                         ? "#2F6B8E"
@@ -634,7 +634,7 @@ export default function BookServiceModal({
                 <Box
                   sx={{
                     p: 2,
-                    border: "1px solid",
+                    border: "0.0625rem solid",
                     borderRadius: "0.75rem",
                     borderColor:
                       serviceProvider === "non-professional"
@@ -1702,7 +1702,7 @@ export default function BookServiceModal({
                   size="small"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   sx={{
-                    border: "1px solid",
+                    border: "0.0625rem solid",
                     borderColor: "grey.300",
                     width: 32,
                     height: 32,
@@ -1720,7 +1720,7 @@ export default function BookServiceModal({
                   size="small"
                   onClick={() => setQuantity(quantity + 1)}
                   sx={{
-                    border: "1px solid",
+                    border: "0.0625rem solid",
                     borderColor: "grey.300",
                     width: 32,
                     height: 32,
@@ -1999,7 +1999,7 @@ export default function BookServiceModal({
             fontSize: "1rem",
             py:"0.875rem",
             px:"1rem",
-            border:"1px solid #D5D5D5",
+            border:"0.0625rem solid #D5D5D5",
             borderRadius:"0.75rem",
             lineHeight: "150%",
             letterSpacing: "0%",

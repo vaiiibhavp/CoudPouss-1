@@ -101,7 +101,7 @@ export default function Header({
     <>
       <AppBar position="static" elevation={0} sx={{
         bgcolor: "white",
-        borderBottom: "1px solid #DFE8ED"
+        borderBottom: "0.0625rem solid #DFE8ED"
 
       }}>
         <Toolbar sx={{ py: 2 }}>
@@ -125,7 +125,7 @@ export default function Header({
                     height: 48,
                     borderRadius: "50%",
                     bgcolor: "white",
-                    border: "2px solid",
+                    border: "0.125rem solid",
                     borderColor: "grey.200",
                     display: "flex",
                     alignItems: "center",
@@ -150,8 +150,8 @@ export default function Header({
                   sx={{
                     color: "primary.normal",
                     fontWeight: "bold",
-                    fontSize: "20px",
-                    lineHeight: "24px",
+                    fontSize: "1.25rem",
+                    lineHeight: "1.5rem",
                     display: { xs: "none", sm: "block" },
                     textDecoration: "none",
                   }}
@@ -170,7 +170,7 @@ export default function Header({
                         color: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "2px solid" : "none",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "0.125rem solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? 1 : 0,
@@ -190,7 +190,7 @@ export default function Header({
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
                         fontWeight: "400",
-                        borderBottom: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "2px solid" : "none",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "0.125rem solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? 1 : 0,
@@ -209,7 +209,7 @@ export default function Header({
                         color: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "2px solid" : "none",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "0.125rem solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? 1 : 0,
@@ -229,7 +229,7 @@ export default function Header({
               <Box
                 sx={{
                   flexGrow: 1,
-                  maxWidth: { xs: "100%", md: "400px" },
+                  maxWidth: { xs: "100%", md: "25rem" },
                   display: { xs: "none", md: "flex" },
                   alignItems: "center",
                   mx: 2,
@@ -242,7 +242,7 @@ export default function Header({
                     width: "100%",
                     bgcolor: "grey.50",
                     borderRadius: 2,
-                    border: "1px solid",
+                    border: "0.0625rem solid",
                     borderColor: "grey.300",
                     overflow: "hidden",
                     paddingRight: "1rem"
@@ -314,7 +314,7 @@ export default function Header({
                       minWidth: 500,
                       maxWidth: 600,
                       borderRadius: 2,
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                      boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
                       px: "2rem",
                       py: "1.25rem"
                     },
@@ -349,7 +349,7 @@ export default function Header({
                           p: 2,
                           borderRadius: 2,
                           cursor: "pointer",
-                          border: "1px solid",
+                          border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
                           bgcolor: "#F7F7F7"
@@ -402,7 +402,7 @@ export default function Header({
                           p: 2,
                           borderRadius: 2,
                           cursor: "pointer",
-                          border: "1px solid",
+                          border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
 
@@ -456,7 +456,7 @@ export default function Header({
                           p: 2,
                           borderRadius: 2,
                           cursor: "pointer",
-                          border: "1px solid",
+                          border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
 
@@ -510,7 +510,7 @@ export default function Header({
                           p: 2,
                           borderRadius: 2,
                           cursor: "pointer",
-                          border: "1px solid",
+                          border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
                           bgcolor: "#F7F7F7"
@@ -566,7 +566,7 @@ export default function Header({
                       color: pathname === ROUTES.MY_REQUESTS ? "primary.main" : "text.secondary",
                       textTransform: "none",
                       display: { xs: "none", lg: "block" },
-                      borderBottom: pathname === ROUTES.MY_REQUESTS ? "2px solid" : "none",
+                      borderBottom: pathname === ROUTES.MY_REQUESTS ? "0.125rem solid" : "none",
                       borderColor: "primary.main",
                       borderRadius: 0,
                       pb: 1,
@@ -680,7 +680,7 @@ export default function Header({
                           minWidth: 400,
                           maxWidth: 500,
                           borderRadius: 2,
-                          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                          boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
                           maxHeight: 600,
                           overflowY: "auto",
                         },
@@ -714,7 +714,7 @@ export default function Header({
                               display: "flex",
                               gap: 2,
                               pb: 2,
-                              borderBottom: "1px solid",
+                              borderBottom: "0.0625rem solid",
                               borderColor: "grey.200",
                             }}
                           >
@@ -806,7 +806,7 @@ export default function Header({
                               display: "flex",
                               gap: 2,
                               pb: 2,
-                              borderBottom: "1px solid",
+                              borderBottom: "0.0625rem solid",
                               borderColor: "grey.200",
                             }}
                           >
@@ -909,7 +909,7 @@ export default function Header({
                               display: "flex",
                               gap: 2,
                               pb: 2,
-                              borderBottom: "1px solid",
+                              borderBottom: "0.0625rem solid",
                               borderColor: "grey.200",
                             }}
                           >
@@ -1134,7 +1134,7 @@ export default function Header({
                       PaperProps={{
                         sx: {
                           borderRadius: "1rem",
-                          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                          boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
                           p: "1.25rem",
                           "& .MuiMenu-list": {
                             padding: 0,

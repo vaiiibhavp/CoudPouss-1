@@ -214,7 +214,7 @@ export default function DashboardPage() {
             scrollBehavior: "smooth",
             pb: 2,
             "&::-webkit-scrollbar": {
-              height: "8px",
+              height: "0.5rem",
             },
             "&::-webkit-scrollbar-track": {
               bgcolor: "#F3F4F6",
@@ -233,7 +233,7 @@ export default function DashboardPage() {
             <Box
               key={request.id}
               sx={{
-                minWidth: { xs: "280px", sm: "320px", md: "300px" },
+                minWidth: { xs: "17.5rem", sm: "20rem", md: "18.75rem" },
                 flexShrink: 0,
               }}
             >
@@ -273,7 +273,7 @@ export default function DashboardPage() {
             overflowX: "auto",
             pb: 2,
             "&::-webkit-scrollbar": {
-              height: "8px",
+              height: "0.5rem",
             },
             "&::-webkit-scrollbar-track": {
               bgcolor: "#F3F4F6",

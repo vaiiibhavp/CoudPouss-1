@@ -247,7 +247,7 @@ export default function ExploreRequestsPage() {
             display: "grid",
             gridTemplateColumns: {
               xs: "1fr",
-              sm: "repeat(auto-fill, minmax(300px, 320px))",
+              sm: "repeat(auto-fill, minmax(18.75rem, 20rem))",
             },
             gap: 3,
             mb: 4,

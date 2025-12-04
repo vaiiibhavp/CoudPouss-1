@@ -39,6 +39,11 @@ export default function ProfilePage() {
     },
   ];
 
+  const handleDeleteProfile = () => {
+    // Add delete profile logic here
+    console.log("Delete profile clicked");
+  };
+
   return (
     <Box
       sx={{
@@ -49,14 +54,15 @@ export default function ProfilePage() {
       }}
     >
       {/* Header */}
-      <Header  />
+      {/* <Header  /> */}
 
       {/* Main Content */}
-      <Container
-        maxWidth="lg"
+      <Box
+        
         sx={{
           flex: 1,
-          py: 6,
+          px:"5rem",
+          py: "3.188rem",
           display: "flex",
           flexDirection: "column",
         }}
@@ -64,7 +70,7 @@ export default function ProfilePage() {
         <Box
           sx={{
             display: "flex",
-            gap: 4,
+            gap: "2rem",
             flexDirection: { xs: "column", md: "row" },
             flex: 1,
           }}
@@ -72,22 +78,22 @@ export default function ProfilePage() {
           {/* Left Sidebar - Account Setting */}
           <Box
             sx={{
-              width: { xs: "100%", md: 280 },
+              width: { xs: "100%", md: "17.5rem" },
               flexShrink: 0,
             }}
           >
             <Typography
               variant="h4"
-              fontWeight="bold"
+              fontWeight={600}
               sx={{
                 color: "text.primary",
-                mb: 3,
+                mb: "1.875rem",
                 fontSize: { xs: "1.5rem", md: "2rem" },
               }}
             >
               Account Setting
             </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
               {menuItems.map((item) => (
                 <Button
                   key={item.id}
@@ -101,22 +107,27 @@ export default function ProfilePage() {
                   sx={{
                     justifyContent: "flex-start",
                     textTransform: "none",
-                    px: 2,
-                    py: 1.5,
-                    borderRadius: 2,
+                    px: activeMenuItem === item.id ? "1.25rem" : item.id === "Sign Out" ? "1rem" : "1.25rem",
+                    py: activeMenuItem === item.id ? "0.625rem" : item.id === "Sign Out" ? "0.75rem" : "0.625rem",
+                    borderRadius: activeMenuItem === item.id ? "6.25rem" : item.id === "Sign Out" ? "1rem" : "6.25rem",
                     fontSize: "1rem",
+                    fontFamily: activeMenuItem === item.id ? "Lato, sans-serif" : item.id === "Sign Out" ? "inherit" : "Lato, sans-serif",
+                    fontWeight: activeMenuItem === item.id ? 400 : item.id === "Sign Out" ? "inherit" : 400,
+                    lineHeight: activeMenuItem === item.id ? "140%" : item.id === "Sign Out" ? "inherit" : "140%",
+                    letterSpacing: activeMenuItem === item.id ? "0%" : item.id === "Sign Out" ? "inherit" : "0%",
+                    border: activeMenuItem === item.id ? "none" : item.id === "Sign Out" ? "none" : "0.0625rem solid #EAF0F3",
                     color:
                       activeMenuItem === item.id
-                        ? "white"
+                        ? "#FFFFFF"
                         : item.id === "Sign Out"
                         ? "primary.main"
-                        : "text.secondary",
+                        : "#6D6D6D",
                     bgcolor:
-                      activeMenuItem === item.id ? "primary.main" : "transparent",
+                      activeMenuItem === item.id ? "#2C6587" : "transparent",
                     "&:hover": {
                       bgcolor:
                         activeMenuItem === item.id
-                          ? "primary.dark"
+                          ? "#2C6587"
                           : item.id === "Sign Out"
                           ? "transparent"
                           : "grey.50",
@@ -126,6 +137,30 @@ export default function ProfilePage() {
                   {item.label}
                 </Button>
               ))}
+              <Button
+                onClick={handleDeleteProfile}
+                sx={{
+                  justifyContent: "flex-start",
+                  textTransform: "none",
+                  px: 0,
+                  py: 0,
+                  minWidth: "auto",
+                  fontSize: "1rem",
+                  fontFamily: "Lato, sans-serif",
+                  fontWeight: 400,
+                  lineHeight: "140%",
+                  letterSpacing: "0%",
+                  border: "none",
+                  color: "#D32F2F",
+                  bgcolor: "transparent",
+                  mt: "0.875rem",
+                  "&:hover": {
+                    bgcolor: "transparent",
+                  },
+                }}
+              >
+                Delete Profile
+              </Button>
             </Box>
           </Box>
 
@@ -136,7 +171,7 @@ export default function ProfilePage() {
             {activeMenuItem === "Ratings & Reviews" && <RatingsReviews />}
           </Box>
         </Box>
-      </Container>
+      </Box>
 
 
     </Box>

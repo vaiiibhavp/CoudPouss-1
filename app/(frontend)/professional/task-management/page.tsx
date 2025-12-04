@@ -105,7 +105,7 @@ export default function TaskManagementPage() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "200px auto 1fr" },
+            gridTemplateColumns: { xs: "1fr", md: "12.5rem auto 1fr" },
             gap: 4,
           }}
         >

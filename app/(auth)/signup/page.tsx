@@ -123,10 +123,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: `700`,
-                fontSize: `24px`,
+                fontSize: `1.5rem`,
                 color: `primary.normal`,
-                mb: "12px",
-                lineHeight: "28px",
+                mb: "0.75rem",
+                lineHeight: "1.75rem",
                 textAlign: "center"
 
 
@@ -138,10 +138,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "1rem",
                 textAlign: "center",
                 lineHeight: "140%",
-                mb: "40px",
+                mb: "2.5rem",
                 color: "secondary.neutralWhiteDark",
               }}
             >
@@ -171,7 +171,7 @@ export default function SignupPage() {
               <Typography
 
                 sx={{
-                  fontSize: "18px",
+                  fontSize: "1.125rem",
                   color: "#818285",
 
                 }}
@@ -208,10 +208,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: `700`,
-                fontSize: `24px`,
+                fontSize: `1.5rem`,
                 color: `primary.normal`,
-                mb: "12px",
-                lineHeight: "28px",
+                mb: "0.75rem",
+                lineHeight: "1.75rem",
                 textAlign: "center"
 
 
@@ -223,10 +223,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "1rem",
                 textAlign: "center",
                 lineHeight: "140%",
-                mb: "40px",
+                mb: "2.5rem",
                 color: "secondary.neutralWhiteDark",
               }}
             >
@@ -284,10 +284,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: `700`,
-                fontSize: `24px`,
+                fontSize: `1.5rem`,
                 color: `primary.normal`,
-                mb: "12px",
-                lineHeight: "28px",
+                mb: "0.75rem",
+                lineHeight: "1.75rem",
                 textAlign: "center"
 
 
@@ -299,10 +299,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "1rem",
                 textAlign: "center",
                 lineHeight: "140%",
-                mb: "40px",
+                mb: "2.5rem",
                 color: "secondary.neutralWhiteDark",
               }}
             >
@@ -315,7 +315,7 @@ export default function SignupPage() {
               fontSize: "16px",
               textAlign: "center",
               lineHeight: "140%",
-              mb: "20px",
+              mb: "1.25rem",
               color: "secondary.neutralWhiteDark",
             }}>
               To continue Please enter the 4 Digit OTP sent to your Email or Phone Number.
@@ -342,7 +342,7 @@ export default function SignupPage() {
                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
                   inputProps={{
                     maxLength: 1,
-                    style: { textAlign: "center", fontSize: "1.5rem", fontWeight: "bold", width: "80px" },
+                    style: { textAlign: "center", fontSize: "1.5rem", fontWeight: "bold", width: "5rem" },
                   }}
                   sx={{
                     width: 60,
@@ -365,8 +365,8 @@ export default function SignupPage() {
                 display: "block",
                 textAlign: "center",
                 mb: 3,
-                fontSize: "20px",
-                lineHeight: "24px", fontWeight: 600,
+                fontSize: "1.25rem",
+                lineHeight: "1.5rem", fontWeight: 600,
                 color: "primary.normal",
                 textDecoration: "none",
                 "&:hover": {
@@ -404,10 +404,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: `700`,
-                fontSize: `24px`,
+                fontSize: `1.5rem`,
                 color: `primary.normal`,
-                mb: "12px",
-                lineHeight: "28px",
+                mb: "0.75rem",
+                lineHeight: "1.75rem",
                 textAlign: "center"
 
 
@@ -419,10 +419,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "1rem",
                 textAlign: "center",
                 lineHeight: "140%",
-                mb: "40px",
+                mb: "2.5rem",
                 color: "secondary.neutralWhiteDark",
               }}
             >
@@ -432,10 +432,10 @@ export default function SignupPage() {
             <Typography
               sx={{
                 fontWeight: `700`,
-                fontSize: `24px`,
+                fontSize: `1.5rem`,
                 color: `primary.normal`,
-                mb: "12px",
-                lineHeight: "28px",
+                mb: "0.75rem",
+                lineHeight: "1.75rem",
                 textAlign: "center"
 
 
@@ -541,10 +541,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: `700`,
-                fontSize: `24px`,
+                fontSize: `1.5rem`,
                 color: `primary.normal`,
-                mb: "12px",
-                lineHeight: "28px",
+                mb: "0.75rem",
+                lineHeight: "1.75rem",
                 textAlign: "center"
 
 
@@ -556,10 +556,10 @@ export default function SignupPage() {
 
               sx={{
                 fontWeight: 400,
-                fontSize: "16px",
+                fontSize: "1rem",
                 textAlign: "center",
                 lineHeight: "140%",
-                mb: "40px",
+                mb: "2.5rem",
                 color: "secondary.neutralWhiteDark",
               }}
             >
@@ -606,7 +606,7 @@ export default function SignupPage() {
                   color: "primary.normal",
                   textDecoration: "none",
                   lineHeight: "140%",
-                  fontSize: "16px",
+                  fontSize: "1rem",
                   "&:hover": {
                     textDecoration: "underline",
                   },

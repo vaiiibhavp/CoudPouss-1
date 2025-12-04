@@ -137,7 +137,7 @@ export default function RequestViewPage() {
                 overflow: "hidden",
                 mb: 3,
                 bgcolor: "#F9FAFB",
-                border: "1px solid #E5E7EB",
+                border: "0.0625rem solid #E5E7EB",
               }}
             >
               {/* Category Badge */}
@@ -189,7 +189,7 @@ export default function RequestViewPage() {
                   top: "45%",
                   transform: "translateY(-50%)",
                   bgcolor: "rgba(255, 255, 255, 0.95)",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
                   width: 36,
                   height: 36,
                   "&:hover": {
@@ -207,7 +207,7 @@ export default function RequestViewPage() {
                   top: "45%",
                   transform: "translateY(-50%)",
                   bgcolor: "rgba(255, 255, 255, 0.95)",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
                   width: 36,
                   height: 36,
                   "&:hover": {
@@ -234,8 +234,8 @@ export default function RequestViewPage() {
                     cursor: "pointer",
                     border:
                       currentImageIndex === index
-                        ? "2px solid #2F6B8E"
-                        : "2px solid #E5E7EB",
+                        ? "0.125rem solid #2F6B8E"
+                        : "0.125rem solid #E5E7EB",
                     transition: "all 0.2s",
                     "&:hover": {
                       borderColor: "#2F6B8E",
@@ -311,7 +311,7 @@ export default function RequestViewPage() {
                     height: 160,
                     borderRadius: 2,
                     overflow: "hidden",
-                    border: "1px solid #E5E7EB",
+                    border: "0.0625rem solid #E5E7EB",
                     bgcolor: "#FAFAFA",
                     p: 2,
                   }}
@@ -338,7 +338,7 @@ export default function RequestViewPage() {
                     height: 160,
                     borderRadius: 2,
                     overflow: "hidden",
-                    border: "1px solid #E5E7EB",
+                    border: "0.0625rem solid #E5E7EB",
                     bgcolor: "#FAFAFA",
                     p: 2,
                   }}

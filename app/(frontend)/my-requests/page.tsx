@@ -52,7 +52,7 @@ export default function MyRequestsPage() {
   const [openPayment, setOpenPayment] = useState(false);
   const [openProceed, setOpenProceed] = useState(false);
   const [openSummary, setOpenSummary] = useState(false);
-  const [showTracking, setShowTracking] = useState(false);
+  const [showTracking, setShowTracking] = useState(true);
 
   useEffect(() => {
     const storedInitial = localStorage.getItem("userInitial");
@@ -271,7 +271,7 @@ export default function MyRequestsPage() {
                 width: { xs: "100%", sm: 300 },
                 bgcolor: "white",
                 borderRadius: 2,
-                border: "1px solid",
+                border: "0.0625rem solid",
                 borderColor: "grey.300",
                 overflow: "hidden",
               }}
@@ -340,7 +340,7 @@ export default function MyRequestsPage() {
                     pr: "0.625rem",
                     borderRadius: "0.75rem",
                     cursor: "pointer",
-                    border: "1px solid",
+                    border: "0.0625rem solid",
                     borderColor:
                       selectedRequest === request.id ? "#2F6B8E" : "grey.200",
                     bgcolor:
@@ -494,7 +494,7 @@ export default function MyRequestsPage() {
                   <Box
                     sx={{
                       borderRadius: 3,
-                      border: "1px solid",
+                      border: "0.0625rem solid",
                       borderColor: "grey.200",
                       p: { xs: 2, md:"1.25rem" },
                       flex: 1,
@@ -699,7 +699,7 @@ export default function MyRequestsPage() {
                           justifyContent: "space-between",
                           alignItems: "center",
                           borderRadius: "0.75rem",
-                          border: "1px solid #D5D5D5",
+                          border: "0.0625rem solid #D5D5D5",
                           pt: "0.875rem",
                           pr: "1rem",
                           pb: "0.875rem",
@@ -742,7 +742,7 @@ export default function MyRequestsPage() {
                     {/* PROFESSIONAL ROW */}
                     <Box
                       sx={{
-                        border: "1px solid #E6E6E6",
+                        border: "0.0625rem solid #E6E6E6",
                         borderRadius: "0.75rem",
                         pt: "0.8125rem",
                         pr: "1rem",
@@ -894,7 +894,7 @@ export default function MyRequestsPage() {
                       </Typography>
                       <Box
                         sx={{
-                          border: "1px solid #D5D5D5",
+                          border: "0.0625rem solid #D5D5D5",
                           borderRadius: "0.75rem",
                           pt: "0.875rem",
                           pr: "1rem",
@@ -984,9 +984,9 @@ export default function MyRequestsPage() {
                           <Box
                             key={doc}
                             sx={{
-                              flex: "1 1 200px",
+                              flex: "1 1 12.5rem",
                               borderRadius: 2,
-                              border: "1px dashed",
+                              border: "0.0625rem dashed",
                               borderColor: "grey.300",
                               bgcolor: "white",
                               p: 3,
@@ -1005,8 +1005,8 @@ export default function MyRequestsPage() {
                             />
                             <Typography
                               sx={{
-                                fontSize: "16px",
-                                lineHeight: "18px",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
                                 letterSpacing: "0%",
                                 color: "#818285",
                                 fontWeight: 400,
@@ -1023,7 +1023,7 @@ export default function MyRequestsPage() {
                     <Box
                       sx={{
                         display: "flex",
-                        gap: "16px",
+                        gap: "1rem",
                         justifyContent: "flex-end",
                         mt: 1,
                       }}
@@ -1049,11 +1049,11 @@ export default function MyRequestsPage() {
                         variant="contained"
                         sx={{
                           textTransform: "none",
-                          width: "205px",
-                          height: "56px",
-                          borderRadius: "12px",
-                          p: "10px",
-                          gap: "10px",
+                          width: "12.8125rem",
+                          height: "3.5rem",
+                          borderRadius: "0.75rem",
+                          p: "0.625rem",
+                          gap: "0.625rem",
                           bgcolor: "#214C65",
                           "&:hover": {
                             bgcolor: "#214C65",

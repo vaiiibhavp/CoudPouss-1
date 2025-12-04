@@ -6,34 +6,34 @@ import EditIcon from "@mui/icons-material/Edit";
 
 export default function ProfileOverview() {
   return (
-    <Card
+    <Box
       sx={{
-        p: 4,
-        borderRadius: 3,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         flex: 1,
         display: "flex",
         flexDirection: "column",
+        gap: "1.5rem",
       }}
     >
       {/* Top Section - User Summary */}
       <Box
         sx={{
           display: "flex",
+          justifyContent: "space-between",
           gap: 3,
-          mb: 4,
+          p: "1.5rem",
+          borderRadius: "0.75rem",
+          border: "0.0625rem solid #EAF5F4",
+          bgcolor: "#FFFFFF",
           flexDirection: { xs: "column", sm: "row" },
-          alignItems: { xs: "center", sm: "flex-start" },
+          alignItems: { xs: "center", sm: "center" },
         }}
       >
         <Avatar
           src="/icons/testimonilas-1.png"
           alt="Bessie Carter"
           sx={{
-            width: { xs: 120, sm: 150 },
-            height: { xs: 120, sm: 150 },
-            border: "4px solid",
-            borderColor: "grey.200",
+            width: "8.125rem",
+            height: "8.125rem",
           }}
         />
         <Box sx={{ flex: 1, width: "100%" }}>
@@ -41,7 +41,7 @@ export default function ProfileOverview() {
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "flex-start",
+              alignItems: "center",
               mb: 1,
               flexDirection: { xs: "column", sm: "row" },
               gap: { xs: 2, sm: 0 },
@@ -50,7 +50,7 @@ export default function ProfileOverview() {
             <Box>
               <Typography
                 variant="h4"
-                fontWeight="bold"
+                fontWeight={500}
                 sx={{
                   color: "text.primary",
                   mb: 0.5,
@@ -64,6 +64,7 @@ export default function ProfileOverview() {
                 sx={{
                   color: "text.secondary",
                   fontSize: { xs: "0.9rem", md: "1rem" },
+                  fontWeight: 400,
                 }}
               >
                 Manchester, Kentucky 39495
@@ -71,17 +72,23 @@ export default function ProfileOverview() {
             </Box>
             <Button
               variant="outlined"
-              startIcon={<EditIcon />}
+              endIcon={<EditIcon sx={{ color: "#6D6D6D", fontSize: "1rem" }} />}
               sx={{
                 textTransform: "none",
-                borderColor: "grey.300",
-                color: "text.primary",
-                px: 2,
-                py: 1,
-                borderRadius: 2,
+                border: "0.03125rem solid #DFE8ED",
+                borderColor: "#DFE8ED",
+                color: "#6D6D6D",
+                px: "0.75rem",
+                py: "0.625rem",
+                borderRadius: "6.25rem",
+                gap: "0.375rem",
+                fontSize: "1rem",
+                fontWeight: 400,
+                lineHeight: "1.125rem",
+                letterSpacing: "0%",
                 "&:hover": {
-                  borderColor: "primary.main",
-                  bgcolor: "primary.50",
+                  borderColor: "#DFE8ED",
+                  bgcolor: "transparent",
                 },
               }}
             >
@@ -92,10 +99,17 @@ export default function ProfileOverview() {
       </Box>
 
       {/* Bottom Section - Personal Information */}
-      <Box>
+      <Box
+        sx={{
+          p: "1.5rem",
+          borderRadius: "0.75rem",
+          border: "0.0625rem solid #EAF5F4",
+          bgcolor: "#FFFFFF",
+        }}
+      >
         <Typography
           variant="h5"
-          fontWeight="bold"
+          fontWeight={400}
           sx={{
             color: "primary.main",
             mb: 3,
@@ -119,6 +133,7 @@ export default function ProfileOverview() {
                   color: "text.secondary",
                   mb: 0.5,
                   fontSize: "0.85rem",
+                  fontWeight: 500,
                 }}
               >
                 Full Name
@@ -127,7 +142,7 @@ export default function ProfileOverview() {
                 variant="body1"
                 sx={{
                   color: "text.primary",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   fontSize: "1rem",
                 }}
               >
@@ -141,6 +156,7 @@ export default function ProfileOverview() {
                   color: "text.secondary",
                   mb: 0.5,
                   fontSize: "0.85rem",
+                  fontWeight: 500,
                 }}
               >
                 Mobile Number
@@ -149,7 +165,7 @@ export default function ProfileOverview() {
                 variant="body1"
                 sx={{
                   color: "text.primary",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   fontSize: "1rem",
                 }}
               >
@@ -163,6 +179,7 @@ export default function ProfileOverview() {
                   color: "text.secondary",
                   mb: 0.5,
                   fontSize: "0.85rem",
+                  fontWeight: 500,
                 }}
               >
                 Year of Experience
@@ -171,7 +188,7 @@ export default function ProfileOverview() {
                 variant="body1"
                 sx={{
                   color: "text.primary",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   fontSize: "1rem",
                 }}
               >
@@ -188,6 +205,7 @@ export default function ProfileOverview() {
                   color: "text.secondary",
                   mb: 0.5,
                   fontSize: "0.85rem",
+                  fontWeight: 500,
                 }}
               >
                 E-mail id
@@ -196,7 +214,7 @@ export default function ProfileOverview() {
                 variant="body1"
                 sx={{
                   color: "text.primary",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   fontSize: "1rem",
                 }}
               >
@@ -210,6 +228,7 @@ export default function ProfileOverview() {
                   color: "text.secondary",
                   mb: 0.5,
                   fontSize: "0.85rem",
+                  fontWeight: 500,
                 }}
               >
                 Address
@@ -218,7 +237,7 @@ export default function ProfileOverview() {
                 variant="body1"
                 sx={{
                   color: "text.primary",
-                  fontWeight: 500,
+                  fontWeight: 400,
                   fontSize: "1rem",
                 }}
               >
@@ -228,7 +247,7 @@ export default function ProfileOverview() {
           </Box>
         </Box>
       </Box>
-    </Card>
+    </Box>
   );
 }
 

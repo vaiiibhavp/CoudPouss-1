@@ -127,7 +127,7 @@ export default function ChatPage() {
             borderRadius: 3,
             overflow: "hidden",
             display: "flex",
-            height: { xs: "calc(100vh - 300px)", md: "calc(100vh - 250px)" },
+            height: { xs: "calc(100vh - 18.75rem)", md: "calc(100vh - 15.625rem)" },
             minHeight: 600,
             border: "1px solid",
             borderColor: "grey.200",
@@ -137,7 +137,7 @@ export default function ChatPage() {
           <Box
             sx={{
               width: { xs: "100%", md: "27.813rem" },
-              borderRight: " 1px solid   #E6E6E6",
+              borderRight: " 0.0625rem solid   #E6E6E6",
               borderColor: "grey.200",
               display: "flex",
               flexDirection: "column",
@@ -145,7 +145,7 @@ export default function ChatPage() {
             }}
           >
             {/* Chats Header */}
-            <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "grey.200" }}>
+            <Box sx={{ p: 2, borderBottom: "0.0625rem solid", borderColor: "grey.200" }}>
               <Typography sx={{ mb: "2rem", color: "primary.normal", fontSize: "2rem", lineHeight: "1.75rem ", fontWeight: 600 }}>
                 Chats
               </Typography>
@@ -165,7 +165,7 @@ export default function ChatPage() {
                     alignItems: "center",
                     bgcolor: "white",
                     borderRadius: "0.625rem",
-                    border: "1px solid",
+                    border: "0.0625rem solid",
                     borderColor: "grey.300",
                     px: "1rem",
                     py: "0.75rem",
@@ -203,7 +203,7 @@ export default function ChatPage() {
                 <Box sx={{
                   py: "0.75rem",
                   px: "1rem",
-                  border: "1px solid #BECFDA",
+                  border: "0.0625rem solid #BECFDA",
                   borderRadius: "0.625rem"
                 }} >
                   <Image
@@ -229,7 +229,7 @@ export default function ChatPage() {
                     gap: 2,
                     cursor: "pointer",
                     bgcolor: chat.isActive ? "grey.100" : "transparent",
-                    borderLeft: chat.isActive ? "3px solid" : "none",
+                    borderLeft: chat.isActive ? "0.1875rem solid" : "none",
                     borderColor: chat.isActive ? "primary.main" : "transparent",
                     "&:hover": {
                       bgcolor: "grey.50",
@@ -281,7 +281,7 @@ export default function ChatPage() {
             <Box
               sx={{
                 p: 2,
-                borderBottom: "1px solid",
+                borderBottom: "0.0625rem solid",
                 borderColor: "grey.200",
                 display: "flex",
                 alignItems: "center",
@@ -382,7 +382,7 @@ export default function ChatPage() {
             <Box sx={{
               px: "1.75rem",
               py: "1.188rem",
-              borderTop: "1px solid",
+              borderTop: "0.0625rem solid",
               borderColor: "#E6E6E6",
             }}  >
               <Box

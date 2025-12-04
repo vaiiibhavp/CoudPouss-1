@@ -77,7 +77,7 @@ const page = () => {
                                 p: "0.875rem",
                                 textAlign: "center",
                                 position: "relative",
-                                border: "1px solid #DFE8ED",
+                                border: "0.0625rem solid #DFE8ED",
                             }}
                         >
                             {/* Heart Icon */}
@@ -100,7 +100,7 @@ const page = () => {
                                     height: 80,
                                     borderRadius: "50%",
                                     bgcolor: "grey.300",
-                                    margin: "0 auto 12px",
+                                    margin: "0 auto 0.75rem",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -171,7 +171,7 @@ const page = () => {
                                 p: "0.875rem",
                                 textAlign: "center",
                                 position: "relative",
-                                border: "1px solid #DFE8ED",
+                                border: "0.0625rem solid #DFE8ED",
                             }}
                         >
                             {/* Heart Icon */}
@@ -194,7 +194,7 @@ const page = () => {
                                     height: 80,
                                     borderRadius: "50%",
                                     bgcolor: "grey.300",
-                                    margin: "0 auto 12px",
+                                    margin: "0 auto 0.75rem",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",

@@ -117,7 +117,7 @@ export default function RejectServiceRequestModal({
                                         paddingBottom: "0.875rem",
                                         paddingLeft: "1rem",
                                         borderRadius: "0.75rem",
-                                        border: "1px solid",
+                                        border: "0.0625rem solid",
                                         borderColor: selected ? "#0F4C81" : "#D5D5D5",
                                         bgcolor: "#FFFFFF",
                                         cursor: "pointer",

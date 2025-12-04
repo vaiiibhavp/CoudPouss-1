@@ -514,7 +514,7 @@ export default function HomePage() {
 
             <Box
               key={index}
-              sx={{ height: "100%", textAlign: "center", borderRadius: "2.125rem", border: "1px solid #DFE8ED", p: "3.73rem", flex: 1 }}
+              sx={{ height: "100%", textAlign: "center", borderRadius: "2.125rem", border: "0.0625rem solid #DFE8ED", p: "3.73rem", flex: 1 }}
             >
               <Box
                 sx={{
@@ -594,7 +594,7 @@ export default function HomePage() {
                 key={card.id}
                 sx={{
                   overflow: "hidden",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
                   display: "flex",
                   flexDirection: "row",
                   borderRadius: "1.25rem"
@@ -699,7 +699,7 @@ export default function HomePage() {
                   key={card.id}
                   sx={{
                     overflow: "hidden",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                    boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
                     display: "flex",
                     flexDirection: "row",
                     borderRadius: "1.25rem",
@@ -1339,7 +1339,7 @@ export default function HomePage() {
                   <Box
                     key={testimonial.id}
                     sx={{
-                      minWidth: { xs: "85%", md: "calc(33.333% - 32px)" },
+                      minWidth: { xs: "85%", md: "calc(33.333% - 2rem)" },
                       flexShrink: 0,
                       scrollSnapAlign: "center",
                       display: "flex",
@@ -1377,9 +1377,9 @@ export default function HomePage() {
                           width: 100,
                           height: 100,
                           borderRadius: "50%",
-                          border: "4px solid white",
+                          border: "0.25rem solid white",
                           overflow: "hidden",
-                          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                          boxShadow: "0 0.25rem 0.5rem rgba(0,0,0,0.1)",
                           zIndex: 2,
                         }}
                       >
