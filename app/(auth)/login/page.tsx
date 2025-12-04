@@ -91,7 +91,7 @@ export default function LoginPage() {
       <Box
         sx={{
           display: { xs: 'none', lg: 'flex' },
-          width: '806px',
+          width: '55%',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -110,7 +110,7 @@ export default function LoginPage() {
             fill
             style={{
               objectFit: 'cover',
-              objectPosition: 'center',
+              objectPosition: 'top',
             }}
             sizes="50vw"
             priority
@@ -124,7 +124,7 @@ export default function LoginPage() {
       {/* Right side - Login Form */}
       <Box
         sx={{
-          width: { xs: '100%', md: '643px' },
+          width: { xs: '100%', md: '45%' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

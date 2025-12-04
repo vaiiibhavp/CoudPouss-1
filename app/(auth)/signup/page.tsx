@@ -822,7 +822,7 @@ export default function SignupPage() {
       <Box
         sx={{
           display: { xs: "none", md: "block" },
-          width: { md: "66.666%" },
+          width: { md: "55%" },
           position: "relative",
           bgcolor: "grey.100",
         }}
@@ -839,7 +839,10 @@ export default function SignupPage() {
             src="/image/main.png"
             alt="CoudPouss Service"
             fill
-            style={{ objectFit: "cover" }}
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'top',
+            }}
             sizes="66.666vw"
             priority
           />
@@ -849,7 +852,7 @@ export default function SignupPage() {
       {/* Right side - Signup Form */}
       <Box
         sx={{
-          width: { xs: "100%", md: "33.333%" },
+          width: { xs: "100%", md: "45%" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

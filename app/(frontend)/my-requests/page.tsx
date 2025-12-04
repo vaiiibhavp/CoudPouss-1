@@ -11,6 +11,7 @@ import {
   Container,
   Divider,
   IconButton,
+  InputAdornment,
   InputBase,
   Typography,
 } from "@mui/material";
@@ -29,7 +30,6 @@ import ProceedToPaymentModal from "@/components/ProceedToPaymentModal";
 import ServiceConfirmSummaryModal from "@/components/ServiceConfirmSummaryModal";
 import CompletedSection from "@/components/task-management/CompletedSection";
 import ConfirmByElderSection from "@/components/my-request/ConfirmByElderSection";
-
 
 interface Request {
   id: string;
@@ -60,7 +60,6 @@ export default function MyRequestsPage() {
   const [openProceed, setOpenProceed] = useState(false);
   const [openSummary, setOpenSummary] = useState(false);
   const [showTracking, setShowTracking] = useState(false);
-
 
   useEffect(() => {
     const storedInitial = localStorage.getItem("userInitial");
@@ -172,13 +171,15 @@ export default function MyRequestsPage() {
     activeFilter === "All"
       ? requests
       : requests.filter((req) => {
-        if (activeFilter === "Open Proposal")
-          return req.status === "Open Proposal";
-        if (activeFilter === "Responses") return req.status === "Responded";
-        return true;
-      });
+          if (activeFilter === "Open Proposal")
+            return req.status === "Open Proposal";
+          if (activeFilter === "Responses") return req.status === "Responded";
+          return true;
+        });
 
-  const selectedRequestData = requests.find((req) => req.id === selectedRequest);
+  const selectedRequestData = requests.find(
+    (req) => req.id === selectedRequest
+  );
 
   return (
     <Box
@@ -190,7 +191,6 @@ export default function MyRequestsPage() {
       }}
     >
       {/* <Header /> */}
-
       <Container
         maxWidth="xl"
         sx={{
@@ -202,11 +202,13 @@ export default function MyRequestsPage() {
       >
         <Typography
           variant="h5"
-          fontWeight="bold"
           sx={{
-            color: "#2F6B8E",
+            fontSize: "1.5rem",
+            lineHeight: "1.75rem",
+            letterSpacing: "0%",
+            fontWeight: 600,
+            color: "primary.normal",
             mb: 3,
-            fontSize: { xs: "1.5rem", md: "1.75rem" },
           }}
         >
           Request Management
@@ -238,19 +240,21 @@ export default function MyRequestsPage() {
                   sx={{
                     textTransform: "none",
                     borderRadius: 2,
-                    px: 2,
-                    py: 0.5,
-                    fontSize: "0.9rem",
+                    px: "1.125rem",
+                    py: "1.125rem",
+                    fontSize: "1rem",
+                    fontWeight: 500,
                     bgcolor:
-                      activeFilter === filter ? "#2F6B8E" : "transparent",
-                    color:
-                      activeFilter === filter ? "white" : "text.secondary",
+                      activeFilter === filter
+                        ? "primary.normal"
+                        : "transparent",
+                    color: activeFilter === filter ? "white" : "text.secondary",
                     borderColor:
-                      activeFilter === filter ? "#2F6B8E" : "grey.300",
+                      activeFilter === filter ? "primary.normal" : "grey.300",
                     "&:hover": {
                       bgcolor:
-                        activeFilter === filter ? "#25608A" : "grey.50",
-                      borderColor: "#2F6B8E",
+                        activeFilter === filter ? "primary.normal" : "grey.50",
+                      borderColor: "primary.normal",
                     },
                   }}
                 >
@@ -272,7 +276,7 @@ export default function MyRequestsPage() {
                 display: "flex",
                 alignItems: "center",
                 width: { xs: "100%", sm: 300 },
-                bgcolor: "grey.50",
+                bgcolor: "white",
                 borderRadius: 2,
                 border: "1px solid",
                 borderColor: "grey.300",
@@ -281,30 +285,34 @@ export default function MyRequestsPage() {
             >
               <InputBase
                 placeholder="Search"
+                startAdornment={
+                  <Image
+                    src={"/icons/Loupe.png"}
+                    alt="searchIcon"
+                    width={20}
+                    height={20}
+                    style={{
+                      marginRight: "0.625rem",
+                    }}
+                  />
+                }
                 sx={{
                   flex: 1,
                   px: 2,
                   py: 1,
                   "& .MuiInputBase-input": {
                     color: "text.primary",
-                    fontSize: "0.95rem",
+                    fontSize: "1rem",
                   },
                   "& .MuiInputBase-input::placeholder": {
-                    color: "text.secondary",
+                    fontSize: "1rem",
+                    lineHeight: "140%",
+                    letterSpacing: "0%",
+                    color: "#555555",
                     opacity: 1,
                   },
                 }}
               />
-              <IconButton
-                sx={{
-                  color: "text.secondary",
-                  "&:hover": {
-                    bgcolor: "transparent",
-                  },
-                }}
-              >
-                <SearchIcon />
-              </IconButton>
             </Box>
           </Box>
         </Box>
@@ -330,12 +338,14 @@ export default function MyRequestsPage() {
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {filteredRequests.map((request) => (
-                <Card
+                <Box
                   key={request.id}
                   onClick={() => setSelectedRequest(request.id)}
                   sx={{
-                    p: 2,
-                    borderRadius: 2,
+                    py: "0.65625rem",
+                    pl: "0.625rem",
+                    pr: "0.625rem",
+                    borderRadius: "0.75rem",
                     cursor: "pointer",
                     border: "1px solid",
                     borderColor:
@@ -353,9 +363,9 @@ export default function MyRequestsPage() {
                   <Box sx={{ display: "flex", gap: 2 }}>
                     <Box
                       sx={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 2,
+                        width: "5.5rem",
+                        height: "4.625rem",
+                        borderRadius: "0.75rem",
                         overflow: "hidden",
                         position: "relative",
                         flexShrink: 0,
@@ -369,509 +379,579 @@ export default function MyRequestsPage() {
                       />
                     </Box>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography
-                        variant="body1"
-                        fontWeight="600"
-                        sx={{ mb: 0.5, color: "text.primary" }}
-                      >
-                        {request.serviceName}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: "block", mb: 1 }}
-                      >
-                        {request.date} • {request.time}
-                      </Typography>
-                      <Chip
-                        label={
-                          request.status === "Responded"
-                            ? "Responded"
-                            : request.status
-                        }
-                        size="small"
+                      <Box
                         sx={{
-                          bgcolor:
-                            request.status === "Responded"
-                              ? "#F59E0B"
-                              : "#10B981",
-                          color: "white",
-                          fontSize: "0.7rem",
-                          height: 20,
-                          fontWeight: 500,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          mb: 0.5,
                         }}
-                      />
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: "1.125rem",
+                            lineHeight: "1.5rem",
+                            letterSpacing: "0%",
+                            color: "#424242",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {request.serviceName}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            bgcolor:
+                              request.status === "Responded"
+                                ? "rgba(245, 158, 11, 0.1)"
+                                : "rgba(16, 185, 129, 0.1)",
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: "0.5rem",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              bgcolor:
+                                request.status === "Responded"
+                                  ? "#F59E0B"
+                                  : "#10B981",
+                            }}
+                          />
+                          <Typography
+                            sx={{
+                              fontSize: "0.75rem",
+                              color:
+                                request.status === "Responded"
+                                  ? "#F59E0B"
+                                  : "#10B981",
+                              fontWeight: 500,
+                            }}
+                          >
+                            {request.status === "Responded"
+                              ? "Responded"
+                              : request.status}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Box
+                        component="span"
+                        sx={{
+                          fontSize: "0.875rem",
+                          lineHeight: "1.125rem",
+                          letterSpacing: "0%",
+                          color: "#555555",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                        }}
+                      >
+                        {request.date}
+                        <Box
+                          component="span"
+                          sx={{
+                            width: 4,
+                            height: 4,
+                            borderRadius: "50%",
+                            bgcolor: "#2F6B8E",
+                            display: "inline-block",
+                          }}
+                        />
+                        {request.time}
+                      </Box>
                     </Box>
                   </Box>
-                </Card>
+                </Box>
               ))}
             </Box>
           </Box>
 
           {/* RIGHT DETAILS */}
 
-          {
-            showTracking ?
-              <ConfirmByElderSection /> :
-
-              <Box
-                sx={{
-                  flex: 1,
-                  bgcolor: "white",
-                  borderRadius: 3,
-                  p: 4,
-                  pt: 0,
-                  position: "relative",
-                  minHeight: 600,
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                {selectedRequestData ? (
+          {showTracking ? (
+            <ConfirmByElderSection />
+          ) : (
+            <Box
+              sx={{
+                flex: 1,
+                bgcolor: "white",
+                borderRadius: 3,
+                p: 4,
+                pt: 0,
+                position: "relative",
+                minHeight: 600,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {selectedRequestData ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 3,
+                    flex: 1,
+                  }}
+                >
                   <Box
                     sx={{
+                      borderRadius: 3,
+                      border: "1px solid",
+                      borderColor: "grey.200",
+                      p: { xs: 2, md:"1.25rem" },
+                      flex: 1,
                       display: "flex",
                       flexDirection: "column",
                       gap: 3,
-                      flex: 1,
-                      mt: 2,
                     }}
                   >
-                    <Card
+                    {/* IMAGE + TITLE */}
+                    <Box
                       sx={{
-                        borderRadius: 3,
-                        border: "1px solid",
-                        borderColor: "grey.200",
-                        boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-                        p: { xs: 2, md: 3 },
-                        flex: 1,
                         display: "flex",
-                        flexDirection: "column",
+                        flexDirection: { xs: "column", md: "row" },
                         gap: 3,
                       }}
                     >
-                      {/* IMAGE + TITLE */}
+                      <Box
+                        sx={{
+                          width: { xs: "100%", md: 220 },
+                          height: { xs: 180, md: 180 },
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          position: "relative",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Image
+                          src={selectedRequestData.image}
+                          alt={selectedRequestData.serviceName}
+                          fill
+                          style={{ objectFit: "cover" }}
+                        />
+                      </Box>
+
+                      <Box
+                        sx={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Typography
+                          variant="h5"
+                          fontWeight="bold"
+                          sx={{ color: "text.primary" }}
+                        >
+                          {selectedRequestData.serviceName}
+                        </Typography>
+                        <Typography variant="subtitle1" color="text.secondary">
+                          Exterior Cleaning
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* DATE / TIME / CATEGORY / LOCATION */}
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))", // always 2 columns
+                        columnGap: 4,
+                        rowGap: 2,
+                        bgcolor: "grey.50",
+                        p: 2,
+                        borderRadius: 4, // a bit more pill-like
+                      }}
+                    >
                       <Box
                         sx={{
                           display: "flex",
-                          flexDirection: { xs: "column", md: "row" },
-                          gap: 3,
+                          alignItems: "center",
+                          gap: 1,
                         }}
                       >
-                        <Box
-                          sx={{
-                            width: { xs: "100%", md: 220 },
-                            height: { xs: 180, md: 180 },
-                            borderRadius: 2,
-                            overflow: "hidden",
-                            position: "relative",
-                            flexShrink: 0,
-                          }}
-                        >
-                          <Image
-                            src={selectedRequestData.image}
-                            alt={selectedRequestData.serviceName}
-                            fill
-                            style={{ objectFit: "cover" }}
-                          />
-                        </Box>
-
-                        <Box
-                          sx={{
-                            flex: 1,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Typography
-                            variant="h5"
-                            fontWeight="bold"
-                            sx={{ color: "text.primary" }}
-                          >
-                            {selectedRequestData.serviceName}
-                          </Typography>
-                          <Typography variant="subtitle1" color="text.secondary">
-                            Exterior Cleaning
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      {/* DATE / TIME / CATEGORY / LOCATION */}
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(2, minmax(0, 1fr))", // always 2 columns
-                          columnGap: 4,
-                          rowGap: 2,
-                          bgcolor: "grey.50",
-                          p: 2,
-                          borderRadius: 4, // a bit more pill-like
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <CalendarTodayIcon sx={{ fontSize: 18, color: "primary.main" }} />
-                          <Typography variant="body2" fontWeight="500">
-                            {selectedRequestData.date}
-                          </Typography>
-                        </Box>
-
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <AccessTimeIcon sx={{ fontSize: 18, color: "primary.main" }} />
-                          <Typography variant="body2" fontWeight="500">
-                            {selectedRequestData.time}
-                          </Typography>
-                        </Box>
-
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <BuildIcon sx={{ fontSize: 18, color: "primary.main" }} />
-                          <Typography variant="body2" fontWeight="500">
-                            {selectedRequestData.category}
-                          </Typography>
-                        </Box>
-
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <LocationOnIcon sx={{ fontSize: 18, color: "primary.main" }} />
-                          <Typography variant="body2" fontWeight="500">
-                            {selectedRequestData.location}
-                          </Typography>
-                        </Box>
-                      </Box>
-
-
-
-
-                      {/* QUOTE ROW (matches Figma) */}
-                      <Box
-                        sx={{
-                          border: "1px solid #E5E7EB",
-                          borderRadius: 3,
-                          p: 3,
-
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            flexWrap: "wrap",
-                            gap: 2,
-                          }}
-                        >
-                          <Box>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                              Quote Amount
-                            </Typography>
-                            <Typography variant="h4" fontWeight="bold" sx={{ color: "primary.main" }}>
-                              €{selectedRequestData.quote}
-                            </Typography>
-                          </Box>
-
-                          <Button
-                            variant="contained"
-                            sx={{
-                              textTransform: "none",
-                              borderRadius: 2,
-                              px: 3,
-                              py: 1,
-                            }}
-                          >
-                            Negotiate
-                          </Button>
-                        </Box>
-                      </Box>
-
-
-
-
-
-
-                      {/* PROFESSIONAL ROW */}
-                      <Box
-                        sx={{
-                          border: "1px solid #E5E7EB",
-                          borderRadius: 3,
-                          p: 3,
-
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            mb: 2,
-                          }}
-                        >
-                          <Typography variant="subtitle1" fontWeight="600">
-                            About professional
-                          </Typography>
-
-                          <IconButton size="small">
-                            <FavoriteBorderIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                            justifyContent: "space-between",
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                            <Avatar
-                              src={selectedRequestData.professional.avatar}
-                              alt={selectedRequestData.professional.name}
-                            />
-
-                            <Box>
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                <Typography fontWeight="600">
-                                  {selectedRequestData.professional.name}
-                                </Typography>
-
-                                <VerifiedIcon sx={{ fontSize: 18, color: "#10B981" }} />
-
-                                <Chip
-                                  label="Most professional"
-                                  size="small"
-                                  sx={{
-                                    bgcolor: "rgba(16,185,129,0.08)",
-                                    color: "#059669",
-                                    borderRadius: 999,
-                                  }}
-                                />
-                              </Box>
-
-                              <Typography variant="body2" color="text.secondary">
-                                About professional
-                              </Typography>
-                            </Box>
-                          </Box>
-
-                          <Box sx={{ display: "flex", gap: 1.5 }}>
-                            <Button variant="contained" sx={{ borderRadius: 2, px: 5 }}>
-                              Chat
-                            </Button>
-                            <Button variant="contained" sx={{ borderRadius: 2, px: 5 }}>
-                              View Profile
-                            </Button>
-                          </Box>
-                        </Box>
-                      </Box>
-
-
-                      {/* PERSONALIZED MESSAGE */}
-                      <Box
-                        sx={{
-                          border: "1px solid #E5E7EB",
-                          borderRadius: 3,
-                          p: 3,
-
-                        }}
-                      >
-                        <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 1 }}>
-                          Personalized short message
-                        </Typography>
-
-                        <Typography variant="body2" color="text.secondary">
-                          {selectedRequestData.message}
+                        <CalendarTodayIcon
+                          sx={{ fontSize: 18, color: "primary.main" }}
+                        />
+                        <Typography variant="body2" fontWeight="500">
+                          {selectedRequestData.date}
                         </Typography>
                       </Box>
 
-
-                      {/* SHORT VIDEOS */}
-                      <Box>
-                        <Typography
-                          variant="subtitle1"
-                          fontWeight="600"
-                          sx={{ mb: 1 }}
-                        >
-                          Short videos
-                        </Typography>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: 2,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          {selectedRequestData.videos.map((video, index) => (
-                            <Box
-                              key={index}
-                              sx={{
-                                width: { xs: "100%", sm: 180 },
-                                height: 120,
-                                borderRadius: 2,
-                                overflow: "hidden",
-                                position: "relative",
-                              }}
-                            >
-                              <Image
-                                src={video}
-                                alt={`Video ${index + 1}`}
-                                fill
-                                style={{ objectFit: "cover" }}
-                              />
-                            </Box>
-                          ))}
-                        </Box>
-                      </Box>
-
-                      {/* SUPPORTING DOCUMENTS */}
-                      <Box>
-                        <Typography
-                          variant="subtitle1"
-                          fontWeight="600"
-                          sx={{ mb: 1 }}
-                        >
-                          Supporting documents
-                        </Typography>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: 2,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          {[1, 2].map((doc) => (
-                            <Card
-                              key={doc}
-                              sx={{
-                                flex: "1 1 200px",
-                                borderRadius: 2,
-                                border: "1px dashed",
-                                borderColor: "grey.300",
-                                bgcolor: "grey.50",
-                                p: 3,
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 1,
-                                boxShadow: "none",
-                              }}
-                            >
-                              <Image
-                                src="/icons/vector.png"
-                                alt="Document"
-                                width={40}
-                                height={40}
-                              />
-                              <Typography variant="body2" fontWeight="500">
-                                View Document
-                              </Typography>
-                            </Card>
-                          ))}
-                        </Box>
-                      </Box>
-
-                      {/* ACTION BUTTONS */}
                       <Box
                         sx={{
                           display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <AccessTimeIcon
+                          sx={{ fontSize: 18, color: "primary.main" }}
+                        />
+                        <Typography variant="body2" fontWeight="500">
+                          {selectedRequestData.time}
+                        </Typography>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <BuildIcon
+                          sx={{ fontSize: 18, color: "primary.main" }}
+                        />
+                        <Typography variant="body2" fontWeight="500">
+                          {selectedRequestData.category}
+                        </Typography>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <LocationOnIcon
+                          sx={{ fontSize: 18, color: "primary.main" }}
+                        />
+                        <Typography variant="body2" fontWeight="500">
+                          {selectedRequestData.location}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* QUOTE ROW (matches Figma) */}
+                    <Box
+                      sx={{
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 3,
+                        p: 3,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          flexWrap: "wrap",
                           gap: 2,
-                          justifyContent: "flex-end",
-                          mt: 1,
                         }}
                       >
+                        <Box>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mb: 0.5 }}
+                          >
+                            Quote Amount
+                          </Typography>
+                          <Typography
+                            variant="h4"
+                            fontWeight="bold"
+                            sx={{ color: "primary.main" }}
+                          >
+                            €{selectedRequestData.quote}
+                          </Typography>
+                        </Box>
+
                         <Button
-                          onClick={() => setOpenReject(true)}
-                          variant="outlined"
-                          sx={{
-                            textTransform: "none",
-                            borderRadius: 2,
-                            px: 4,
-                          }}
-                        >
-                          Reject
-                        </Button>
-                        <Button
-                          onClick={() => setOpenConfirm(true)}
                           variant="contained"
                           sx={{
                             textTransform: "none",
                             borderRadius: 2,
-                            px: 4,
-                            bgcolor: "primary.main",
-                            "&:hover": {
-                              bgcolor: "primary.dark",
-                            },
+                            px: 3,
+                            py: 1,
                           }}
                         >
-                          Accept
+                          Negotiate
                         </Button>
                       </Box>
-                    </Card>
-                  </Box>
-                ) : (
-                  <Box
-                    sx={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 3,
-                    }}
-                  >
+                    </Box>
+
+                    {/* PROFESSIONAL ROW */}
                     <Box
                       sx={{
-                        width: { xs: 200, sm: 260 },
-                        height: { xs: 200, sm: 260 },
-                        position: "relative",
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 3,
+                        p: 3,
                       }}
                     >
-                      <Image
-                        src="/icons/vector.png"
-                        alt="No request selected"
-                        fill
-                        style={{ objectFit: "contain" }}
-                      />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          mb: 2,
+                        }}
+                      >
+                        <Typography variant="subtitle1" fontWeight="600">
+                          About professional
+                        </Typography>
+
+                        <IconButton size="small">
+                          <FavoriteBorderIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          justifyContent: "space-between",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                        >
+                          <Avatar
+                            src={selectedRequestData.professional.avatar}
+                            alt={selectedRequestData.professional.name}
+                          />
+
+                          <Box>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <Typography fontWeight="600">
+                                {selectedRequestData.professional.name}
+                              </Typography>
+
+                              <VerifiedIcon
+                                sx={{ fontSize: 18, color: "#10B981" }}
+                              />
+
+                              <Chip
+                                label="Most professional"
+                                size="small"
+                                sx={{
+                                  bgcolor: "rgba(16,185,129,0.08)",
+                                  color: "#059669",
+                                  borderRadius: 999,
+                                }}
+                              />
+                            </Box>
+
+                            <Typography variant="body2" color="text.secondary">
+                              About professional
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        <Box sx={{ display: "flex", gap: 1.5 }}>
+                          <Button
+                            variant="contained"
+                            sx={{ borderRadius: 2, px: 5 }}
+                          >
+                            Chat
+                          </Button>
+                          <Button
+                            variant="contained"
+                            sx={{ borderRadius: 2, px: 5 }}
+                          >
+                            View Profile
+                          </Button>
+                        </Box>
+                      </Box>
                     </Box>
-                    <Typography
-                      variant="h6"
-                      color="text.secondary"
-                      sx={{ textAlign: "center", maxWidth: 400 }}
+
+                    {/* PERSONALIZED MESSAGE */}
+                    <Box
+                      sx={{
+                        border: "1px solid #E5E7EB",
+                        borderRadius: 3,
+                        p: 3,
+                      }}
                     >
-                      No requests selected. Choose a request from the list to view
-                      details.
-                    </Typography>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="600"
+                        sx={{ mb: 1 }}
+                      >
+                        Personalized short message
+                      </Typography>
+
+                      <Typography variant="body2" color="text.secondary">
+                        {selectedRequestData.message}
+                      </Typography>
+                    </Box>
+
+                    {/* SHORT VIDEOS */}
+                    <Box>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="600"
+                        sx={{ mb: 1 }}
+                      >
+                        Short videos
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {selectedRequestData.videos.map((video, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              width: { xs: "100%", sm: 180 },
+                              height: 120,
+                              borderRadius: 2,
+                              overflow: "hidden",
+                              position: "relative",
+                            }}
+                          >
+                            <Image
+                              src={video}
+                              alt={`Video ${index + 1}`}
+                              fill
+                              style={{ objectFit: "cover" }}
+                            />
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+
+                    {/* SUPPORTING DOCUMENTS */}
+                    <Box>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="600"
+                        sx={{ mb: 1 }}
+                      >
+                        Supporting documents
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 2,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {[1, 2].map((doc) => (
+                          <Card
+                            key={doc}
+                            sx={{
+                              flex: "1 1 200px",
+                              borderRadius: 2,
+                              border: "1px dashed",
+                              borderColor: "grey.300",
+                              bgcolor: "grey.50",
+                              p: 3,
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: 1,
+                              boxShadow: "none",
+                            }}
+                          >
+                            <Image
+                              src="/icons/vector.png"
+                              alt="Document"
+                              width={40}
+                              height={40}
+                            />
+                            <Typography variant="body2" fontWeight="500">
+                              View Document
+                            </Typography>
+                          </Card>
+                        ))}
+                      </Box>
+                    </Box>
+
+                    {/* ACTION BUTTONS */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 2,
+                        justifyContent: "flex-end",
+                        mt: 1,
+                      }}
+                    >
+                      <Button
+                        onClick={() => setOpenReject(true)}
+                        variant="outlined"
+                        sx={{
+                          textTransform: "none",
+                          borderRadius: 2,
+                          px: 4,
+                        }}
+                      >
+                        Reject
+                      </Button>
+                      <Button
+                        onClick={() => setOpenConfirm(true)}
+                        variant="contained"
+                        sx={{
+                          textTransform: "none",
+                          borderRadius: 2,
+                          px: 4,
+                          bgcolor: "primary.main",
+                          "&:hover": {
+                            bgcolor: "primary.dark",
+                          },
+                        }}
+                      >
+                        Accept
+                      </Button>
+                    </Box>
                   </Box>
-                )}
-              </Box>
-
-          }
-
-
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: { xs: 200, sm: 260 },
+                      height: { xs: 200, sm: 260 },
+                      position: "relative",
+                    }}
+                  >
+                    <Image
+                      src="/icons/vector.png"
+                      alt="No request selected"
+                      fill
+                      style={{ objectFit: "contain" }}
+                    />
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    color="text.secondary"
+                    sx={{ textAlign: "center", maxWidth: 400 }}
+                  >
+                    No requests selected. Choose a request from the list to view
+                    details.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
         </Box>
       </Container>
       <RejectServiceRequestModal
@@ -880,8 +960,8 @@ export default function MyRequestsPage() {
         onReject={(reason) => {
           console.log("Rejected with reason:", reason);
         }}
-      />;
-
+      />
+      ;
       <ConfirmServiceRequestModal
         open={openConfirm}
         onClose={() => setOpenConfirm(false)}
@@ -891,9 +971,8 @@ export default function MyRequestsPage() {
         }}
         rate={499}
         providerName="Wade Warren"
-      />;
-
-
+      />
+      ;
       <ProceedToPaymentModal
         open={openPayment}
         onClose={() => setOpenPayment(false)}
@@ -905,9 +984,6 @@ export default function MyRequestsPage() {
         platformFeePercent={10}
         taxes={12}
       />
-
-
-
       <ServiceConfirmSummaryModal
         open={openSummary}
         onClose={() => setOpenSummary(false)}

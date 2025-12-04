@@ -19,7 +19,6 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import MenuIcon from "@mui/icons-material/Menu";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import MessageIcon from "@mui/icons-material/Message";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
@@ -100,10 +99,11 @@ export default function Header({
 
   return (
     <>
-      <AppBar position="static" elevation={0} sx={{ bgcolor: "white",
-        borderBottom:"1px solid #DFE8ED"
+      <AppBar position="static" elevation={0} sx={{
+        bgcolor: "white",
+        borderBottom: "1px solid #DFE8ED"
 
-       }}>
+      }}>
         <Toolbar sx={{ py: 2 }}>
           <Container maxWidth="xl">
             <Box
@@ -692,9 +692,10 @@ export default function Header({
                         <Typography
                           variant="h6"
                           sx={{
-                            color: "#2F6B8E",
-                            fontWeight: "bold",
+                            color: "primary.normal",
+                            fontWeight: 500,
                             mb: 2,
+                            lineHeight: "1.25rem",
                             fontSize: "1.25rem",
                           }}
                         >
@@ -717,62 +718,25 @@ export default function Header({
                               borderColor: "grey.200",
                             }}
                           >
-                            <Box
-                              sx={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: 1,
-                                position: "relative",
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  bgcolor: "#8B4513",
-                                  zIndex: 1,
-                                }}
+                            <Box>
+                              <Image
+                                width={36}
+                                height={36}
+                                alt="msg"
+                                src={"/icons/doubleMsg.png"}
+
                               />
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  top: 4,
-                                  left: 4,
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  bgcolor: "#10B981",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  zIndex: 2,
-                                }}
-                              >
-                                <Typography
-                                  sx={{
-                                    color: "white",
-                                    fontSize: "1.2rem",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  ✓
-                                </Typography>
-                              </Box>
                             </Box>
+
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography
-                                variant="body1"
-                                fontWeight="600"
-                                sx={{ mb: 0.5 }}
+                                sx={{ mb: 0.5,color:"#424242",lineHeight:"1.125rem" }}
                               >
                                 Your service has started.
                               </Typography>
                               <Typography
-                                variant="body2"
-                                sx={{ color: "text.secondary", mb: 1.5 }}
+                                
+                                sx={{ color: "#595959", mb: 1.5,lineHeight:"140%",fontSize:"0.875rem" }}
                               >
                                 The provider has proposed a revised budget of
                                 €620 for your service.
@@ -813,6 +777,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
+                                    bgcolor:"primary.normal"
                                   }}
                                 >
                                   Accept
@@ -854,40 +819,14 @@ export default function Header({
                                 flexShrink: 0,
                               }}
                             >
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  bgcolor: "#8B4513",
-                                  zIndex: 1,
-                                }}
-                              />
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  top: 4,
-                                  left: 4,
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  bgcolor: "#10B981",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  zIndex: 2,
-                                }}
-                              >
-                                <Typography
-                                  sx={{
-                                    color: "white",
-                                    fontSize: "1.2rem",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  ✓
-                                </Typography>
+
+                              <Box>
+                                <Image
+                                  width={36}
+                                  height={36}
+                                  alt="msg"
+                                  src={"/icons/doubleMsg.png"}
+                                />
                               </Box>
                             </Box>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -941,6 +880,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
+                                    bgcolor:"primary.normal"
                                   }}
                                 >
                                   Accept
@@ -1036,6 +976,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
+                                    bgcolor:"primary.normal"
                                   }}
                                 >
                                   Accept
@@ -1120,6 +1061,7 @@ export default function Header({
                                   textTransform: "none",
                                   fontSize: "0.85rem",
                                   py: 0.5,
+                                  bgcolor:"primary.normal"
                                 }}
                               >
                                 Check Task Status
