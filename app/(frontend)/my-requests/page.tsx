@@ -5,7 +5,6 @@ import Image from "next/image";
 import {
   Box,
   Button,
-  Card,
   Chip,
   Container,
   Divider,
@@ -935,7 +934,6 @@ export default function MyRequestsPage() {
                         sx={{
                           display: "flex",
                           gap: "1.125rem",
-                          flexDirection: "column",
                         }}
                       >
                         {selectedRequestData.videos.map((video, index) => (
@@ -963,9 +961,14 @@ export default function MyRequestsPage() {
                     {/* SUPPORTING DOCUMENTS */}
                     <Box>
                       <Typography
-                        variant="subtitle1"
-                        fontWeight="600"
-                        sx={{ mb: 1 }}
+                        sx={{
+                          fontSize: "1rem",
+                          lineHeight: "1.125rem",
+                          letterSpacing: "0%",
+                          color: "#323232",
+                          fontWeight: 400,
+                          mb: "0.75rem",
+                        }}
                       >
                         Supporting documents
                       </Typography>
@@ -974,36 +977,44 @@ export default function MyRequestsPage() {
                           display: "flex",
                           gap: 2,
                           flexWrap: "wrap",
+                          bgcolor: "white",
                         }}
                       >
                         {[1, 2].map((doc) => (
-                          <Card
+                          <Box
                             key={doc}
                             sx={{
                               flex: "1 1 200px",
                               borderRadius: 2,
                               border: "1px dashed",
                               borderColor: "grey.300",
-                              bgcolor: "grey.50",
+                              bgcolor: "white",
                               p: 3,
                               display: "flex",
                               flexDirection: "column",
                               alignItems: "center",
                               justifyContent: "center",
                               gap: 1,
-                              boxShadow: "none",
                             }}
                           >
                             <Image
-                              src="/icons/vector.png"
+                              src="/icons/codicon_file-pdf.png"
                               alt="Document"
                               width={40}
                               height={40}
                             />
-                            <Typography variant="body2" fontWeight="500">
+                            <Typography
+                              sx={{
+                                fontSize: "16px",
+                                lineHeight: "18px",
+                                letterSpacing: "0%",
+                                color: "#818285",
+                                fontWeight: 400,
+                              }}
+                            >
                               View Document
                             </Typography>
-                          </Card>
+                          </Box>
                         ))}
                       </Box>
                     </Box>
@@ -1012,7 +1023,7 @@ export default function MyRequestsPage() {
                     <Box
                       sx={{
                         display: "flex",
-                        gap: 2,
+                        gap: "16px",
                         justifyContent: "flex-end",
                         mt: 1,
                       }}
@@ -1022,8 +1033,13 @@ export default function MyRequestsPage() {
                         variant="outlined"
                         sx={{
                           textTransform: "none",
-                          borderRadius: 2,
-                          px: 4,
+                          width: "192px",
+                          height: "56px",
+                          borderRadius: "12px",
+                          border: "1px solid #214C65",
+                          borderColor: "#214C65",
+                          p: "10px",
+                          gap: "10px",
                         }}
                       >
                         Reject
@@ -1033,11 +1049,14 @@ export default function MyRequestsPage() {
                         variant="contained"
                         sx={{
                           textTransform: "none",
-                          borderRadius: 2,
-                          px: 4,
-                          bgcolor: "primary.main",
+                          width: "205px",
+                          height: "56px",
+                          borderRadius: "12px",
+                          p: "10px",
+                          gap: "10px",
+                          bgcolor: "#214C65",
                           "&:hover": {
-                            bgcolor: "primary.dark",
+                            bgcolor: "#214C65",
                           },
                         }}
                       >
