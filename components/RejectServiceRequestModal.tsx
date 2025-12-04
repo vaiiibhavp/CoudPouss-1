@@ -44,16 +44,33 @@ export default function RejectServiceRequestModal({
         <Dialog
             open={open}
             onClose={onClose}
-            maxWidth="xs"
-            fullWidth
+            maxWidth={false}
             PaperProps={{
                 sx: {
-                    borderRadius: 3,
-                    p: 3,
+                    width: "32.5rem",
+                    height: "31.625rem",
+                    borderRadius: "1.5rem",
+                    p: "2.5rem",
+                    overflow: "hidden",
+                    "&::-webkit-scrollbar": {
+                        display: "none",
+                    },
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
                 },
             }}
         >
-            <DialogContent sx={{ p: 0 }}>
+            <DialogContent
+                sx={{
+                    p: 0,
+                    overflow: "auto",
+                    "&::-webkit-scrollbar": {
+                        display: "none",
+                    },
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                }}
+            >
                 <Box
                     sx={{
                         display: "flex",
@@ -72,10 +89,10 @@ export default function RejectServiceRequestModal({
 
                     {/* Title */}
                     <Typography
-                        fontWeight={600}
+                        fontWeight={500}
                         sx={{
-                            fontSize: "22px",
-                            lineHeight: "30px",
+                            fontSize: "1.375rem",
+                            lineHeight: "1.875rem",
                             my: 2,
                             color: "#2C6587",
                         }}
@@ -95,11 +112,13 @@ export default function RejectServiceRequestModal({
                                     onClick={() => setSelectedReason(reason)}
                                     sx={{
                                         mb: 1.5,
-                                        px: 2.5,
-                                        py: 1.25,
-                                        borderRadius: "12px",
+                                        paddingTop: "0.875rem",
+                                        paddingRight: "1rem",
+                                        paddingBottom: "0.875rem",
+                                        paddingLeft: "1rem",
+                                        borderRadius: "0.75rem",
                                         border: "1px solid",
-                                        borderColor: selected ? "#0F4C81" : "#E2E8F0",
+                                        borderColor: selected ? "#0F4C81" : "#D5D5D5",
                                         bgcolor: "#FFFFFF",
                                         cursor: "pointer",
                                         transition: "all 0.2s ease",
@@ -146,7 +165,7 @@ export default function RejectServiceRequestModal({
                                                 color: "#D5D5D5",
                                                 mt: 1.5,
                                                 "& .MuiOutlinedInput-root": {
-                                                    borderRadius: "10px",
+                                                    borderRadius: "0.625rem",
                                                     fontSize: 14,
                                                     backgroundColor: "#FFFFFF",
                                                 },
@@ -166,7 +185,7 @@ export default function RejectServiceRequestModal({
                     <Box
                         sx={{
                             display: "flex",
-                            gap: 2,
+                            gap: "1rem",
                             width: "100%",
                             mt: 1,
                         }}
@@ -176,9 +195,13 @@ export default function RejectServiceRequestModal({
                             fullWidth
                             onClick={onClose}
                             sx={{
-                                borderRadius: "12px",
+                                borderRadius: "0.75rem",
                                 textTransform: "none",
                                 fontWeight: 500,
+                                padding: "0.625rem",
+                                border: "0.0625rem solid",
+                                borderColor: "#214C65",
+                                gap: "0.625rem",
                             }}
                         >
                             Cancel
@@ -188,12 +211,15 @@ export default function RejectServiceRequestModal({
                             fullWidth
                             onClick={handleReject}
                             sx={{
-                                borderRadius: "12px",
+                                borderRadius: "0.75rem",
                                 textTransform: "none",
                                 fontWeight: 500,
-                                bgcolor: "primary.main",
+                                padding: "0.625rem",
+                                gap: "0.625rem",
+                                bgcolor: "#214C65",
                                 "&:hover": {
-                                    bgcolor: "primary.dark",
+                                    bgcolor: "#214C65",
+                                    opacity: 0.9,
                                 },
                             }}
                         >

@@ -29,12 +29,12 @@ export default function ConfirmServiceRequestModal({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="xs"
-      fullWidth
       PaperProps={{
         sx: {
           borderRadius: 3,
           p: 3,
+          width: "32.5rem",
+          maxWidth: "32.5rem",
         },
       }}
     >
@@ -57,10 +57,10 @@ export default function ConfirmServiceRequestModal({
 
           {/* Title */}
           <Typography
-            fontWeight={600}
+            fontWeight={500}
             sx={{
-              fontSize: "22px",
-              lineHeight: "30px",
+              fontSize: "1.375rem",
+              lineHeight: "1.875rem",
               my: 2,
               color: "#2C6587",
             }}
@@ -70,9 +70,10 @@ export default function ConfirmServiceRequestModal({
 
           {/* Description */}
           <Typography
+            fontWeight={400}
             sx={{
-              fontSize: "14px",
-              lineHeight: "22px",
+              fontSize: "1.1875rem",
+              lineHeight: "1.75rem",
               color: "#4B4B4B",
               mb: 3,
             }}
@@ -90,7 +91,7 @@ export default function ConfirmServiceRequestModal({
           <Box
             sx={{
               display: "flex",
-              gap: 2,
+              gap: "1rem",
               width: "100%",
               mt: 1,
             }}
@@ -100,9 +101,17 @@ export default function ConfirmServiceRequestModal({
               fullWidth
               onClick={onClose}
               sx={{
-                borderRadius: "12px",
+                height: "3.5rem",
+                borderRadius: "0.75rem",
+                border: "0.0625rem solid #214C65",
+                padding: "0.625rem",
                 textTransform: "none",
                 fontWeight: 500,
+                color: "#214C65",
+                "&:hover": {
+                  border: "0.0625rem solid #214C65",
+                  bgcolor: "transparent",
+                },
               }}
             >
               No
@@ -112,12 +121,14 @@ export default function ConfirmServiceRequestModal({
               fullWidth
               onClick={onConfirm}
               sx={{
-                borderRadius: "12px",
+                height: "3.5rem",
+                borderRadius: "0.75rem",
+                padding: "0.625rem",
                 textTransform: "none",
                 fontWeight: 500,
-                bgcolor: "primary.main",
+                bgcolor: "#214C65",
                 "&:hover": {
-                  bgcolor: "primary.dark",
+                  bgcolor: "#214C65",
                 },
               }}
             >

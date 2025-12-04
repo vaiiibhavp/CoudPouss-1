@@ -42,8 +42,8 @@ export default function ProceedToPaymentModal({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          p: "40px",
-          minWidth:"440px"
+          p: "2.5rem",
+          minWidth: "27.5rem"
         },
       }}
     >
@@ -68,10 +68,11 @@ export default function ProceedToPaymentModal({
           <Typography
             fontWeight={600}
             sx={{
-              fontSize: "22px",
-              lineHeight: "30px",
+              fontSize: "1.375rem",
+              lineHeight: "1.875rem",
+              letterSpacing: "0%",
               my: 2,
-              color: "#2C6587",
+              color: "#214C65",
             }}
           >
             Proceed to payment
@@ -79,11 +80,13 @@ export default function ProceedToPaymentModal({
 
           {/* Subtitle */}
           <Typography
+            fontWeight={400}
             sx={{
-              fontSize: "14px",
-              lineHeight: "22px",
-              color: "#4B4B4B",
-              maxWidth: 420,
+              fontSize: "0.875rem",
+              lineHeight: "1.125rem",
+              letterSpacing: "0%",
+              color: "#555555",
+              maxWidth: "26.25rem",
               mb: 3,
             }}
           >
@@ -96,19 +99,28 @@ export default function ProceedToPaymentModal({
           <Box
             sx={{
               width: "100%",
-              borderRadius: 3,
-              border: "1px solid #E2E8F0",
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #E6E6E6",
               backgroundColor: "#FFF",
-              p: 2.5,
+              paddingTop: "0.8125rem",
+              paddingRight: "1rem",
+              paddingBottom: "0.8125rem",
+              paddingLeft: "1rem",
               mb: 3,
+              "&:hover": {
+                border: "0.0625rem solid #E6E6E6",
+              },
             }}
           >
             <Typography
+              fontWeight={500}
               sx={{
-                fontWeight: 600,
-                mb: 2,
-                fontSize: "14px",
-                color: "#1F2933",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: "0%",
+                textAlign: "left",
+                mb: "1rem",
+                color: "#323232",
               }}
             >
               Payment Breakdown
@@ -119,13 +131,29 @@ export default function ProceedToPaymentModal({
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
-                mb: 1.5,
+                mb: "1rem",
               }}
             >
-              <Typography sx={{ fontSize: 14, color: "#424242" }}>
+              <Typography
+                fontWeight={500}
+                sx={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: "0%",
+                  color: "#595959",
+                }}
+              >
                 Finalized Quote Amount
               </Typography>
-              <Typography sx={{ fontSize: 14, color: "#111827" }}>
+              <Typography
+                fontWeight={500}
+                sx={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: "0%",
+                  color: "#595959",
+                }}
+              >
                 {formatAmount(finalizedQuoteAmount)}
               </Typography>
             </Box>
@@ -134,13 +162,29 @@ export default function ProceedToPaymentModal({
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
-                mb: 1.5,
+                mb: "1rem",
               }}
             >
-              <Typography sx={{ fontSize: 14, color: "#424242" }}>
+              <Typography
+                fontWeight={500}
+                sx={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: "0%",
+                  color: "#595959",
+                }}
+              >
                 Platform Fee ({platformFeePercent}%)
               </Typography>
-              <Typography sx={{ fontSize: 14, color: "#111827" }}>
+              <Typography
+                fontWeight={500}
+                sx={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: "0%",
+                  color: "#595959",
+                }}
+              >
                 {formatAmount(platformFeeAmount)}
               </Typography>
             </Box>
@@ -149,13 +193,29 @@ export default function ProceedToPaymentModal({
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
-                mb: 1.5,
+                mb: "1rem",
               }}
             >
-              <Typography sx={{ fontSize: 14, color: "#424242" }}>
+              <Typography
+                fontWeight={500}
+                sx={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: "0%",
+                  color: "#595959",
+                }}
+              >
                 Taxes
               </Typography>
-              <Typography sx={{ fontSize: 14, color: "#111827" }}>
+              <Typography
+                fontWeight={500}
+                sx={{
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: "0%",
+                  color: "#595959",
+                }}
+              >
                 {formatAmount(taxes)}
               </Typography>
             </Box>
@@ -163,9 +223,15 @@ export default function ProceedToPaymentModal({
             {/* Dashed Divider */}
             <Divider
               sx={{
-                my: 2,
+                my: "1rem",
                 borderStyle: "dashed",
-                borderColor: "#CBD5E1",
+                borderWidth: "0.0625rem",
+                borderColor: "#2C6587",
+                borderImageSource: "none",
+                "&::before, &::after": {
+                  borderStyle: "dashed",
+                  borderWidth: "0.0625rem",
+                },
               }}
             />
 
@@ -176,13 +242,23 @@ export default function ProceedToPaymentModal({
                 justifyContent: "space-between",
               }}
             >
-              <Typography sx={{ fontSize: "20px", fontWeight: 600, lineHeight: "24px", color: "#0F232F" }}>
+              <Typography
+                fontWeight={500}
+                sx={{
+                  fontSize: "1.25rem",
+                  lineHeight: "1.5rem",
+                  letterSpacing: "0%",
+                  color: "#0F232F",
+                }}
+              >
                 Total
               </Typography>
               <Typography
+                fontWeight={500}
                 sx={{
-                  fontSize: "20px",
-                  fontWeight: 600,
+                  fontSize: "1.25rem",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
                   color: "#2C6587",
                 }}
               >
@@ -195,7 +271,7 @@ export default function ProceedToPaymentModal({
           <Box
             sx={{
               display: "flex",
-              gap: 2,
+              gap: "1rem",
               width: "100%",
             }}
           >
@@ -204,15 +280,17 @@ export default function ProceedToPaymentModal({
               fullWidth
               onClick={onClose}
               sx={{
-                borderRadius: "12px",
+                height: "3.5rem",
+                borderRadius: "0.75rem",
+                border: "0.0625rem solid #214C65",
+                padding: "0.625rem",
                 textTransform: "none",
-                borderColor: "primary.main",
                 bgcolor: "#FFFFFF",
-                color: "primary.main",
+                color: "#214C65",
                 fontWeight: 500,
                 "&:hover": {
-                  borderColor: "#94A3B8",
-                  bgcolor: "#F8FAFC",
+                  border: "0.0625rem solid #214C65",
+                  bgcolor: "#FFFFFF",
                 },
               }}
             >
@@ -224,13 +302,15 @@ export default function ProceedToPaymentModal({
               fullWidth
               onClick={onProceed}
               sx={{
-                borderRadius: "12px",
+                height: "3.5rem",
+                borderRadius: "0.75rem",
+                padding: "0.625rem",
                 textTransform: "none",
-                bgcolor: "primary.main",
+                bgcolor: "#214C65",
                 color: "#FFFFFF",
                 fontWeight: 500,
                 "&:hover": {
-                  bgcolor: "#0C3B64",
+                  bgcolor: "#214C65",
                 },
               }}
             >
