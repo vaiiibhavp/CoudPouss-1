@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
-  Avatar,
   Box,
   Button,
   Card,
@@ -16,11 +15,6 @@ import {
   Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import BuildIcon from "@mui/icons-material/Build";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import VerifiedIcon from "@mui/icons-material/Verified";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -494,7 +488,7 @@ export default function MyRequestsPage() {
                   sx={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: 3,
+                    gap: "1.5rem",
                     flex: 1,
                   }}
                 >
@@ -507,7 +501,7 @@ export default function MyRequestsPage() {
                       flex: 1,
                       display: "flex",
                       flexDirection: "column",
-                      gap: 3,
+                      gap: "1.5rem",
                     }}
                   >
                     {/* IMAGE + TITLE */}
@@ -520,9 +514,9 @@ export default function MyRequestsPage() {
                     >
                       <Box
                         sx={{
-                          width: { xs: "100%", md: 220 },
-                          height: { xs: 180, md: 180 },
-                          borderRadius: 2,
+                          width: "10.3125rem",
+                          height: "8.625rem",
+                          borderRadius: "0.75rem",
                           overflow: "hidden",
                           position: "relative",
                           flexShrink: 0,
@@ -545,13 +539,25 @@ export default function MyRequestsPage() {
                         }}
                       >
                         <Typography
-                          variant="h5"
-                          fontWeight="bold"
-                          sx={{ color: "text.primary" }}
+                          sx={{
+                            fontSize: "1.5rem",
+                            lineHeight: "1.75rem",
+                            letterSpacing: "0%",
+                            color: "#424242",
+                            fontWeight: "bold",
+                          }}
                         >
                           {selectedRequestData.serviceName}
                         </Typography>
-                        <Typography variant="subtitle1" color="text.secondary">
+                        <Typography
+                          sx={{
+                            fontSize: "1.125rem",
+                            lineHeight: "1.5rem",
+                            letterSpacing: "0%",
+                            color: "#6D6D6D",
+                            fontWeight: 400,
+                          }}
+                        >
                           Exterior Cleaning
                         </Typography>
                       </Box>
@@ -561,12 +567,12 @@ export default function MyRequestsPage() {
                     <Box
                       sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))", // always 2 columns
-                        columnGap: 4,
-                        rowGap: 2,
-                        bgcolor: "grey.50",
-                        p: 2,
-                        borderRadius: 4, // a bit more pill-like
+                        gridTemplateColumns: "repeat(2, 1fr)",
+                        bgcolor: "#FBFBFB",
+                        p: "1rem",
+                        borderRadius: "1rem",
+                        rowGap: "0.75rem",
+                        columnGap: 2,
                       }}
                     >
                       <Box
@@ -576,10 +582,21 @@ export default function MyRequestsPage() {
                           gap: 1,
                         }}
                       >
-                        <CalendarTodayIcon
-                          sx={{ fontSize: 18, color: "primary.main" }}
+                        <Image
+                          src="/icons/Calendar.png"
+                          alt="Calendar"
+                          width={24}
+                          height={24}
                         />
-                        <Typography variant="body2" fontWeight="500">
+                        <Typography
+                          sx={{
+                            fontSize: "0.875rem",
+                            lineHeight: "1.125rem",
+                            letterSpacing: "0%",
+                            color: "#2C6587",
+                            fontWeight: 400,
+                          }}
+                        >
                           {selectedRequestData.date}
                         </Typography>
                       </Box>
@@ -591,10 +608,21 @@ export default function MyRequestsPage() {
                           gap: 1,
                         }}
                       >
-                        <AccessTimeIcon
-                          sx={{ fontSize: 18, color: "primary.main" }}
+                        <Image
+                          src="/icons/Clock.png"
+                          alt="Time"
+                          width={24}
+                          height={24}
                         />
-                        <Typography variant="body2" fontWeight="500">
+                        <Typography
+                          sx={{
+                            fontSize: "0.875rem",
+                            lineHeight: "1.125rem",
+                            letterSpacing: "0%",
+                            color: "#2C6587",
+                            fontWeight: 400,
+                          }}
+                        >
                           {selectedRequestData.time}
                         </Typography>
                       </Box>
@@ -606,10 +634,21 @@ export default function MyRequestsPage() {
                           gap: 1,
                         }}
                       >
-                        <BuildIcon
-                          sx={{ fontSize: 18, color: "primary.main" }}
+                        <Image
+                          src="/icons/fi_6374086.png"
+                          alt="Category"
+                          width={24}
+                          height={24}
                         />
-                        <Typography variant="body2" fontWeight="500">
+                        <Typography
+                          sx={{
+                            fontSize: "0.875rem",
+                            lineHeight: "1.125rem",
+                            letterSpacing: "0%",
+                            color: "#2C6587",
+                            fontWeight: 400,
+                          }}
+                        >
                           {selectedRequestData.category}
                         </Typography>
                       </Box>
@@ -621,56 +660,79 @@ export default function MyRequestsPage() {
                           gap: 1,
                         }}
                       >
-                        <LocationOnIcon
-                          sx={{ fontSize: 18, color: "primary.main" }}
+                        <Image
+                          src="/icons/MapPin.png"
+                          alt="Location"
+                          width={24}
+                          height={24}
                         />
-                        <Typography variant="body2" fontWeight="500">
+                        <Typography
+                          sx={{
+                            fontSize: "0.875rem",
+                            lineHeight: "1.125rem",
+                            letterSpacing: "0%",
+                            color: "#2C6587",
+                            fontWeight: 400,
+                          }}
+                        >
                           {selectedRequestData.location}
                         </Typography>
                       </Box>
                     </Box>
 
-                    {/* QUOTE ROW (matches Figma) */}
-                    <Box
-                      sx={{
-                        border: "1px solid #E5E7EB",
-                        borderRadius: 3,
-                        p: 3,
-                      }}
-                    >
+                    {/* QUOTE ROW */}
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: "1rem",
+                          lineHeight: "1.125rem",
+                          letterSpacing: "0%",
+                          color: "#323232",
+                          fontWeight: 400,
+                          mb: "0.75rem",
+                        }}
+                      >
+                        Quote Amount
+                      </Typography>
                       <Box
                         sx={{
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          flexWrap: "wrap",
-                          gap: 2,
+                          borderRadius: "0.75rem",
+                          border: "1px solid #D5D5D5",
+                          pt: "0.875rem",
+                          pr: "1rem",
+                          pb: "0.875rem",
+                          pl: "1rem",
                         }}
                       >
-                        <Box>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mb: 0.5 }}
-                          >
-                            Quote Amount
-                          </Typography>
-                          <Typography
-                            variant="h4"
-                            fontWeight="bold"
-                            sx={{ color: "primary.main" }}
-                          >
-                            €{selectedRequestData.quote}
-                          </Typography>
-                        </Box>
-
+                        <Typography
+                          sx={{
+                            fontSize: "1.6875rem",
+                            lineHeight: "2rem",
+                            letterSpacing: "3%",
+                            textAlign: "center",
+                            color: "#0F232F",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          €{selectedRequestData.quote}
+                        </Typography>
                         <Button
                           variant="contained"
                           sx={{
                             textTransform: "none",
-                            borderRadius: 2,
-                            px: 3,
-                            py: 1,
+                            borderRadius: "0.5rem",
+                            pt: "0.625rem",
+                            pr: "1.25rem",
+                            pb: "0.625rem",
+                            pl: "1.25rem",
+                            gap: "0.625rem",
+                            bgcolor: "#214C65",
+                            "&:hover": {
+                              bgcolor: "#214C65",
+                            },
                           }}
                         >
                           Negotiate
@@ -681,9 +743,15 @@ export default function MyRequestsPage() {
                     {/* PROFESSIONAL ROW */}
                     <Box
                       sx={{
-                        border: "1px solid #E5E7EB",
-                        borderRadius: 3,
-                        p: 3,
+                        border: "1px solid #E6E6E6",
+                        borderRadius: "0.75rem",
+                        pt: "0.8125rem",
+                        pr: "1rem",
+                        pb: "0.8125rem",
+                        pl: "1rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
                       }}
                     >
                       <Box
@@ -691,10 +759,17 @@ export default function MyRequestsPage() {
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "center",
-                          mb: 2,
                         }}
                       >
-                        <Typography variant="subtitle1" fontWeight="600">
+                        <Typography
+                          sx={{
+                            fontSize: "1rem",
+                            lineHeight: "1.125rem",
+                            letterSpacing: "0%",
+                            color: "#323232",
+                            fontWeight: 400,
+                          }}
+                        >
                           About professional
                         </Typography>
 
@@ -715,10 +790,23 @@ export default function MyRequestsPage() {
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 2 }}
                         >
-                          <Avatar
-                            src={selectedRequestData.professional.avatar}
-                            alt={selectedRequestData.professional.name}
-                          />
+                          <Box
+                            sx={{
+                              width: "3.5rem",
+                              height: "3.5rem",
+                              borderRadius: "50%",
+                              overflow: "hidden",
+                              position: "relative",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Image
+                              src={selectedRequestData.professional.avatar}
+                              alt={selectedRequestData.professional.name}
+                              fill
+                              style={{ objectFit: "cover" }}
+                            />
+                          </Box>
 
                           <Box>
                             <Box
@@ -728,41 +816,62 @@ export default function MyRequestsPage() {
                                 gap: 1,
                               }}
                             >
-                              <Typography fontWeight="600">
+                              <Typography
+                                sx={{
+                                  fontSize: "1.25rem",
+                                  lineHeight: "1.5rem",
+                                  letterSpacing: "0%",
+                                  color: "#0F232F",
+                                  fontWeight: 500,
+                                }}
+                              >
                                 {selectedRequestData.professional.name}
                               </Typography>
 
-                              <VerifiedIcon
-                                sx={{ fontSize: 18, color: "#10B981" }}
-                              />
-
-                              <Chip
-                                label="Most professional"
-                                size="small"
-                                sx={{
-                                  bgcolor: "rgba(16,185,129,0.08)",
-                                  color: "#059669",
-                                  borderRadius: 999,
-                                }}
+                              <Image
+                                src="/icons/verify.png"
+                                alt="Verified"
+                                width={24}
+                                height={24}
                               />
                             </Box>
-
-                            <Typography variant="body2" color="text.secondary">
-                              About professional
-                            </Typography>
                           </Box>
                         </Box>
 
-                        <Box sx={{ display: "flex", gap: 1.5 }}>
+                        <Box sx={{ display: "flex", gap: "0.75rem" }}>
                           <Button
                             variant="contained"
-                            sx={{ borderRadius: 2, px: 5 }}
+                            sx={{
+                              textTransform: "none",
+                              borderRadius: "0.5rem",
+                              pt: "0.625rem",
+                              pr: "3.75rem",
+                              pb: "0.625rem",
+                              pl: "3.75rem",
+                              gap: "0.625rem",
+                              bgcolor: "#214C65",
+                              "&:hover": {
+                                bgcolor: "#214C65",
+                              },
+                            }}
                           >
                             Chat
                           </Button>
                           <Button
                             variant="contained"
-                            sx={{ borderRadius: 2, px: 5 }}
+                            sx={{
+                              textTransform: "none",
+                              borderRadius: "0.5rem",
+                              pt: "0.625rem",
+                              pr: "3.75rem",
+                              pb: "0.625rem",
+                              pl: "3.75rem",
+                              gap: "0.625rem",
+                              bgcolor: "#214C65",
+                              "&:hover": {
+                                bgcolor: "#214C65",
+                              },
+                            }}
                           >
                             View Profile
                           </Button>
@@ -771,48 +880,70 @@ export default function MyRequestsPage() {
                     </Box>
 
                     {/* PERSONALIZED MESSAGE */}
-                    <Box
-                      sx={{
-                        border: "1px solid #E5E7EB",
-                        borderRadius: 3,
-                        p: 3,
-                      }}
-                    >
+                    <Box>
                       <Typography
-                        variant="subtitle1"
-                        fontWeight="600"
-                        sx={{ mb: 1 }}
+                        sx={{
+                          fontSize: "1rem",
+                          lineHeight: "1.125rem",
+                          letterSpacing: "0%",
+                          color: "#323232",
+                          fontWeight: 400,
+                          mb: "0.75rem",
+                        }}
                       >
                         Personalized short message
                       </Typography>
-
-                      <Typography variant="body2" color="text.secondary">
-                        {selectedRequestData.message}
-                      </Typography>
+                      <Box
+                        sx={{
+                          border: "1px solid #D5D5D5",
+                          borderRadius: "0.75rem",
+                          pt: "0.875rem",
+                          pr: "1rem",
+                          pb: "0.875rem",
+                          pl: "1rem",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: "1rem",
+                            lineHeight: "1.5rem",
+                            letterSpacing: "0%",
+                            color: "#6D6D6D",
+                            fontWeight: 400,
+                          }}
+                        >
+                          {selectedRequestData.message}
+                        </Typography>
+                      </Box>
                     </Box>
 
                     {/* SHORT VIDEOS */}
                     <Box>
                       <Typography
-                        variant="subtitle1"
-                        fontWeight="600"
-                        sx={{ mb: 1 }}
+                        sx={{
+                          fontSize: "1rem",
+                          lineHeight: "1.125rem",
+                          letterSpacing: "0%",
+                          color: "#323232",
+                          fontWeight: 400,
+                          mb: "0.75rem",
+                        }}
                       >
                         Short videos
                       </Typography>
                       <Box
                         sx={{
                           display: "flex",
-                          gap: 2,
-                          flexWrap: "wrap",
+                          gap: "1.125rem",
+                          flexDirection: "column",
                         }}
                       >
                         {selectedRequestData.videos.map((video, index) => (
                           <Box
                             key={index}
                             sx={{
-                              width: { xs: "100%", sm: 180 },
-                              height: 120,
+                              width: "100%",
+                              height: "9rem",
                               borderRadius: 2,
                               overflow: "hidden",
                               position: "relative",
