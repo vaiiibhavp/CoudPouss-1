@@ -52,7 +52,7 @@ export default function MyRequestsPage() {
   const [openPayment, setOpenPayment] = useState(false);
   const [openProceed, setOpenProceed] = useState(false);
   const [openSummary, setOpenSummary] = useState(false);
-  const [showTracking, setShowTracking] = useState(true);
+  const [showTracking, setShowTracking] = useState(false);
 
   useEffect(() => {
     const storedInitial = localStorage.getItem("userInitial");

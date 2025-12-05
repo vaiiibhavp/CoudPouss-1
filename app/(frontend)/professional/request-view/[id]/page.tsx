@@ -263,7 +263,7 @@ export default function RequestViewPage() {
               }}
             >
               {/* Exchange Product */}
-              <Box sx={{ border: "1px solid #E5E7EB", borderRadius: 2, p: 2 }}>
+              <Box sx={{ border: "0.0625rem solid #E5E7EB", borderRadius: 2, p: 2 }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#6B7280", mb: 1, fontSize: "0.875rem" }}
@@ -279,7 +279,7 @@ export default function RequestViewPage() {
               </Box>
 
               {/* Quantity */}
-              <Box sx={{ border: "1px solid #E5E7EB", borderRadius: 2, p: 2 }}>
+              <Box sx={{ border: "0.0625rem solid #E5E7EB", borderRadius: 2, p: 2 }}>
                 <Typography
                   variant="body2"
                   sx={{ color: "#6B7280", mb: 1, fontSize: "0.875rem" }}
@@ -296,7 +296,7 @@ export default function RequestViewPage() {
             </Box>
 
             {/* Product Images */}
-            <Box sx={{ mb: 4, border: "1px solid #E5E7EB", borderRadius: 3, p: 3, bgcolor: "white" }}>
+            <Box sx={{ mb: 4, border: "0.0625rem solid #E5E7EB", borderRadius: 3, p: 3, bgcolor: "white" }}>
               <Typography
                 variant="body1"
                 sx={{ color: "#374151", mb: 3, fontSize: "1rem", fontWeight: 500 }}
@@ -362,7 +362,7 @@ export default function RequestViewPage() {
             </Box>
 
             {/* Service Description */}
-            <Box sx={{ mb: 4, border: "1px solid #E5E7EB", borderRadius: 2, p: 2 }}>
+            <Box sx={{ mb: 4, border: "0.0625rem solid #E5E7EB", borderRadius: 2, p: 2 }}>
               <Typography
                 variant="h6"
                 fontWeight="600"
@@ -380,7 +380,7 @@ export default function RequestViewPage() {
             </Box>
 
             {/* About Client */}
-            <Box sx={{ mb: 4, border: "1px solid #E5E7EB", borderRadius: 2, p: 2 }}>
+            <Box sx={{ mb: 4, border: "0.0625rem solid #E5E7EB", borderRadius: 2, p: 2 }}>
               <Typography
                 variant="h6"
                 fontWeight="600"

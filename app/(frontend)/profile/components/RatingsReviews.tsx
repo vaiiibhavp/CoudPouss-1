@@ -84,6 +84,8 @@ const renderRating = (count: number) => (
       <StarIcon
         key={index}
         sx={{
+          width: "1rem",
+          height: "1rem",
           fontSize: "1rem",
           color: index < count ? "#FBBF24" : "grey.300",
         }}
@@ -113,65 +115,57 @@ export default function RatingsReviews() {
           gap: 2,
         }}
       >
-        <Typography
-          variant="h4"
-          fontWeight="bold"
-          sx={{ color: "#2F6B8E", fontSize: { xs: "1.5rem", md: "2rem" } }}
-        >
-          Ratings & Reviews
-        </Typography>
-        <Chip
-          label="4.7 Overall"
-          sx={{
-            bgcolor: "primary.main",
-            color: "white",
-            fontWeight: 600,
-            fontSize: "0.9rem",
-            px: 1.5,
-            py: 2,
-            borderRadius: 2,
-          }}
-          icon={<StarIcon sx={{ color: "#FBBF24" }} />}
-        />
+     
       </Box>
 
       <Box
         sx={{
           display: "grid",
           gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
-          gap: 3,
+          gap: "0.5rem",
         }}
       >
         {reviews.map((review) => (
-          <Card
+          <Box
             key={review.id}
-            elevation={0}
             sx={{
-              borderRadius: 3,
-              border: "0.0625rem solid",
-              borderColor: "grey.200",
-              boxShadow: "0 0.125rem 0.375rem rgba(0,0,0,0.08)",
               p: 3,
               display: "flex",
               flexDirection: "column",
               gap: 2,
+              border: "0.0625rem solid #D5D5D5",
+              borderRadius: "0.5rem",
             }}
           >
             <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
               <Avatar
                 src={review.avatar}
                 alt={review.name}
-                sx={{ width: 48, height: 48 }}
+                sx={{ width: "2.5rem", height: "2.5rem" }}
               />
               <Box sx={{ flex: 1 }}>
                 <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  sx={{ color: "text.primary", mb: 0.5 }}
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "0.9375rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    color: "#131313",
+                    mb: 0.5,
+                  }}
                 >
                   {review.name}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontStyle: "regular",
+                    fontSize: "0.6875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: "0%",
+                    color: "#707D85",
+                  }}
+                >
                   {review.timeAgo}
                 </Typography>
               </Box>
@@ -179,41 +173,52 @@ export default function RatingsReviews() {
             </Box>
 
             <Typography
-              variant="body1"
-              sx={{ color: "text.primary", lineHeight: 1.6 }}
+              sx={{
+                fontWeight: 400,
+                fontStyle: "regular",
+                fontSize: "0.875rem",
+                lineHeight: "1.25rem",
+                letterSpacing: "0%",
+                color: "#131313",
+              }}
             >
               {review.summary}
             </Typography>
 
             <Typography
-              variant="body2"
-              sx={{ color: "#2F6B8E", fontWeight: 600, cursor: "pointer" }}
+              sx={{
+                fontWeight: 400,
+                fontStyle: "regular",
+                fontSize: "0.6875rem",
+                lineHeight: "1rem",
+                letterSpacing: "0%",
+                color: "#436A00",
+                cursor: "pointer",
+              }}
             >
               {review.ctaLabel}
             </Typography>
 
-            <Divider />
 
             <Box
               sx={{
                 display: "flex",
-                justifyContent: "space-between",
+                justifyContent: "flex-end",
                 alignItems: "center",
               }}
             >
-              <IconButton size="small" sx={{ color: "text.secondary" }}>
-                <ChatBubbleOutlineIcon fontSize="small" />
-              </IconButton>
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Box sx={{ display: "flex" }}>
                 <IconButton size="small" sx={{ color: "text.secondary" }}>
                   <ThumbUpOffAltIcon fontSize="small" />
+                  ###
                 </IconButton>
                 <IconButton size="small" sx={{ color: "text.secondary" }}>
                   <ThumbDownOffAltIcon fontSize="small" />
+                  ###
                 </IconButton>
               </Box>
             </Box>
-          </Card>
+          </Box>
         ))}
       </Box>
     </Box>

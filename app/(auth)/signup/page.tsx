@@ -235,10 +235,10 @@ export default function SignupPage() {
 
             <Typography sx={{
               fontWeight: 500,
-              fontSize: "17px",
-              lineHeight: "20px",
+              fontSize: "1.0625rem",
+              lineHeight: "1.25rem",
               color: "#424242",
-              mb: "8px"
+              mb: "0.5rem"
             }}>
               Enter Email / Mobile No
             </Typography>
@@ -348,7 +348,7 @@ export default function SignupPage() {
                     width: 60,
                     "& .MuiOutlinedInput-root": {
                       height: 60,
-                      width: "80.5px"
+                      width: "5.03125rem"
                     },
                   }}
                 />

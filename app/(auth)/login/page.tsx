@@ -150,7 +150,7 @@ export default function LoginPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  margin: '0 auto 16px',
+                  margin: '0 auto 1rem',
                 }}
               >
                 <Image
@@ -164,10 +164,10 @@ export default function LoginPage() {
 
                 sx={{
                   fontWeight: `700`,
-                  fontSize: `24px`,
+                  fontSize: `1.5rem`,
                   color: `primary.normal`,
-                  mb: "12px",
-                  lineHeight: "28px",
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
 
                 }}
               >
@@ -177,7 +177,7 @@ export default function LoginPage() {
 
                 sx={{
                   fontWeight: 400,
-                  fontSize: "16px",
+                  fontSize: "1rem",
                   lineHeight: "140%",
                   color: "secondary.neutralWhiteDark",
                 }}
@@ -191,20 +191,20 @@ export default function LoginPage() {
               <Typography sx={{
                 textAlign: 'center',
                 fontWeight: 700,
-                fontSize: "20px",
-                lineHeight: "24px",
+                fontSize: "1.25rem",
+                lineHeight: "1.5rem",
                 color: 'primary.normal',
-                mb: "12px",
+                mb: "0.75rem",
               }}>
                 Welcome Back!
               </Typography>
               <Typography sx={{
                 fontWeight: 400,
-                size: "16px",
+                size: "1rem",
                 textAlign: "center",
                 lineHeight: "140%",
                 color: "secondary.neutralWhiteDark",
-                mb: "34px"
+                mb: "2.125rem"
               }}>
                 Enter your email and password to login
               </Typography>
@@ -212,17 +212,17 @@ export default function LoginPage() {
               <Box sx={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "16px"
+                gap: "1rem"
               }} >
                 <Box>
                   <Typography
 
                     sx={{
                       fontWeight: 500,
-                      fontSize: "17px",
-                      lineHeight: "20px",
+                      fontSize: "1.0625rem",
+                      lineHeight: "1.25rem",
                       color: "#424242",
-                      mb: "8px"
+                      mb: "0.5rem"
                     }}
                   >
                     Email/ Mobile No
@@ -250,10 +250,10 @@ export default function LoginPage() {
 
                     sx={{
                       fontWeight: 500,
-                      fontSize: "17px",
-                      lineHeight: "20px",
+                      fontSize: "1.0625rem",
+                      lineHeight: "1.25rem",
                       color: "#424242",
-                      mb: "8px"
+                      mb: "0.5rem"
                     }}
                   >
                     Password
@@ -309,11 +309,11 @@ export default function LoginPage() {
               </Box>
 
 
-              <Box sx={{ textAlign: 'center', mt: "34px" }}>
+              <Box sx={{ textAlign: 'center', mt: "2.125rem" }}>
                 <Typography sx={{
                   color: 'secondary.naturalGray',
-                  fontSize: "18px",
-                  lineHeight: "20px"
+                  fontSize: "1.125rem",
+                  lineHeight: "1.25rem"
                 }}>
                   Don&apos;t have an account?{' '}
                   <Link
@@ -323,8 +323,8 @@ export default function LoginPage() {
                       textDecoration: 'none',
                       offset: "3%",
                       fontWeight: 600,
-                      fontSize: "20px",
-                      lineHeight: "24px"
+                      fontSize: "1.25rem",
+                      lineHeight: "1.5rem"
 
                     }}
                   >
@@ -336,8 +336,8 @@ export default function LoginPage() {
                     href={ROUTES.RESET_PASSWORD}
                     sx={{
                       color: 'secondary.naturalGray',
-                      fontSize: "18px",
-                      lineHeight: "20px",
+                      fontSize: "1.125rem",
+                      lineHeight: "1.25rem",
                       textDecoration: 'none',
                     }}
                   >

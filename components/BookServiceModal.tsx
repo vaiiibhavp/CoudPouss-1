@@ -1690,7 +1690,7 @@ export default function BookServiceModal({
                   display: "flex",
                   alignItems: "center",
                   gap: 2,
-                  border: "1px solid",
+                  border: "0.0625rem solid",
                   borderColor: "grey.300",
                   borderRadius: 2,
                   p: 1,
@@ -2031,7 +2031,7 @@ export default function BookServiceModal({
                 borderRadius: 2,
                 overflow: "hidden",
                 position: "relative",
-                border: "1px solid",
+                border: "0.0625rem solid",
                 borderColor: "grey.300",
               }}
             >
@@ -2065,7 +2065,7 @@ export default function BookServiceModal({
                 sx={{
                   p: 2,
                   flex: 1,
-                  border: "1px solid",
+                  border: "0.0625rem solid",
                   borderColor: "grey.200",
                 }}
               >
@@ -2088,7 +2088,7 @@ export default function BookServiceModal({
                 sx={{
                   p: 2,
                   flex: 1,
-                  border: "1px solid",
+                  border: "0.0625rem solid",
                   borderColor: "grey.200",
                 }}
               >

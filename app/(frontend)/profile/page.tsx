@@ -142,7 +142,7 @@ export default function ProfilePage() {
                 sx={{
                   justifyContent: "flex-start",
                   textTransform: "none",
-                  px: 0,
+                  px: "1rem",
                   py: 0,
                   minWidth: "auto",
                   fontSize: "1rem",
@@ -153,7 +153,6 @@ export default function ProfilePage() {
                   border: "none",
                   color: "#D32F2F",
                   bgcolor: "transparent",
-                  mt: "0.875rem",
                   "&:hover": {
                     bgcolor: "transparent",
                   },

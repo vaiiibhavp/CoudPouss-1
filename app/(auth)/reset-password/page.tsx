@@ -109,10 +109,10 @@ export default function ResetPasswordPage() {
       case 'enter-email':
         return (
           <Box>
-            <Typography sx={{ color: '#424242', mb: 1, fontWeight: 600, lineHeight: "28px", fontSize: "24px" }}>
+            <Typography sx={{ color: '#424242', mb: 1, fontWeight: 600, lineHeight: "1.75rem", fontSize: "1.5rem" }}>
               Reset Password
             </Typography>
-            <Typography sx={{ mb: 3, color: "#787878", fontSize: "18px", lineHeight: "24px", fontWeight: 400 }}>
+            <Typography sx={{ mb: 3, color: "#787878", fontSize: "1.125rem", lineHeight: "1.5rem", fontWeight: 400 }}>
               Enter your Registered Email or Phone Number below to get reset your password.
             </Typography>
 
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
               <Typography
 
                 sx={{
-                  fontSize: "18px",
+                  fontSize: "1.125rem",
                   lineHeight: "100%",
                   color: "#555555",
                   mb: 2
@@ -138,7 +138,7 @@ export default function ResetPasswordPage() {
                 error={!!errors.emailOrMobile}
                 helperText={errors.emailOrMobile}
                 margin="normal"
-                sx={{ m: 0, mb: "59px" }}
+                sx={{ m: 0, mb: "3.6875rem" }}
               />
             </Box>
 
@@ -172,13 +172,13 @@ export default function ResetPasswordPage() {
                 justifyContent: 'center',
                 color: '#424242',
                 textDecoration: 'none',
-                fontSize: "16px",
+                fontSize: "1rem",
                 '&:hover': {
                   textDecoration: 'underline',
                 },
               }}
             >
-              <ArrowBack sx={{ fontSize: "20px", mr: "12px" }} />
+              <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
               Back to Login
             </Link>
           </Box>
@@ -187,10 +187,10 @@ export default function ResetPasswordPage() {
       case 'verify-otp':
         return (
           <Box>
-            <Typography sx={{ color: '#424242', fontWeight: 600, fontSize: "24px", lineHeight: "28px", mb: "12px" }}>
+            <Typography sx={{ color: '#424242', fontWeight: 600, fontSize: "1.5rem", lineHeight: "1.75rem", mb: "0.75rem" }}>
               Enter OTP
             </Typography>
-            <Typography sx={{ mb: 3, color: "#787878", lineHeight: "24px", fontSize: "18px", fontWeight: 500 }}>
+            <Typography sx={{ mb: 3, color: "#787878", lineHeight: "1.5rem", fontSize: "1.125rem", fontWeight: 500 }}>
               To continue Please enter the 4 Digit OTP sent to your Email or Phone Number.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-between', mb: 2 }}>
@@ -209,7 +209,7 @@ export default function ResetPasswordPage() {
                     width: 60,
                     '& .MuiOutlinedInput-root': {
                       height: 60,
-                      width: "80.5px"
+                      width: "5.03125rem"
                     },
                   }}
                 />
@@ -226,11 +226,11 @@ export default function ResetPasswordPage() {
 
                 display: 'block',
                 textAlign: 'center',
-                mb: "39px",
+                mb: "2.4375rem",
                 color: 'primary.normal',
                 textDecoration: 'none',
-                fontSize: '20px',
-                lineHeight: '24px',
+                fontSize: '1.25rem',
+                lineHeight: '1.5rem',
                 fontWeight: 600,
                 '&:hover': {
                   textDecoration: 'underline',
@@ -268,13 +268,13 @@ export default function ResetPasswordPage() {
                 justifyContent: 'center',
                 color: '#424242',
                 textDecoration: 'none',
-                fontSize: "16px",
+                fontSize: "1rem",
                 '&:hover': {
                   textDecoration: 'underline',
                 },
               }}
             >
-              <ArrowBack sx={{ fontSize: "20px", mr: "12px" }} />
+              <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
               Back to Login
             </Link>
           </Box>
@@ -283,10 +283,10 @@ export default function ResetPasswordPage() {
       case 'set-password':
         return (
           <Box component="form" onSubmit={handleResetPassword}>
-            <Typography sx={{ color: '#424242', mb: 1.5, fontWeight: 600, fontSize: "24px", lineHeight: "28px" }}>
+            <Typography sx={{ color: '#424242', mb: 1.5, fontWeight: 600, fontSize: "1.5rem", lineHeight: "1.75rem" }}>
               Set New Password
             </Typography>
-            <Typography  sx={{ mb: 3,color: "#787878", fontSize: "18px", lineHeight: "24px", fontWeight: 500 }}>
+            <Typography  sx={{ mb: 3,color: "#787878", fontSize: "1.125rem", lineHeight: "1.5rem", fontWeight: 500 }}>
               Your new password must be different from previously used passwords
             </Typography>
             <TextField
@@ -365,13 +365,13 @@ export default function ResetPasswordPage() {
                 justifyContent: 'center',
                 color: '#424242',
                 textDecoration: 'none',
-                fontSize: "16px",
+                fontSize: "1rem",
                 '&:hover': {
                   textDecoration: 'underline',
                 },
               }}
             >
-              <ArrowBack sx={{ fontSize: "20px", mr: "12px" }} />
+              <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
               Back to Login
             </Link>
           </Box>
@@ -442,7 +442,7 @@ export default function ResetPasswordPage() {
               <Box sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: "8.43px"
+                gap: "0.526875rem"
 
               }} >
                 <Image
@@ -454,8 +454,8 @@ export default function ResetPasswordPage() {
                 />
                 <Typography sx={{
                   color: "primary.normal",
-                  fontSize: "20px",
-                  lineHeight: "24px",
+                  fontSize: "1.25rem",
+                  lineHeight: "1.5rem",
                   fontWeight: 600
                 }}>
                   CoudPouss
