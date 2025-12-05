@@ -1,10 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, Box, Typography, Button, Avatar } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import EditProfile from "./EditProfile";
 
 export default function ProfileOverview() {
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  if (isEditMode) {
+    return <EditProfile onCancel={() => setIsEditMode(false)} />;
+  }
+
   return (
     <Box
       sx={{
@@ -73,6 +80,7 @@ export default function ProfileOverview() {
             <Button
               variant="outlined"
               endIcon={<EditIcon sx={{ color: "#6D6D6D", fontSize: "1rem" }} />}
+              onClick={() => setIsEditMode(true)}
               sx={{
                 textTransform: "none",
                 border: "0.03125rem solid #DFE8ED",
