@@ -9,10 +9,12 @@ import Header from "@/components/Header";
 import ProfileOverview from "./components/ProfileOverview";
 import TransactionsHistory from "./components/TransactionsHistory";
 import RatingsReviews from "./components/RatingsReviews";
+import DeleteProfileModal from "@/components/DeleteProfileModal";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [activeMenuItem, setActiveMenuItem] = useState("My Profile");
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -40,8 +42,17 @@ export default function ProfilePage() {
   ];
 
   const handleDeleteProfile = () => {
+    setOpenDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
     // Add delete profile logic here
-    console.log("Delete profile clicked");
+    console.log("Delete profile confirmed");
+    // Clear user data
+    localStorage.removeItem("userInitial");
+    localStorage.removeItem("userEmail");
+    // Redirect to home or login page
+    router.push(ROUTES.HOME);
   };
 
   return (
@@ -172,7 +183,12 @@ export default function ProfilePage() {
         </Box>
       </Box>
 
-
+      {/* Delete Profile Modal */}
+      <DeleteProfileModal
+        open={openDeleteModal}
+        onClose={() => setOpenDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </Box>
   );
 }
