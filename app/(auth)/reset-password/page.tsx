@@ -393,10 +393,10 @@ export default function ResetPasswordPage() {
       {/* Left side - Image Section */}
       <Box
         sx={{
-          display: { xs: 'none', md: 'block' },
-          width: { md: '66.666%' },
+          display: { xs: 'none', lg: 'flex' },
+          width: '55%',
           position: 'relative',
-          bgcolor: 'grey.100',
+          overflow: 'hidden',
         }}
       >
         <Box
@@ -411,9 +411,13 @@ export default function ResetPasswordPage() {
             src="/image/main.png"
             alt="CoudPouss Service"
             fill
-            style={{ objectFit: 'cover' }}
-            sizes="66.666vw"
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'top',
+            }}
+            sizes="50vw"
             priority
+            quality={90}
           />
         </Box>
       </Box>
@@ -421,7 +425,7 @@ export default function ResetPasswordPage() {
       {/* Right side - Reset Password Form */}
       <Box
         sx={{
-          width: { xs: '100%', md: '33.333%' },
+          width: { xs: '100%', md: '45%' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

@@ -99,7 +99,7 @@ export default function BankDetailsPage() {
       <Box
         sx={{
           display: { xs: "none", md: "block" },
-          width: { md: "66.666%" },
+          width: { md: "55%" },
           position: "relative",
           bgcolor: "grey.100",
         }}
@@ -116,7 +116,10 @@ export default function BankDetailsPage() {
             src="/image/main.png"
             alt="CoudPouss Service"
             fill
-            style={{ objectFit: "cover" }}
+            style={{
+              objectFit: "cover",
+              objectPosition: "top",
+            }}
             sizes="66.666vw"
             priority
           />
@@ -126,7 +129,7 @@ export default function BankDetailsPage() {
       {/* Right side - Form */}
       <Box
         sx={{
-          width: { xs: "100%", md: "33.333%" },
+          width: { xs: "100%", md: "45%" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -143,37 +146,65 @@ export default function BankDetailsPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 4 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="h6" sx={{ color: "white" }}>
-                  🏠
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.526875rem"
+              }} >
+                <Image
+                  alt='logo'
+                  width={80}
+                  height={80}
+                  src={"/icons/appLogo.png"}
+                />
+                <Typography sx={{
+                  color: "primary.normal",
+                  fontSize: "1.25rem",
+                  lineHeight: "1.5rem",
+                  fontWeight: 600
+                }}>
+                  CoudPouss
                 </Typography>
               </Box>
-              <Typography variant="h6" fontWeight="bold">
-                CoudPouss
-              </Typography>
             </Box>
 
             {/* Content */}
             <Box component="form" onSubmit={handleSubmit}>
-              <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `1.5rem`,
+                  color: `primary.normal`,
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
+                  textAlign: "left"
+                }}
+              >
                 Add Bank Details
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "1rem",
+                  textAlign: "left",
+                  lineHeight: "140%",
+                  mb: "2.5rem",
+                  color: "secondary.neutralWhiteDark",
+                }}
+              >
                 Select the plan that fits your activity. You can change it later in your profile.
               </Typography>
 
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 Account Holder Name
               </Typography>
               <TextField
@@ -187,7 +218,15 @@ export default function BankDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 Account Number
               </Typography>
               <TextField
@@ -201,7 +240,15 @@ export default function BankDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 Confirm Account Number
               </Typography>
               <TextField
@@ -215,7 +262,15 @@ export default function BankDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 IFSC Code
               </Typography>
               <TextField
@@ -229,7 +284,15 @@ export default function BankDetailsPage() {
                 sx={{ mb: 2 }}
               />
 
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 Bank Name
               </Typography>
               <TextField
@@ -250,8 +313,8 @@ export default function BankDetailsPage() {
                   size="large"
                   onClick={handleSkip}
                   sx={{
-                    borderColor: "#2F6B8E",
-                    color: "#2F6B8E",
+                    borderColor: "primary.dark",
+                    color: "primary.dark",
                     py: 1.5,
                     textTransform: "none",
                     fontSize: "1rem",
@@ -269,7 +332,7 @@ export default function BankDetailsPage() {
                   variant="contained"
                   size="large"
                   sx={{
-                    bgcolor: "#2F6B8E",
+                    bgcolor: "primary.dark",
                     color: "white",
                     py: 1.5,
                     textTransform: "none",

@@ -135,7 +135,7 @@ export default function SelectCategoryPage() {
       <Box
         sx={{
           display: { xs: "none", md: "block" },
-          width: { md: "66.666%" },
+          width: { md: "55%" },
           position: "relative",
           bgcolor: "grey.100",
         }}
@@ -152,7 +152,10 @@ export default function SelectCategoryPage() {
             src="/image/main.png"
             alt="CoudPouss Service"
             fill
-            style={{ objectFit: "cover" }}
+            style={{
+              objectFit: "cover",
+              objectPosition: "top",
+            }}
             sizes="66.666vw"
             priority
           />
@@ -162,7 +165,7 @@ export default function SelectCategoryPage() {
       {/* Right side - Form */}
       <Box
         sx={{
-          width: { xs: "100%", md: "33.333%" },
+          width: { xs: "100%", md: "45%" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -179,33 +182,53 @@ export default function SelectCategoryPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 4 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="h6" sx={{ color: "white" }}>
-                  🏠
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.526875rem"
+              }} >
+                <Image
+                  alt='logo'
+                  width={80}
+                  height={80}
+                  src={"/icons/appLogo.png"}
+                />
+                <Typography sx={{
+                  color: "primary.normal",
+                  fontSize: "1.25rem",
+                  lineHeight: "1.5rem",
+                  fontWeight: 600
+                }}>
+                  CoudPouss
                 </Typography>
               </Box>
-              <Typography variant="h6" fontWeight="bold">
-                CoudPouss
-              </Typography>
             </Box>
 
             {/* Content */}
             <Box>
-              <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `1.5rem`,
+                  color: `primary.normal`,
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
+                  textAlign: "left"
+                }}
+              >
                 Select A Category
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "1rem",
+                  textAlign: "left",
+                  lineHeight: "140%",
+                  mb: "2.5rem",
+                  color: "secondary.neutralWhiteDark",
+                }}
+              >
                 Please pick a category to begin. This will help us connect you with the right professional for your needs.
               </Typography>
 
@@ -293,10 +316,28 @@ export default function SelectCategoryPage() {
               {/* Selected Services Display - Only for current category */}
               {selectedCategory && selectedServices.length > 0 && (
                 <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: `700`,
+                      fontSize: `1.5rem`,
+                      color: `primary.normal`,
+                      mb: "0.75rem",
+                      lineHeight: "1.75rem",
+                      textAlign: "left"
+                    }}
+                  >
                     Select A Service
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "1rem",
+                      textAlign: "left",
+                      lineHeight: "140%",
+                      mb: "2.5rem",
+                      color: "secondary.neutralWhiteDark",
+                    }}
+                  >
                     Review your selected services. You can go back to make changes or continue to confirm your choices.
                   </Typography>
 
@@ -383,8 +424,8 @@ export default function SelectCategoryPage() {
                   size="large"
                   onClick={handleSkip}
                   sx={{
-                    borderColor: "#2F6B8E",
-                    color: "#2F6B8E",
+                    borderColor: "primary.dark",
+                    color: "primary.dark",
                     py: 1.5,
                     textTransform: "none",
                     fontSize: "1rem",
@@ -403,7 +444,7 @@ export default function SelectCategoryPage() {
                   onClick={handleContinue}
                   disabled={!selectedCategory || selectedServices.length === 0}
                   sx={{
-                    bgcolor: "#2F6B8E",
+                    bgcolor: "primary.dark",
                     color: "white",
                     py: 1.5,
                     textTransform: "none",
