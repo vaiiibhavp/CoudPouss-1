@@ -105,8 +105,8 @@ export default function MyEarnings() {
             p: 3,
             bgcolor: "white",
             borderRadius: 2,
-            border: "1px solid #E5E7EB",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "0.0625rem solid #E5E7EB",
+            boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
           }}
         >
           <Typography
@@ -171,8 +171,8 @@ export default function MyEarnings() {
             p: 3,
             bgcolor: "white",
             borderRadius: 2,
-            border: "1px solid #E5E7EB",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+            border: "0.0625rem solid #E5E7EB",
+            boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
           }}
         >
           <Box
@@ -271,8 +271,8 @@ export default function MyEarnings() {
           p: 3,
           bgcolor: "white",
           borderRadius: 2,
-          border: "1px solid #E5E7EB",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          border: "0.0625rem solid #E5E7EB",
+          boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
           mb: 3,
         }}
       >
@@ -280,7 +280,7 @@ export default function MyEarnings() {
           value={activeTab}
           onChange={handleTabChange}
           sx={{
-            borderBottom: "1px solid #E5E7EB",
+            borderBottom: "0.0625rem solid #E5E7EB",
             mb: 3,
             "& .MuiTab-root": {
               textTransform: "none",
@@ -395,8 +395,8 @@ export default function MyEarnings() {
           p: 3,
           bgcolor: "white",
           borderRadius: 2,
-          border: "1px solid #E5E7EB",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          border: "0.0625rem solid #E5E7EB",
+          boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
         }}
       >
         <Box

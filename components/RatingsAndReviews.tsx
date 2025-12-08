@@ -120,10 +120,10 @@ export default function RatingsAndReviews() {
         p: 4,
         bgcolor: "white",
         borderRadius: 2,
-        border: "1px solid #E5E7EB",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        border: "0.0625rem solid #E5E7EB",
+        boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
         width: "100%",
-        minHeight: "calc(100vh - 300px)",
+        minHeight: "calc(100vh - 18.75rem)",
       }}
     >
       <Typography
@@ -148,10 +148,10 @@ export default function RatingsAndReviews() {
             sx={{
               p: 3,
               borderRadius: 2,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
               "&:hover": {
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
               },
             }}
           >
@@ -236,7 +236,7 @@ export default function RatingsAndReviews() {
                 justifyContent: "flex-end",
                 gap: 2,
                 pt: 1,
-                borderTop: "1px solid #F3F4F6",
+                borderTop: "0.0625rem solid #F3F4F6",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>

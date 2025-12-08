@@ -216,14 +216,14 @@ export default function AddServiceModal({
               >
                 <Box
                   sx={{
-                    maxHeight: "300px",
+                    maxHeight: "18.75rem",
                     overflowY: "auto",
                     "&::-webkit-scrollbar": {
-                      width: "6px",
+                      width: "0.375rem",
                     },
                     "&::-webkit-scrollbar-thumb": {
                       backgroundColor: "#D1D5DB",
-                      borderRadius: "3px",
+                      borderRadius: "0.1875rem",
                     },
                   }}
                 >
@@ -290,14 +290,14 @@ export default function AddServiceModal({
 
               <Box
                 sx={{
-                  maxHeight: "400px",
+                  maxHeight: "25rem",
                   overflowY: "auto",
                   "&::-webkit-scrollbar": {
                     width: "6px",
                   },
                   "&::-webkit-scrollbar-thumb": {
                     backgroundColor: "#D1D5DB",
-                    borderRadius: "3px",
+                      borderRadius: "0.1875rem",
                   },
                 }}
               >
@@ -311,7 +311,7 @@ export default function AddServiceModal({
                       p: 2,
                       mb: 1,
                       borderRadius: 2,
-                      border: "1px solid #E5E7EB",
+                      border: "0.0625rem solid #E5E7EB",
                       cursor: "pointer",
                       bgcolor: selectedServices.includes(service.id)
                         ? "#F0F9FF"

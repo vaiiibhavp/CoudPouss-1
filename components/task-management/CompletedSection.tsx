@@ -134,7 +134,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -160,7 +160,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -201,7 +201,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -270,7 +270,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               </Box>
               <Box
                 sx={{
-                  borderTop: "1px dashed #D1D5DB",
+                  borderTop: "0.0625rem dashed #D1D5DB",
                   pt: 2,
                 }}
               />
@@ -298,7 +298,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
             sx={{
               p: 3,
               borderRadius: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -337,7 +337,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -364,7 +364,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -412,7 +412,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -489,7 +489,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -519,7 +519,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
             sx={{
               p: 3,
               borderRadius: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >

@@ -98,7 +98,7 @@ export default function SecurityCodeMatchModal({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  border: "1px solid #D1D5DB",
+                  border: "0.0625rem solid #D1D5DB",
                   borderRadius: 1,
                   bgcolor: "#F9FAFB",
                 }}

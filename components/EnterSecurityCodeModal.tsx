@@ -141,7 +141,7 @@ export default function EnterSecurityCodeModal({
                     textAlign: "center",
                     fontSize: "1.25rem",
                     fontWeight: 600,
-                    padding: "12px 0",
+                    padding: "0.75rem 0",
                   },
                 }}
                 sx={{

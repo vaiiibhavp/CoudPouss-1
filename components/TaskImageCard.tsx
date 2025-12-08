@@ -31,7 +31,7 @@ export default function TaskImageCard({
         borderRadius: 3,
         overflow: "hidden",
         mb: 3,
-        border: "1px solid #E5E7EB",
+        border: "0.0625rem solid #E5E7EB",
         boxShadow: "none",
         bgcolor: "#F9FAFB",
       }}

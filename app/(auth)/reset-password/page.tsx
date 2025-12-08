@@ -79,12 +79,12 @@ export default function ResetPasswordPage() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.newPassword || !formData.reEnterPassword) {
       setErrors({ password: 'Please fill all password fields' });
       return;
     }
-    
+
     if (formData.newPassword !== formData.reEnterPassword) {
       setErrors({ password: 'Passwords do not match' });
       return;
@@ -109,24 +109,40 @@ export default function ResetPasswordPage() {
       case 'enter-email':
         return (
           <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#2F6B8E', mb: 1 }}>
+            <Typography sx={{ color: '#424242', mb: 1, fontWeight: 600, lineHeight: "1.75rem", fontSize: "1.5rem" }}>
               Reset Password
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography sx={{ mb: 3, color: "#787878", fontSize: "1.125rem", lineHeight: "1.5rem", fontWeight: 400 }}>
               Enter your Registered Email or Phone Number below to get reset your password.
             </Typography>
-            <TextField
-              fullWidth
-              label="Email/ Mobile No"
-              name="emailOrMobile"
-              placeholder="Enter Email/ Mobile No"
-              value={formData.emailOrMobile}
-              onChange={handleChange}
-              error={!!errors.emailOrMobile}
-              helperText={errors.emailOrMobile}
-              margin="normal"
-              sx={{ mb: 3 }}
-            />
+
+            <Box>
+              <Typography
+
+                sx={{
+                  fontSize: "1.125rem",
+                  lineHeight: "100%",
+                  color: "#555555",
+                  mb: 2
+                }}
+              >
+                Email/ Mobile No
+              </Typography>
+              <TextField
+                fullWidth
+
+                name="emailOrMobile"
+                placeholder="Enter Email/ Mobile No"
+                value={formData.emailOrMobile}
+                onChange={handleChange}
+                error={!!errors.emailOrMobile}
+                helperText={errors.emailOrMobile}
+                margin="normal"
+                sx={{ m: 0, mb: "3.6875rem" }}
+              />
+            </Box>
+
+
             <Button
               fullWidth
               variant="contained"
@@ -151,16 +167,18 @@ export default function ResetPasswordPage() {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
+                lineHeight: "140%",
+
                 justifyContent: 'center',
-                color: '#2F6B8E',
+                color: '#424242',
                 textDecoration: 'none',
-                fontSize: '0.875rem',
+                fontSize: "1rem",
                 '&:hover': {
                   textDecoration: 'underline',
                 },
               }}
             >
-              <ArrowBack sx={{ fontSize: 16, mr: 0.5 }} />
+              <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
               Back to Login
             </Link>
           </Box>
@@ -169,13 +187,13 @@ export default function ResetPasswordPage() {
       case 'verify-otp':
         return (
           <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#2F6B8E', mb: 1 }}>
+            <Typography sx={{ color: '#424242', fontWeight: 600, fontSize: "1.5rem", lineHeight: "1.75rem", mb: "0.75rem" }}>
               Enter OTP
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography sx={{ mb: 3, color: "#787878", lineHeight: "1.5rem", fontSize: "1.125rem", fontWeight: 500 }}>
               To continue Please enter the 4 Digit OTP sent to your Email or Phone Number.
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-between', mb: 2 }}>
               {formData.otp.map((digit, index) => (
                 <TextField
                   key={index}
@@ -191,6 +209,7 @@ export default function ResetPasswordPage() {
                     width: 60,
                     '& .MuiOutlinedInput-root': {
                       height: 60,
+                      width: "5.03125rem"
                     },
                   }}
                 />
@@ -204,12 +223,15 @@ export default function ResetPasswordPage() {
             <Link
               href="#"
               sx={{
+
                 display: 'block',
                 textAlign: 'center',
-                mb: 3,
-                color: '#2F6B8E',
+                mb: "2.4375rem",
+                color: 'primary.normal',
                 textDecoration: 'none',
-                fontSize: '0.875rem',
+                fontSize: '1.25rem',
+                lineHeight: '1.5rem',
+                fontWeight: 600,
                 '&:hover': {
                   textDecoration: 'underline',
                 },
@@ -241,16 +263,18 @@ export default function ResetPasswordPage() {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
+                lineHeight: "140%",
+
                 justifyContent: 'center',
-                color: '#2F6B8E',
+                color: '#424242',
                 textDecoration: 'none',
-                fontSize: '0.875rem',
+                fontSize: "1rem",
                 '&:hover': {
                   textDecoration: 'underline',
                 },
               }}
             >
-              <ArrowBack sx={{ fontSize: 16, mr: 0.5 }} />
+              <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
               Back to Login
             </Link>
           </Box>
@@ -259,10 +283,10 @@ export default function ResetPasswordPage() {
       case 'set-password':
         return (
           <Box component="form" onSubmit={handleResetPassword}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#2F6B8E', mb: 1 }}>
+            <Typography sx={{ color: '#424242', mb: 1.5, fontWeight: 600, fontSize: "1.5rem", lineHeight: "1.75rem" }}>
               Set New Password
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography  sx={{ mb: 3,color: "#787878", fontSize: "1.125rem", lineHeight: "1.5rem", fontWeight: 500 }}>
               Your new password must be different from previously used passwords
             </Typography>
             <TextField
@@ -336,16 +360,18 @@ export default function ResetPasswordPage() {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
+                lineHeight: "140%",
+
                 justifyContent: 'center',
-                color: '#2F6B8E',
+                color: '#424242',
                 textDecoration: 'none',
-                fontSize: '0.875rem',
+                fontSize: "1rem",
                 '&:hover': {
                   textDecoration: 'underline',
                 },
               }}
             >
-              <ArrowBack sx={{ fontSize: 16, mr: 0.5 }} />
+              <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
               Back to Login
             </Link>
           </Box>
@@ -413,29 +439,29 @@ export default function ResetPasswordPage() {
           >
             {/* Logo Section */}
             <Box sx={{ textAlign: 'center', mb: 4 }}>
-              <Box
-                sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px',
-                }}
-              >
-                <Typography variant="h4" sx={{ color: 'white' }}>
-                  🏠
+              <Box sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.526875rem"
+
+              }} >
+                <Image
+                  alt='logo'
+                  width={80}
+
+                  height={80}
+                  src={"/icons/appLogo.png"}
+                />
+                <Typography sx={{
+                  color: "primary.normal",
+                  fontSize: "1.25rem",
+                  lineHeight: "1.5rem",
+                  fontWeight: 600
+                }}>
+                  CoudPouss
                 </Typography>
               </Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
-                CoudPouss
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Empowering seniors with easy access to trusted help, care, and
-                companionship whenever needed.
-              </Typography>
+
             </Box>
 
             {/* Step Content */}

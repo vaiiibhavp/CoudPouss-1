@@ -190,7 +190,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                     height: 140,
                     borderRadius: 2,
                     overflow: "hidden",
-                    border: "1px solid #E5E7EB",
+                    border: "0.0625rem solid #E5E7EB",
                   }}
                 >
                   <Image
@@ -294,7 +294,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -321,7 +321,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -369,7 +369,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -446,7 +446,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
               p: 3,
               borderRadius: 3,
               mb: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
@@ -476,7 +476,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
             sx={{
               p: 3,
               borderRadius: 3,
-              border: "1px solid #E5E7EB",
+              border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >

@@ -43,14 +43,14 @@ export default function ServiceRequestCard({
         borderRadius: 3,
         overflow: "hidden",
         bgcolor: "white",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-        border: "1px solid #E5E7EB",
+        boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.08)",
+        border: "0.0625rem solid #E5E7EB",
         transition: "all 0.3s ease",
         cursor: "pointer",
         maxWidth: 320,
         "&:hover": {
-          boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-          transform: "translateY(-4px)",
+          boxShadow: "0 0.5rem 1.5rem rgba(0,0,0,0.12)",
+          transform: "translateY(-0.25rem)",
         },
       }}
     >

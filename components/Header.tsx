@@ -1,3 +1,4 @@
+// components/Header.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -13,22 +14,24 @@ import {
   IconButton,
   InputBase,
   Menu,
+  Divider,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import MenuIcon from "@mui/icons-material/Menu";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import MessageIcon from "@mui/icons-material/Message";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux";
 import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
+import { logout, setUserFromStorage } from "@/lib/redux/authSlice";
+import { AppDispatch, RootState } from "@/lib/redux/store";
 
 interface HeaderProps {
-  showNavigationLinks?: boolean;
   showExploreServices?: boolean;
   showBookServiceButton?: boolean;
   showAuthButtons?: boolean;
@@ -38,7 +41,6 @@ interface HeaderProps {
 }
 
 export default function Header({
-  showNavigationLinks = false,
   showExploreServices = true,
   showBookServiceButton = true,
   showAuthButtons = true,
@@ -48,49 +50,23 @@ export default function Header({
 }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   // Check if we're on professional dashboard or its sub-routes (including professional profile)
   const isProfessionalDashboard = pathname?.startsWith('/professional');
-  const [userInitial, setUserInitial] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("userInitial");
-    }
-    return null;
-  });
-  const [userEmail, setUserEmail] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("userEmail");
-    }
-    return null;
-  });
-  const [servicesMenuAnchor, setServicesMenuAnchor] =
-    useState<null | HTMLElement>(null);
-  const [notificationsMenuAnchor, setNotificationsMenuAnchor] =
-    useState<null | HTMLElement>(null);
-  const [profileMenuAnchor, setProfileMenuAnchor] =
-    useState<null | HTMLElement>(null);
+  const [servicesMenuAnchor, setServicesMenuAnchor] = useState<null | HTMLElement>(null);
+  const [notificationsMenuAnchor, setNotificationsMenuAnchor] = useState<null | HTMLElement>(null);
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
   const [bookServiceModalOpen, setBookServiceModalOpen] = useState(false);
 
   useEffect(() => {
-    // Sync state with localStorage changes (e.g., from other tabs)
-    const handleStorageChange = () => {
-      if (typeof window !== "undefined") {
-        setUserInitial(localStorage.getItem("userInitial"));
-        setUserEmail(localStorage.getItem("userEmail"));
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  const isAuthenticated = Boolean(userInitial && userEmail);
+    // Sync Redux state with localStorage on component mount
+    dispatch(setUserFromStorage());
+  }, [dispatch]);
 
   const handleLogout = () => {
-    localStorage.removeItem("userInitial");
-    localStorage.removeItem("userEmail");
-    setUserInitial(null);
-    setUserEmail(null);
+    dispatch(logout());
     router.push(ROUTES.HOME);
   };
 
@@ -102,9 +78,7 @@ export default function Header({
     setServicesMenuAnchor(null);
   };
 
-  const handleNotificationsMenuOpen = (
-    event: React.MouseEvent<HTMLElement>
-  ) => {
+  const handleNotificationsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsMenuAnchor(event.currentTarget);
   };
 
@@ -121,12 +95,15 @@ export default function Header({
   };
 
   // Determine home route - use prop if provided, otherwise based on authentication
-  const finalHomeRoute =
-    homeRoute || (isAuthenticated ? ROUTES.AUTH_HOME : ROUTES.HOME);
+  const finalHomeRoute = homeRoute || (isAuthenticated ? ROUTES.AUTH_HOME : ROUTES.HOME);
 
   return (
     <>
-      <AppBar position="static" elevation={0} sx={{ bgcolor: "white" }}>
+      <AppBar position="static" elevation={0} sx={{
+        bgcolor: "white",
+        borderBottom: "0.0625rem solid #DFE8ED"
+
+      }}>
         <Toolbar sx={{ py: 2 }}>
           <Container maxWidth="xl">
             <Box
@@ -139,7 +116,7 @@ export default function Header({
               }}
             >
               {/* Logo and Brand Name */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
                 <Box
                   component={Link}
                   href={finalHomeRoute}
@@ -148,7 +125,7 @@ export default function Header({
                     height: 48,
                     borderRadius: "50%",
                     bgcolor: "white",
-                    border: "2px solid",
+                    border: "0.125rem solid",
                     borderColor: "grey.200",
                     display: "flex",
                     alignItems: "center",
@@ -171,9 +148,10 @@ export default function Header({
                   component={Link}
                   href={finalHomeRoute}
                   sx={{
-                    color: "primary.main",
+                    color: "primary.normal",
                     fontWeight: "bold",
-                    fontSize: "1.5rem",
+                    fontSize: "1.25rem",
+                    lineHeight: "1.5rem",
                     display: { xs: "none", sm: "block" },
                     textDecoration: "none",
                   }}
@@ -189,16 +167,10 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_DASHBOARD}
                       sx={{
-                        color:
-                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
-                            ? "primary.main"
-                            : "text.secondary",
+                        color: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom:
-                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
-                            ? "2px solid"
-                            : "none",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "0.125rem solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? 1 : 0,
@@ -214,16 +186,11 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_EXPLORE_REQUESTS}
                       sx={{
-                        color:
-                          pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS
-                            ? "primary.main"
-                            : "text.secondary",
+                        color: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom:
-                          pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS
-                            ? "2px solid"
-                            : "none",
+                        fontWeight: "400",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "0.125rem solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? 1 : 0,
@@ -239,16 +206,10 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_TASK_MANAGEMENT}
                       sx={{
-                        color:
-                          pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT
-                            ? "primary.main"
-                            : "text.secondary",
+                        color: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "primary.main" : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom:
-                          pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT
-                            ? "2px solid"
-                            : "none",
+                        borderBottom: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "0.125rem solid" : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? 1 : 0,
@@ -268,7 +229,7 @@ export default function Header({
               <Box
                 sx={{
                   flexGrow: 1,
-                  maxWidth: { xs: "100%", md: "400px" },
+                  maxWidth: { xs: "100%", md: "25rem" },
                   display: { xs: "none", md: "flex" },
                   alignItems: "center",
                   mx: 2,
@@ -281,9 +242,10 @@ export default function Header({
                     width: "100%",
                     bgcolor: "grey.50",
                     borderRadius: 2,
-                    border: "1px solid",
+                    border: "0.0625rem solid",
                     borderColor: "grey.300",
                     overflow: "hidden",
+                    paddingRight: "1rem"
                   }}
                 >
                   <InputBase
@@ -304,15 +266,20 @@ export default function Header({
                   />
                   <IconButton
                     sx={{
-                      bgcolor: "primary.main",
-                      borderRadius: 0,
+                      bgcolor: "primary.normal",
+                      borderRadius: "50%",
                       color: "white",
                       "&:hover": {
                         bgcolor: "primary.dark",
                       },
                     }}
                   >
-                    <SearchIcon />
+                    <Image
+                      src={"/icons/searhIcon.png"}
+                      alt="Search Icon"
+                      width={16}
+                      height={16}
+                    />
                   </IconButton>
                 </Box>
               </Box>
@@ -320,25 +287,23 @@ export default function Header({
               {/* Action Buttons */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 {/* Explore Services Dropdown - Only for non-professional routes */}
-                {!isProfessionalDashboard &&
-                  showExploreServices &&
-                  isAuthenticated && (
-                    <Button
-                      onClick={handleServicesMenuOpen}
-                      endIcon={<ExpandMoreIcon />}
-                      sx={{
-                        color: "text.secondary",
-                        textTransform: "none",
-                        display: { xs: "none", lg: "flex" },
-                        "&:hover": {
-                          bgcolor: "transparent",
-                          color: "primary.main",
-                        },
-                      }}
-                    >
-                      Explore Services
-                    </Button>
-                  )}
+                {!isProfessionalDashboard && showExploreServices && isAuthenticated && (
+                  <Button
+                    onClick={handleServicesMenuOpen}
+                    endIcon={<ExpandMoreIcon />}
+                    sx={{
+                      color: "text.secondary",
+                      textTransform: "none",
+                      display: { xs: "none", lg: "flex", fontSize: "1rem", lineHeight: "140%" },
+                      "&:hover": {
+                        bgcolor: "transparent",
+                        color: "primary.main",
+                      },
+                    }}
+                  >
+                    Explore Services
+                  </Button>
+                )}
                 <Menu
                   anchorEl={servicesMenuAnchor}
                   open={Boolean(servicesMenuAnchor)}
@@ -349,8 +314,9 @@ export default function Header({
                       minWidth: 500,
                       maxWidth: 600,
                       borderRadius: 2,
-                      boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                      p: 2,
+                      boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
+                      px: "2rem",
+                      py: "1.25rem"
                     },
                   }}
                   transformOrigin={{ horizontal: "left", vertical: "top" }}
@@ -358,12 +324,12 @@ export default function Header({
                 >
                   <Box>
                     <Typography
-                      variant="h6"
                       sx={{
-                        color: "#2F6B8E",
-                        fontWeight: "bold",
+                        color: "primary.normal",
+                        fontWeight: 600,
+                        lineHeight: "1.125rem",
                         mb: 2,
-                        fontSize: "1.25rem",
+                        fontSize: "1rem",
                       }}
                     >
                       Explore Services
@@ -376,21 +342,18 @@ export default function Header({
                       }}
                     >
                       {/* Home Assistance */}
-                      <Card
+                      <Box
                         component={Link}
                         href={ROUTES.HOME_ASSISTANCE}
                         sx={{
                           p: 2,
                           borderRadius: 2,
                           cursor: "pointer",
-                          border: "1px solid",
+                          border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          "&:hover": {
-                            boxShadow: 4,
-                            borderColor: "primary.main",
-                          },
-                          transition: "all 0.2s ease",
+                          bgcolor: "#F7F7F7"
+
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -400,6 +363,7 @@ export default function Header({
                             flexDirection: "column",
                             alignItems: "center",
                             gap: 1.5,
+
                           }}
                         >
                           <Box
@@ -409,7 +373,6 @@ export default function Header({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              bgcolor: "grey.50",
                               borderRadius: 2,
                             }}
                           >
@@ -424,29 +387,27 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "text.primary" }}
+                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
                           >
                             Home Assistance
                           </Typography>
                         </Box>
-                      </Card>
+                      </Box>
 
                       {/* Transport */}
-                      <Card
+                      <Box
                         component={Link}
                         href={ROUTES.TRANSPORT}
                         sx={{
                           p: 2,
                           borderRadius: 2,
                           cursor: "pointer",
-                          border: "1px solid",
+                          border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          "&:hover": {
-                            boxShadow: 4,
-                            borderColor: "primary.main",
-                          },
+
                           transition: "all 0.2s ease",
+                          bgcolor: "#F7F7F7"
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -465,7 +426,7 @@ export default function Header({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              bgcolor: "grey.50",
+
                               borderRadius: 2,
                             }}
                           >
@@ -480,29 +441,27 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "text.primary" }}
+                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
                           >
                             Transport
                           </Typography>
                         </Box>
-                      </Card>
+                      </Box>
 
                       {/* Personal Care */}
-                      <Card
+                      <Box
                         component={Link}
                         href={ROUTES.PERSONAL_CARE}
                         sx={{
                           p: 2,
                           borderRadius: 2,
                           cursor: "pointer",
-                          border: "1px solid",
+                          border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          "&:hover": {
-                            boxShadow: 4,
-                            borderColor: "primary.main",
-                          },
+
                           transition: "all 0.2s ease",
+                          bgcolor: "#F7F7F7"
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -521,7 +480,7 @@ export default function Header({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              bgcolor: "grey.50",
+
                               borderRadius: 2,
                             }}
                           >
@@ -536,29 +495,25 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "text.primary" }}
+                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
                           >
                             Personal Care
                           </Typography>
                         </Box>
-                      </Card>
+                      </Box>
 
                       {/* Tech Support */}
-                      <Card
+                      <Box
                         component={Link}
                         href={ROUTES.TECH_SUPPORT}
                         sx={{
                           p: 2,
                           borderRadius: 2,
                           cursor: "pointer",
-                          border: "1px solid",
+                          border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          "&:hover": {
-                            boxShadow: 4,
-                            borderColor: "primary.main",
-                          },
-                          transition: "all 0.2s ease",
+                          bgcolor: "#F7F7F7"
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -577,7 +532,7 @@ export default function Header({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              bgcolor: "grey.50",
+
                               borderRadius: 2,
                             }}
                           >
@@ -592,68 +547,58 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "text.primary" }}
+                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
                           >
                             Tech Support
                           </Typography>
                         </Box>
-                      </Card>
+                      </Box>
                     </Box>
                   </Box>
                 </Menu>
 
                 {/* My Requests Link - Only show when authenticated and not on professional dashboard */}
-                {!isProfessionalDashboard &&
-                  showMyRequests &&
-                  isAuthenticated && (
-                    <Button
-                      component={Link}
-                      href={ROUTES.MY_REQUESTS}
-                      sx={{
-                        color:
-                          pathname === ROUTES.MY_REQUESTS
-                            ? "primary.main"
-                            : "text.secondary",
-                        textTransform: "none",
-                        display: { xs: "none", lg: "block" },
-                        borderBottom:
-                          pathname === ROUTES.MY_REQUESTS
-                            ? "2px solid"
-                            : "none",
-                        borderColor: "primary.main",
-                        borderRadius: 0,
-                        pb: pathname === ROUTES.MY_REQUESTS ? 1 : 0,
-                        "&:hover": {
-                          bgcolor: "transparent",
-                          color: "primary.main",
-                        },
-                      }}
-                    >
-                      My Requests
-                    </Button>
-                  )}
+                {!isProfessionalDashboard && showMyRequests && isAuthenticated && (
+                  <Button
+                    component={Link}
+                    href={ROUTES.MY_REQUESTS}
+                    sx={{
+                      color: pathname === ROUTES.MY_REQUESTS ? "primary.main" : "text.secondary",
+                      textTransform: "none",
+                      display: { xs: "none", lg: "block" },
+                      borderBottom: pathname === ROUTES.MY_REQUESTS ? "0.125rem solid" : "none",
+                      borderColor: "primary.main",
+                      borderRadius: 0,
+                      pb: 1,
+                      "&:hover": {
+                        bgcolor: "transparent",
+                        color: "primary.main",
+                      },
+                    }}
+                  >
+                    My Requests
+                  </Button>
+                )}
 
                 {/* Book a Service Button - Only show when authenticated and not on professional dashboard */}
-                {!isProfessionalDashboard &&
-                  showBookServiceButton &&
-                  isAuthenticated && (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => setBookServiceModalOpen(true)}
-                      sx={{
-                        textTransform: "none",
-                        px: 2,
-                        py: 1,
-                        borderRadius: 2,
-                        display: { xs: "none", sm: "flex" },
-                        gap: 0.5,
-                      }}
-                      endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
-                    >
-                      Book a Service
-                    </Button>
-                  )}
+                {!isProfessionalDashboard && showBookServiceButton && isAuthenticated && (
+                  <Button
+                    variant="contained"
+                    onClick={() => setBookServiceModalOpen(true)}
+                    sx={{
+                      bgcolor: "primary.normal",
+                      textTransform: "none",
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      display: { xs: "none", sm: "flex" },
+                      gap: 0.5,
+                    }}
+                    endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
+                  >
+                    Book a Service
+                  </Button>
+                )}
 
                 {/* Get Started Button - Only show when NOT authenticated */}
                 {showAuthButtons && !isAuthenticated && (
@@ -699,7 +644,7 @@ export default function Header({
                 )}
 
                 {/* User Icons - Only show when authenticated */}
-                {showUserIcons && isAuthenticated && (
+                {showUserIcons && isAuthenticated && user && (
                   <Box
                     sx={{
                       display: { xs: "none", md: "flex" },
@@ -716,7 +661,14 @@ export default function Header({
                         },
                       }}
                     >
-                      <NotificationsIcon />
+                      {/* <NotificationsIcon /> */}
+                      <Image
+                        width={20}
+                        height={20}
+                        alt="notification"
+                        src={"/icons/bellIcon.png"}
+
+                      />
                     </IconButton>
                     <Menu
                       anchorEl={notificationsMenuAnchor}
@@ -728,7 +680,7 @@ export default function Header({
                           minWidth: 400,
                           maxWidth: 500,
                           borderRadius: 2,
-                          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                          boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
                           maxHeight: 600,
                           overflowY: "auto",
                         },
@@ -740,9 +692,10 @@ export default function Header({
                         <Typography
                           variant="h6"
                           sx={{
-                            color: "#2F6B8E",
-                            fontWeight: "bold",
+                            color: "primary.normal",
+                            fontWeight: 500,
                             mb: 2,
+                            lineHeight: "1.25rem",
                             fontSize: "1.25rem",
                           }}
                         >
@@ -761,66 +714,29 @@ export default function Header({
                               display: "flex",
                               gap: 2,
                               pb: 2,
-                              borderBottom: "1px solid",
+                              borderBottom: "0.0625rem solid",
                               borderColor: "grey.200",
                             }}
                           >
-                            <Box
-                              sx={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: 1,
-                                position: "relative",
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  bgcolor: "#8B4513",
-                                  zIndex: 1,
-                                }}
+                            <Box>
+                              <Image
+                                width={36}
+                                height={36}
+                                alt="msg"
+                                src={"/icons/doubleMsg.png"}
+
                               />
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  top: 4,
-                                  left: 4,
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  bgcolor: "#10B981",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  zIndex: 2,
-                                }}
-                              >
-                                <Typography
-                                  sx={{
-                                    color: "white",
-                                    fontSize: "1.2rem",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  ✓
-                                </Typography>
-                              </Box>
                             </Box>
+
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography
-                                variant="body1"
-                                fontWeight="600"
-                                sx={{ mb: 0.5 }}
+                                sx={{ mb: 0.5,color:"#424242",lineHeight:"1.125rem" }}
                               >
                                 Your service has started.
                               </Typography>
                               <Typography
-                                variant="body2"
-                                sx={{ color: "text.secondary", mb: 1.5 }}
+                                
+                                sx={{ color: "#595959", mb: 1.5,lineHeight:"140%",fontSize:"0.875rem" }}
                               >
                                 The provider has proposed a revised budget of
                                 €620 for your service.
@@ -861,6 +777,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
+                                    bgcolor:"primary.normal"
                                   }}
                                 >
                                   Accept
@@ -889,7 +806,7 @@ export default function Header({
                               display: "flex",
                               gap: 2,
                               pb: 2,
-                              borderBottom: "1px solid",
+                              borderBottom: "0.0625rem solid",
                               borderColor: "grey.200",
                             }}
                           >
@@ -902,40 +819,14 @@ export default function Header({
                                 flexShrink: 0,
                               }}
                             >
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  bgcolor: "#8B4513",
-                                  zIndex: 1,
-                                }}
-                              />
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  top: 4,
-                                  left: 4,
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  bgcolor: "#10B981",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  zIndex: 2,
-                                }}
-                              >
-                                <Typography
-                                  sx={{
-                                    color: "white",
-                                    fontSize: "1.2rem",
-                                    fontWeight: "bold",
-                                  }}
-                                >
-                                  ✓
-                                </Typography>
+
+                              <Box>
+                                <Image
+                                  width={36}
+                                  height={36}
+                                  alt="msg"
+                                  src={"/icons/doubleMsg.png"}
+                                />
                               </Box>
                             </Box>
                             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -989,6 +880,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
+                                    bgcolor:"primary.normal"
                                   }}
                                 >
                                   Accept
@@ -1017,7 +909,7 @@ export default function Header({
                               display: "flex",
                               gap: 2,
                               pb: 2,
-                              borderBottom: "1px solid",
+                              borderBottom: "0.0625rem solid",
                               borderColor: "grey.200",
                             }}
                           >
@@ -1084,6 +976,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
+                                    bgcolor:"primary.normal"
                                   }}
                                 >
                                   Accept
@@ -1168,6 +1061,7 @@ export default function Header({
                                   textTransform: "none",
                                   fontSize: "0.85rem",
                                   py: 0.5,
+                                  bgcolor:"primary.normal"
                                 }}
                               >
                                 Check Task Status
@@ -1187,7 +1081,14 @@ export default function Header({
                         },
                       }}
                     >
-                      <MessageIcon />
+                      {/* <MessageIcon /> */}
+                      <Image
+                        width={24}
+                        height={24}
+                        alt="chaticon"
+                        // unoptimized\
+                        src={"/icons/headerChat.png"}
+                      />
                     </IconButton>
                     <Box
                       sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
@@ -1209,7 +1110,7 @@ export default function Header({
                           textDecoration: "none",
                         }}
                       >
-                        {userInitial}
+                        {user.initial}
                       </Box>
                       <IconButton
                         onClick={handleProfileMenuOpen}
@@ -1224,7 +1125,7 @@ export default function Header({
                         <KeyboardArrowDownIcon />
                       </IconButton>
                     </Box>
-                    
+
                     {/* Profile Dropdown Menu */}
                     <Menu
                       anchorEl={profileMenuAnchor}
@@ -1232,11 +1133,14 @@ export default function Header({
                       onClose={handleProfileMenuClose}
                       PaperProps={{
                         sx: {
-                          mt: 1.5,
-                          minWidth: 280,
-                          borderRadius: 3,
-                          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                          p: 2,
+                          borderRadius: "1rem",
+                          boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
+                          p: "1.25rem",
+                          "& .MuiMenu-list": {
+                            padding: 0,
+                            margin: 0
+                          },
+
                         },
                       }}
                       transformOrigin={{ horizontal: "right", vertical: "top" }}
@@ -1245,9 +1149,8 @@ export default function Header({
                       <Box>
                         {/* User Name */}
                         <Typography
-                          variant="h6"
-                          fontWeight="600"
-                          sx={{ color: "#2F6B8E", mb: 0.5 }}
+
+                          sx={{ color: "primary.normal", fontSize: "1.125rem", lineHeight: "1.25rem", fontWeight: 500, mb: "0.25rem" }}
                         >
                           Cameron Williamson
                         </Typography>
@@ -1257,10 +1160,10 @@ export default function Header({
                           onClick={handleProfileMenuClose}
                           sx={{
                             textTransform: "none",
-                            color: "#6B7280",
+                            color: "#989898",
                             fontSize: "0.9rem",
                             p: 0,
-                            mb: 2,
+                            mb: "0.9rem",
                             justifyContent: "flex-start",
                             "&:hover": {
                               bgcolor: "transparent",
@@ -1270,120 +1173,66 @@ export default function Header({
                         >
                           View my profile
                         </Button>
-
+                        <Divider color={"#E7E7E7"} />
                         {/* Menu Items */}
+
+
+
                         <Box
                           sx={{
                             display: "flex",
                             flexDirection: "column",
-                            gap: 0.5,
+                            gap: "1rem",
+                            margin: 0,
+                            marginTop: "0.9rem"
                           }}
                         >
-                          <Button
-                            fullWidth
+                          <Typography
                             sx={{
-                              textTransform: "none",
-                              color: "#6B7280",
-                              fontSize: "0.95rem",
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                                color: "#2F6B8E",
-                              },
+                              color: "#989898",
+                              lineHeight: "1.125rem"
                             }}
                           >
-                            My Earnings
-                          </Button>
-                          <Button
-                            fullWidth
+                            My Requests
+                          </Typography>
+                          <Typography
                             sx={{
-                              textTransform: "none",
-                              color: "#6B7280",
-                              fontSize: "0.95rem",
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                                color: "#2F6B8E",
-                              },
+                              color: "#989898",
+                              lineHeight: "1.125rem",
+                              cursor: "pointer"
                             }}
                           >
-                            Manage Services
-                          </Button>
-                          <Button
-                            fullWidth
+                            My Favorite Professionals
+                          </Typography>
+                          <Typography
                             sx={{
-                              textTransform: "none",
-                              color: "#6B7280",
-                              fontSize: "0.95rem",
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                                color: "#2F6B8E",
-                              },
+                              color: "#989898",
+                              lineHeight: "1.125rem", cursor: "pointer"
                             }}
                           >
-                            Manage Subscription
-                          </Button>
-                          <Button
-                            fullWidth
+                            My Transactions
+                          </Typography>
+                          <Typography
                             sx={{
-                              textTransform: "none",
-                              color: "#6B7280",
-                              fontSize: "0.95rem",
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                                color: "#2F6B8E",
-                              },
+                              color: "#989898",
+                              lineHeight: "1.125rem",
+                              cursor: "pointer"
                             }}
                           >
-                            Ratings & Reviews
-                          </Button>
+                            Help Center
+                          </Typography>
+                          <Divider color={"#E7E7E7"} />
 
-                          {/* Divider */}
-                          <Box
+                          <Typography
                             sx={{
-                              height: 1,
-                              bgcolor: "#E5E7EB",
-                              my: 1,
-                            }}
-                          />
-
-                          {/* Sign Out */}
-                          <Button
-                            fullWidth
-                            onClick={() => {
-                              handleProfileMenuClose();
-                              handleLogout();
-                            }}
-                            sx={{
-                              textTransform: "none",
-                              color: "#2F6B8E",
-                              fontSize: "0.95rem",
-                              fontWeight: 600,
-                              justifyContent: "flex-start",
-                              py: 1.5,
-                              px: 2,
-                              borderRadius: 2,
-                              "&:hover": {
-                                bgcolor: "#F3F4F6",
-                              },
+                              color: "primary.normal",
+                              lineHeight: "1.125rem",
+                              cursor: "pointer"
                             }}
                           >
                             Sign Out
-                          </Button>
+                          </Typography>
+
                         </Box>
                       </Box>
                     </Menu>
@@ -1409,7 +1258,7 @@ export default function Header({
                 alignItems: "center",
                 mt: 2,
                 width: "100%",
-                bgcolor: "grey.50",
+
                 borderRadius: 2,
                 border: "1px solid",
                 borderColor: "grey.300",
