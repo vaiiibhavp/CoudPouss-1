@@ -56,7 +56,7 @@ export default function AdditionalDetailsPage() {
       <Box
         sx={{
           display: { xs: "none", md: "block" },
-          width: { md: "66.666%" },
+          width: { md: "55%" },
           position: "relative",
           bgcolor: "grey.100",
         }}
@@ -73,7 +73,10 @@ export default function AdditionalDetailsPage() {
             src="/image/main.png"
             alt="CoudPouss Service"
             fill
-            style={{ objectFit: "cover" }}
+            style={{
+              objectFit: "cover",
+              objectPosition: "top",
+            }}
             sizes="66.666vw"
             priority
           />
@@ -83,7 +86,7 @@ export default function AdditionalDetailsPage() {
       {/* Right side - Form */}
       <Box
         sx={{
-          width: { xs: "100%", md: "33.333%" },
+          width: { xs: "100%", md: "45%" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -100,38 +103,66 @@ export default function AdditionalDetailsPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 4 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="h6" sx={{ color: "white" }}>
-                  🏠
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.526875rem"
+              }} >
+                <Image
+                  alt='logo'
+                  width={80}
+                  height={80}
+                  src={"/icons/appLogo.png"}
+                />
+                <Typography sx={{
+                  color: "primary.normal",
+                  fontSize: "1.25rem",
+                  lineHeight: "1.5rem",
+                  fontWeight: 600
+                }}>
+                  CoudPouss
                 </Typography>
               </Box>
-              <Typography variant="h6" fontWeight="bold">
-                CoudPouss
-              </Typography>
             </Box>
 
             {/* Content */}
             <Box>
-              <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `1.5rem`,
+                  color: `primary.normal`,
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
+                  textAlign: "left"
+                }}
+              >
                 Additional Details
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "1rem",
+                  textAlign: "left",
+                  lineHeight: "140%",
+                  mb: "2.5rem",
+                  color: "secondary.neutralWhiteDark",
+                }}
+              >
                 Upload the required documents to complete your profile and gain the Certified badge.
               </Typography>
 
               {/* Years of Experience */}
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 Years of Experience
               </Typography>
               <TextField
@@ -144,7 +175,15 @@ export default function AdditionalDetailsPage() {
               />
 
               {/* A copy of ID */}
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 A copy of ID
               </Typography>
               <Paper
@@ -193,7 +232,15 @@ export default function AdditionalDetailsPage() {
               </Paper>
 
               {/* Kbis Extract */}
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 Kbis Extract
               </Typography>
               <Paper
@@ -242,7 +289,15 @@ export default function AdditionalDetailsPage() {
               </Paper>
 
               {/* Proof of residence */}
-              <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "1.0625rem",
+                  lineHeight: "1.25rem",
+                  color: "#424242",
+                  mb: "0.5rem"
+                }}
+              >
                 Proof of residence
               </Typography>
               <Typography variant="caption" color="error" sx={{ display: "block", mb: 1 }}>
@@ -301,8 +356,8 @@ export default function AdditionalDetailsPage() {
                   size="large"
                   onClick={handleSkip}
                   sx={{
-                    borderColor: "#2F6B8E",
-                    color: "#2F6B8E",
+                    borderColor: "primary.dark",
+                    color: "primary.dark",
                     py: 1.5,
                     textTransform: "none",
                     fontSize: "1rem",
@@ -320,7 +375,7 @@ export default function AdditionalDetailsPage() {
                   size="large"
                   onClick={handleContinue}
                   sx={{
-                    bgcolor: "#2F6B8E",
+                    bgcolor: "primary.dark",
                     color: "white",
                     py: 1.5,
                     textTransform: "none",

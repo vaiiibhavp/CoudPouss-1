@@ -7,6 +7,7 @@ import {
   Container,
   TextField,
   Typography,
+  Link,
   Paper,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -46,12 +47,31 @@ export default function ProfessionalEnterContactPage() {
         bgcolor: "background.default",
       }}
     >
+      {/* Header Bar */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bgcolor: "#374151",
+          color: "white",
+          py: 1.5,
+          px: 3,
+          zIndex: 1000,
+          display: { xs: "none", md: "block" },
+        }}
+      >
+        <Typography variant="body1" fontWeight="500">
+          01_Enter Contact
+        </Typography>
+      </Box>
 
       {/* Left side - Image Section */}
       <Box
         sx={{
           display: { xs: "none", md: "block" },
-          width: { md: "66.666%" },
+          width: { md: "55%" },
           position: "relative",
           bgcolor: "grey.100",
         }}
@@ -68,17 +88,20 @@ export default function ProfessionalEnterContactPage() {
             src="/image/main.png"
             alt="CoudPouss Service"
             fill
-            style={{ objectFit: "cover" }}
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'top',
+            }}
             sizes="66.666vw"
             priority
           />
         </Box>
       </Box>
 
-      {/* Right side - Form */}
+      {/* Right side - Signup Form */}
       <Box
         sx={{
-          width: { xs: "100%", md: "33.333%" },
+          width: { xs: "100%", md: "45%" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -96,42 +119,70 @@ export default function ProfessionalEnterContactPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
                   width: 80,
                   height: 80,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 16px",
+                  borderRadius: '50%',
+                  bgcolor: 'primary.main',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
                 }}
               >
-                <Typography variant="h4" sx={{ color: "white" }}>
-                  🏠
-                </Typography>
+                <Image
+                  alt='appLogo'
+                  width={140}
+                  height={140}
+                  src={"/icons/appLogo.png"}
+                />
               </Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
-                CoudPouss!
-              </Typography>
             </Box>
 
             {/* Content */}
             <Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: "#2F6B8E", mb: 1 }}>
-                Welcome To CoudPouss!
+              <Typography
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `1.5rem`,
+                  color: `primary.normal`,
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
+                  textAlign: "center"
+                }}
+              >
+                Welcome To CoudPouss
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "1rem",
+                  textAlign: "center",
+                  lineHeight: "140%",
+                  mb: "2.5rem",
+                  color: "secondary.neutralWhiteDark",
+                }}
+              >
                 Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
               </Typography>
-              <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 3 }}>
+
+              <Typography sx={{
+                fontWeight: 500,
+                fontSize: "1.0625rem",
+                lineHeight: "1.25rem",
+                color: "#424242",
+                mb: "0.5rem"
+              }}>
                 Enter Email / Mobile No
               </Typography>
               <TextField
+                sx={{
+                  m: 0,
+                  mb: 3
+                }}
                 fullWidth
-                label="Email/ Mobile No"
                 name="emailOrMobile"
                 placeholder="Enter Email/ Mobile No"
                 value={formData.emailOrMobile}
@@ -139,7 +190,6 @@ export default function ProfessionalEnterContactPage() {
                 error={!!errors.emailOrMobile}
                 helperText={errors.emailOrMobile}
                 margin="normal"
-                sx={{ mb: 3 }}
               />
               <Button
                 fullWidth
@@ -147,7 +197,7 @@ export default function ProfessionalEnterContactPage() {
                 size="large"
                 onClick={handleContinue}
                 sx={{
-                  bgcolor: "#2F6B8E",
+                  bgcolor: "primary.dark",
                   color: "white",
                   py: 1.5,
                   textTransform: "none",
@@ -159,6 +209,30 @@ export default function ProfessionalEnterContactPage() {
               >
                 Continue
               </Button>
+            </Box>
+
+            {/* Login Link */}
+            <Box sx={{ textAlign: "center", mt: 3 }}>
+              <Typography sx={{
+                color: 'secondary.naturalGray',
+                fontSize: "18px",
+                lineHeight: "20px"
+              }}>
+                Already have an account?{" "}
+                <Link
+                  href={ROUTES.LOGIN}
+                  sx={{
+                    color: 'primary.normal',
+                    textDecoration: 'none',
+                    offset: "3%",
+                    fontWeight: 600,
+                    fontSize: "20px",
+                    lineHeight: "24px"
+                  }}
+                >
+                  Log In
+                </Link>
+              </Typography>
             </Box>
           </Paper>
         </Container>

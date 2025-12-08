@@ -7,6 +7,7 @@ import {
   Container,
   TextField,
   Typography,
+  Link,
   Paper,
   InputAdornment,
   IconButton,
@@ -58,11 +59,31 @@ export default function ProfessionalCreatePasswordPage() {
         bgcolor: "background.default",
       }}
     >
+      {/* Header Bar */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bgcolor: "#374151",
+          color: "white",
+          py: 1.5,
+          px: 3,
+          zIndex: 1000,
+          display: { xs: "none", md: "block" },
+        }}
+      >
+        <Typography variant="body1" fontWeight="500">
+          03_Create Password
+        </Typography>
+      </Box>
+
       {/* Left side - Image Section */}
       <Box
         sx={{
           display: { xs: "none", md: "block" },
-          width: { md: "66.666%" },
+          width: { md: "55%" },
           position: "relative",
           bgcolor: "grey.100",
         }}
@@ -79,17 +100,20 @@ export default function ProfessionalCreatePasswordPage() {
             src="/image/main.png"
             alt="CoudPouss Service"
             fill
-            style={{ objectFit: "cover" }}
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'top',
+            }}
             sizes="66.666vw"
             priority
           />
         </Box>
       </Box>
 
-      {/* Right side - Form */}
+      {/* Right side - Signup Form */}
       <Box
         sx={{
-          width: { xs: "100%", md: "33.333%" },
+          width: { xs: "100%", md: "45%" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -107,43 +131,84 @@ export default function ProfessionalCreatePasswordPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
                   width: 80,
                   height: 80,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 16px",
+                  borderRadius: '50%',
+                  bgcolor: 'primary.main',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
                 }}
               >
-                <Typography variant="h4" sx={{ color: "white" }}>
-                  🏠
-                </Typography>
+                <Image
+                  alt='appLogo'
+                  width={140}
+                  height={140}
+                  src={"/icons/appLogo.png"}
+                />
               </Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
-                CoudPouss!
-              </Typography>
             </Box>
 
             {/* Content */}
             <Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: "#2F6B8E", mb: 1 }}>
-                Welcome To CoudPouss!
+              <Typography
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `1.5rem`,
+                  color: `primary.normal`,
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
+                  textAlign: "center"
+                }}
+              >
+                Welcome To CoudPouss
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "1rem",
+                  textAlign: "center",
+                  lineHeight: "140%",
+                  mb: "2.5rem",
+                  color: "secondary.neutralWhiteDark",
+                }}
+              >
                 Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
               </Typography>
-              <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 3 }}>
+
+              <Typography
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `1.5rem`,
+                  color: `primary.normal`,
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
+                  textAlign: "center"
+                }}>
                 Create a strong password
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "17px",
+                  lineHeight: "20px",
+                  color: "#6D6D6D",
+                  mb: "8px"
+                }}
+              >
+                Password
               </Typography>
               <TextField
                 fullWidth
-                label="Password"
                 name="password"
+                sx={{
+                  m: 0,
+                  mb: 2
+                }}
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter Password"
                 value={formData.password}
@@ -161,12 +226,27 @@ export default function ProfessionalCreatePasswordPage() {
                   ),
                 }}
               />
+
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "17px",
+                  lineHeight: "20px",
+                  color: "#6D6D6D",
+                  mb: "8px"
+                }}
+              >
+                Confirm Password
+              </Typography>
               <TextField
+                sx={{
+                  m: 0,
+                  mb: 2
+                }}
                 fullWidth
-                label="Confirm Password"
                 name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm Password"
+                placeholder="Re-enter Password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 margin="normal"
@@ -180,16 +260,30 @@ export default function ProfessionalCreatePasswordPage() {
                   ),
                 }}
               />
+
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "17px",
+                  lineHeight: "20px",
+                  color: "#6D6D6D",
+                  mb: "8px"
+                }}
+              >
+                Re-enter Password
+              </Typography>
               <TextField
+                sx={{
+                  m: 0,
+                  mb: "44px"
+                }}
                 fullWidth
-                label="Re-enter Password"
                 name="reEnterPassword"
                 type={showReEnterPassword ? "text" : "password"}
                 placeholder="Re-enter Password"
                 value={formData.reEnterPassword}
                 onChange={handleChange}
                 margin="normal"
-                sx={{ mb: 3 }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -200,13 +294,14 @@ export default function ProfessionalCreatePasswordPage() {
                   ),
                 }}
               />
+
               <Button
                 fullWidth
                 variant="contained"
                 size="large"
                 onClick={handleContinue}
                 sx={{
-                  bgcolor: "#2F6B8E",
+                  bgcolor: "primary.dark",
                   color: "white",
                   py: 1.5,
                   textTransform: "none",
@@ -218,6 +313,30 @@ export default function ProfessionalCreatePasswordPage() {
               >
                 Next
               </Button>
+            </Box>
+
+            {/* Login Link */}
+            <Box sx={{ textAlign: "center", mt: 3 }}>
+              <Typography sx={{
+                color: 'secondary.naturalGray',
+                fontSize: "18px",
+                lineHeight: "20px"
+              }}>
+                Already have an account?{" "}
+                <Link
+                  href={ROUTES.LOGIN}
+                  sx={{
+                    color: 'primary.normal',
+                    textDecoration: 'none',
+                    offset: "3%",
+                    fontWeight: 600,
+                    fontSize: "20px",
+                    lineHeight: "24px"
+                  }}
+                >
+                  Log In
+                </Link>
+              </Typography>
             </Box>
           </Paper>
         </Container>
