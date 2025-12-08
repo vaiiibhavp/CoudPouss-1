@@ -10,9 +10,9 @@ import {
   Link,
   Paper,
 } from "@mui/material";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import Image from "next/image";
 
 export default function ProfessionalAddDetailsPage() {
   const router = useRouter();
@@ -77,12 +77,31 @@ export default function ProfessionalAddDetailsPage() {
         bgcolor: "background.default",
       }}
     >
+      {/* Header Bar */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bgcolor: "#374151",
+          color: "white",
+          py: 1.5,
+          px: 3,
+          zIndex: 1000,
+          display: { xs: "none", md: "block" },
+        }}
+      >
+        <Typography variant="body1" fontWeight="500">
+          04_Add Details
+        </Typography>
+      </Box>
 
       {/* Left side - Image Section */}
       <Box
         sx={{
           display: { xs: "none", md: "block" },
-          width: { md: "66.666%" },
+          width: { md: "55%" },
           position: "relative",
           bgcolor: "grey.100",
         }}
@@ -99,17 +118,20 @@ export default function ProfessionalAddDetailsPage() {
             src="/image/main.png"
             alt="CoudPouss Service"
             fill
-            style={{ objectFit: "cover" }}
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'top',
+            }}
             sizes="66.666vw"
             priority
           />
         </Box>
       </Box>
 
-      {/* Right side - Form */}
+      {/* Right side - Signup Form */}
       <Box
         sx={{
-          width: { xs: "100%", md: "33.333%" },
+          width: { xs: "100%", md: "45%" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -127,40 +149,59 @@ export default function ProfessionalAddDetailsPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
                   width: 80,
                   height: 80,
-                  borderRadius: "50%",
-                  bgcolor: "primary.main",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 16px",
+                  borderRadius: '50%',
+                  bgcolor: 'primary.main',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
                 }}
               >
-                <Typography variant="h4" sx={{ color: "white" }}>
-                  🏠
-                </Typography>
+                <Image
+                  alt='appLogo'
+                  width={140}
+                  height={140}
+                  src={"/icons/appLogo.png"}
+                />
               </Box>
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
-                CoudPouss!
-              </Typography>
             </Box>
 
             {/* Content */}
             <Box component="form" onSubmit={handleSubmit}>
-              <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: "#2F6B8E", mb: 1 }}>
-                Welcome To CoudPouss!
+              <Typography
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `1.5rem`,
+                  color: `primary.normal`,
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
+                  textAlign: "center"
+                }}
+              >
+                Welcome To CoudPouss
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "1rem",
+                  textAlign: "center",
+                  lineHeight: "140%",
+                  mb: "2.5rem",
+                  color: "secondary.neutralWhiteDark",
+                }}
+              >
                 Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
               </Typography>
-              <Typography variant="h5" fontWeight="600" gutterBottom sx={{ mb: 1 }}>
+
+              <Typography gutterBottom sx={{ mb: 1, fontSize: "24px", fontWeight: 700, color: "#424242", lineHeight: "28px" }}>
                 Add Personal Details
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              <Typography sx={{ mb: 3, color: "#6D6D6D", lineHeight: "20px", fontSize: "18px" }}>
                 Enter profile details
               </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3 }}>
@@ -174,37 +215,38 @@ export default function ProfessionalAddDetailsPage() {
                     alignItems: "center",
                     justifyContent: "center",
                     mb: 1,
-                    border: "3px solid #2F6B8E",
+                    border: "3px solid primary.dark",
                   }}
                 >
                   {formData.profilePicture ? (
-                    <Typography variant="h4" sx={{ color: "#2F6B8E" }}>
+                    <Typography variant="h4" sx={{ color: "primary.dark" }}>
                       {formData.name.charAt(0).toUpperCase()}
                       {formData.name.split(" ")[1]?.charAt(0).toUpperCase() || ""}
                     </Typography>
                   ) : (
-                    <Typography variant="h4" sx={{ color: "#2F6B8E" }}>
+                    <Typography variant="h4" sx={{ color: "primary.dark" }}>
                       BC
                     </Typography>
                   )}
                 </Box>
-                <Link
-                  href="#"
+                <Typography
                   onClick={(e) => {
                     e.preventDefault();
                     document.getElementById("profile-upload")?.click();
                   }}
                   sx={{
-                    color: "#2F6B8E",
+                    color: "primary.normal",
                     textDecoration: "none",
-                    fontSize: "0.875rem",
+                    lineHeight: "140%",
+                    fontSize: "1rem",
+                    cursor: "pointer",
                     "&:hover": {
                       textDecoration: "underline",
                     },
                   }}
                 >
                   upload profile picture
-                </Link>
+                </Typography>
                 <input
                   id="profile-upload"
                   type="file"
@@ -218,54 +260,120 @@ export default function ProfessionalAddDetailsPage() {
                   }}
                 />
               </Box>
-              <TextField
-                fullWidth
-                label="Name"
-                name="name"
-                placeholder="Enter Name"
-                value={formData.name}
-                onChange={handleChange}
-                error={!!errors.name}
-                helperText={errors.name}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Mobile No."
-                name="mobileNo"
-                placeholder="Enter Mobile No."
-                value={formData.mobileNo}
-                onChange={handleChange}
-                error={!!errors.mobileNo}
-                helperText={errors.mobileNo}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Email"
-                name="email"
-                type="email"
-                placeholder="Enter Email"
-                value={formData.email}
-                onChange={handleChange}
-                error={!!errors.email}
-                helperText={errors.email}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Address"
-                name="address"
-                placeholder="Enter Address"
-                value={formData.address}
-                onChange={handleChange}
-                error={!!errors.address}
-                helperText={errors.address}
-                margin="normal"
-                multiline
-                rows={3}
-                sx={{ mb: 3 }}
-              />
+              <Box sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2
+              }}  >
+                <Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "17px",
+                      lineHeight: "20px",
+                      color: "#6D6D6D",
+                      mb: "8px"
+                    }}
+                  >
+                    Name
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="name"
+                    placeholder="Enter Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    error={!!errors.name}
+                    helperText={errors.name}
+                    margin="normal"
+                    sx={{
+                      m: 0
+                    }}
+                  />
+                </Box>
+                <Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "17px",
+                      lineHeight: "20px",
+                      color: "#6D6D6D",
+                      mb: "8px"
+                    }}
+                  >
+                    Mobile No.
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="mobileNo"
+                    placeholder="Enter Mobile No."
+                    value={formData.mobileNo}
+                    onChange={handleChange}
+                    error={!!errors.mobileNo}
+                    helperText={errors.mobileNo}
+                    margin="normal" sx={{
+                      m: 0
+                    }}
+                  />
+                </Box>
+
+                <Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "17px",
+                      lineHeight: "20px",
+                      color: "#6D6D6D",
+                      mb: "8px"
+                    }}
+                  >
+                    Email
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="email"
+                    type="email"
+                    placeholder="Enter Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    margin="normal"
+                    sx={{
+                      m: 0
+                    }}
+                  />
+                </Box>
+
+                <Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "17px",
+                      lineHeight: "20px",
+                      color: "#6D6D6D",
+                      mb: "8px"
+                    }}
+                  >
+                    Address
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="address"
+                    placeholder="Enter Address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    error={!!errors.address}
+                    helperText={errors.address}
+                    margin="normal"
+                    multiline
+                    rows={3}
+                    sx={{
+                      m: 0
+                    }}
+                  />
+                </Box>
+              </Box>
               {errors.submit && (
                 <Typography color="error" variant="body2" sx={{ mb: 2 }}>
                   {errors.submit}
@@ -278,9 +386,10 @@ export default function ProfessionalAddDetailsPage() {
                 size="large"
                 disabled={loading}
                 sx={{
-                  bgcolor: "#2F6B8E",
+                  bgcolor: "primary.dark",
                   color: "white",
                   py: 1.5,
+                  mt:"40px",
                   textTransform: "none",
                   fontSize: "1rem",
                   "&:hover": {
@@ -290,6 +399,30 @@ export default function ProfessionalAddDetailsPage() {
               >
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
+            </Box>
+
+            {/* Login Link */}
+            <Box sx={{ textAlign: "center", mt: 3 }}>
+              <Typography sx={{
+                color: 'secondary.naturalGray',
+                fontSize: "18px",
+                lineHeight: "20px"
+              }}>
+                Already have an account?{" "}
+                <Link
+                  href={ROUTES.LOGIN}
+                  sx={{
+                    color: 'primary.normal',
+                    textDecoration: 'none',
+                    offset: "3%",
+                    fontWeight: 600,
+                    fontSize: "20px",
+                    lineHeight: "24px"
+                  }}
+                >
+                  Log In
+                </Link>
+              </Typography>
             </Box>
           </Paper>
         </Container>
