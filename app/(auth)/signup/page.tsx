@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
 import { apiPost } from "@/lib/api";
-import { buildInputData, emailRegex } from "@/utils/validation";
+import { buildInputData, emailRegex, isValidPassword } from "@/utils/validation";
 import ResponseCache from "next/dist/server/response-cache";
 
 type SignupStep = "select-profile" | "enter-contact" | "verify-otp" | "create-password" | "add-details";
@@ -25,6 +25,13 @@ type UserType = "elderly_user" | "professional" | null;
 
 interface SignUpApiError {
   [key: string]: string;
+}
+
+interface ProfilePhotoApi {
+  data?: any;
+  error?: {
+    message?: string;
+  };
 }
 
 interface SignUpApiResponse {
@@ -46,8 +53,10 @@ export default function SignupPage() {
     email: "",
     address: "",
     profilePicture: null as File | null,
+    profilePicturePreview: ""
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showReEnterPassword, setShowReEnterPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -56,7 +65,19 @@ export default function SignupPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     console.log(name)
+
+    if(name == "password"){
+      const {valid, errors} = isValidPassword(value) 
+      if(!valid){
+        console.log(errors)
+        setPasswordErrors(errors)
+      }else{
+        setPasswordErrors([])
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -102,10 +123,8 @@ export default function SignupPage() {
         setLoading(false)
         return;
       }
-      
 
       let {data} = await apiCallToSignUpUser("");
-      data = true
       
       if(data){
         setStep("verify-otp");
@@ -122,7 +141,6 @@ export default function SignupPage() {
 
       let {data,error} = await apiCallToSignUpUser("");
       console.log(data)
-      data = true
       if(data){
         setStep("create-password");
       }else{
@@ -204,7 +222,7 @@ export default function SignupPage() {
         }
       }
 
-      if(submit){
+      if(submit == "submit"){
         url = "userService/auth/details";
 
         if(validData.email){
@@ -225,6 +243,21 @@ export default function SignupPage() {
         }
       }
 
+      if(submit == "resendOTP"){
+        url = "userService/auth/resend-otp";
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+          }  
+        }
+      }
+
       let response  = await apiPost(url,payload)
 
       if (response?.error) {
@@ -235,7 +268,7 @@ export default function SignupPage() {
           error =  { otp: response.error.message || "Something went wrong." }
         }else if (step === "create-password") {
           error =  { password: response.error.message || "Something went wrong." }
-        }''
+        }
         setErrors(error)
       }
 
@@ -258,14 +291,17 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // TODO: Implement actual signup API call
+      
+      // TODO: validate the form Data
       console.log("Signup data:", { userType, formData });
       
-      
-      let response  = await apiCallToSignUpUser("submit")
-
-      if(response){
+      let {data,error} = await apiCallToSignUpUser("submit");
+      console.log(data)
+      if(data){
         router.push(ROUTES.LOGIN);
+        setStep("add-details");
+      }else{
+        // setErrors({ emailOrMobile: "Something Went Wrong!" });
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -275,13 +311,48 @@ export default function SignupPage() {
     }
   };
 
+  const uploadProfileImage = async(file:File) : Promise<void> =>{
+    setLoading(true)
+     try {
+      let payload = {}
+      let url = "userService/auth/upload-profile-photo"
+      let validData = buildInputData(formData.emailOrMobile)
+      let error = {}
+
+      if(validData.email){
+        payload = {
+          "email": validData.email || "",
+          "file": formData.profilePicture 
+        } 
+      }else{
+        payload = {
+          "mobile": validData.mobile || "",
+          "phone_country_code": validData.phone_country_code || "",
+          "file": formData.profilePicture 
+        }  
+      }
+
+      const response : ProfilePhotoApi  = await apiPost(url,payload)
+      console.log(response)
+      if (response?.error?.message) {
+        setErrors({
+          profilePicture: response.error.message,
+        });
+        return;
+      }
+    } catch (error:any) {
+      console.error("Signup error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const renderStepContent = () => {
     switch (step) {
       case "select-profile":
         return (
           <Box>
             <Typography
-
               sx={{
                 fontWeight: `700`,
                 fontSize: `1.5rem`,
@@ -289,14 +360,11 @@ export default function SignupPage() {
                 mb: "0.75rem",
                 lineHeight: "1.75rem",
                 textAlign: "center"
-
-
               }}
             >
               Welcome To CoudPouss
             </Typography>
             <Typography
-
               sx={{
                 fontWeight: 400,
                 fontSize: "1rem",
@@ -315,12 +383,13 @@ export default function SignupPage() {
               size="large"
               onClick={() => handleProfileSelect("elderly_user")}
               sx={{
-                bgcolor: "primary.dark",
+                bgcolor: "#214C65",
                 color: "white",
                 py: 1.5,
                 mb: 2,
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -328,17 +397,18 @@ export default function SignupPage() {
             >
               Sign up as Elder
             </Button>
-            <Box sx={{ textAlign: "center", my: 2 }}>
+            <Box sx={{ textAlign: "center", my: 2,display:"flex",alignItems:"center" }}>
+              <Box sx={{ flex: 1, height: "1px", bgcolor: "rgba(0,0,0,0.3)", border: "1px solid #F2F3F3" }} />
               <Typography
-
                 sx={{
                   fontSize: "1.125rem",
                   color: "#818285",
-
+                  mx:4
                 }}
               >
                 OR
               </Typography>
+              <Box sx={{ flex: 1, height: "1px", bgcolor: "rgba(0,0,0,0.3)", border: "1px solid #F2F3F3" }} />
             </Box>
             <Button
               fullWidth
@@ -349,8 +419,9 @@ export default function SignupPage() {
                 borderColor: "primary.dark",
                 color: "primary.dark",
                 py: 1.5,
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 textTransform: "none",
-                fontSize: "1rem",
                 "&:hover": {
                   borderColor: "#25608A",
                   bgcolor: "rgba(47, 107, 142, 0.04)",
@@ -402,7 +473,7 @@ export default function SignupPage() {
             <TextField
               sx={{
                 m: 0,
-                mb: 3
+                mb: 3,
               }}
               fullWidth
               name="emailOrMobile"
@@ -424,7 +495,8 @@ export default function SignupPage() {
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -439,7 +511,6 @@ export default function SignupPage() {
         return (
           <Box>
             <Typography
-
               sx={{
                 fontWeight: `700`,
                 fontSize: `1.5rem`,
@@ -447,14 +518,11 @@ export default function SignupPage() {
                 mb: "0.75rem",
                 lineHeight: "1.75rem",
                 textAlign: "center"
-
-
               }}
             >
               Welcome To CoudPouss
             </Typography>
             <Typography
-
               sx={{
                 fontWeight: 400,
                 fontSize: "1rem",
@@ -513,18 +581,23 @@ export default function SignupPage() {
               ))}
             </Box>
             {errors.otp && (
-              <Typography color="error" variant="body2" sx={{ mb: 2, textAlign: "center" }}>
+              <Typography color="error" variant="body2" sx={{ mb: 2, fontSize:"1rem", textAlign: "center",fontWeight:400 }}>
                 {errors.otp}
               </Typography>
             )}
             <Link
               href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                apiCallToSignUpUser("resendOTP");   
+              }}
               sx={{
                 display: "block",
                 textAlign: "center",
                 mb: 3,
                 fontSize: "1.25rem",
-                lineHeight: "1.5rem", fontWeight: 600,
+                lineHeight: "1.5rem",
+                fontWeight: 600,
                 color: "primary.normal",
                 textDecoration: "none",
                 "&:hover": {
@@ -545,7 +618,8 @@ export default function SignupPage() {
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -637,9 +711,18 @@ export default function SignupPage() {
                 ),
               }}
             />
-
+            {
+              passwordErrors && passwordErrors.map((err)=>{
+                return(
+                  <Typography color="error" variant="body2" sx={{fontSize:"0.9rem", textAlign: "left",fontWeight:400 }}>
+                    {err}
+                  </Typography>
+                )
+              })
+            }
             <Typography
               sx={{
+                mt:"8px",
                 fontWeight: 500,
                 fontSize: "17px",
                 lineHeight: "20px",
@@ -652,7 +735,7 @@ export default function SignupPage() {
             <TextField
               sx={{
                 m: 0,
-                mb: "44px"
+                mb: "14px"
               }}
               fullWidth
               name="confirmPassword"
@@ -672,7 +755,11 @@ export default function SignupPage() {
                 ),
               }}
             />
-
+            {errors.confirmPassword && (
+              <Typography color="error" variant="body2" sx={{ mb: 6, fontSize:"1rem", textAlign: "center",fontWeight:400 }}>
+                {errors.confirmPassword}
+              </Typography>
+            )}
             <Button
               fullWidth
               variant="contained"
@@ -684,7 +771,8 @@ export default function SignupPage() {
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -744,19 +832,28 @@ export default function SignupPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   mb: 1,
-                  border: "3px solid primary.dark",
+                  overflow: "hidden",
+                  border: "3px solid",
+                  borderColor: "primary.dark",
                 }}
               >
-                {formData.profilePicture ? (
-                  <Typography variant="h4" sx={{ color: "primary.dark" }}>
-                    {formData.name.charAt(0).toUpperCase()}
-                    {formData.name.split(" ")[1]?.charAt(0).toUpperCase() || ""}
-                  </Typography>
-                ) : (
-                  <Typography variant="h4" sx={{ color: "primary.dark" }}>
-                    BC
-                  </Typography>
-                )}
+                {
+                  formData.profilePicturePreview ? (
+                    <img
+                      src={formData.profilePicturePreview}
+                      alt="Profile"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <Typography variant="h4" sx={{ color: "primary.dark" }}>
+                      {formData.name
+                        ? formData.name
+                            .split(" ")
+                            .map((n) => n.charAt(0).toUpperCase())
+                            .join("")
+                        : "BC"}
+                    </Typography>
+                  )}
               </Box>
               <Typography
                 onClick={(e) => {
@@ -764,6 +861,7 @@ export default function SignupPage() {
                   document.getElementById("profile-upload")?.click();
                 }}
                 sx={{
+                  cursor:"pointer",
                   color: "primary.normal",
                   textDecoration: "none",
                   lineHeight: "140%",
@@ -780,10 +878,21 @@ export default function SignupPage() {
                 type="file"
                 accept="image/*"
                 style={{ display: "none" }}
-                onChange={(e) => {
+                onChange={async(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    setFormData((prev) => ({ ...prev, profilePicture: file }));
+                    // Create preview URL so you can display the image visually
+                    const previewURL = URL.createObjectURL(file);
+
+                    // Update UI instantly
+                    setFormData((prev) => ({
+                      ...prev,
+                      profilePicture: file,
+                      profilePicturePreview: previewURL,
+                    }));
+
+                    // Call API to upload image
+                    await uploadProfileImage(file);
                   }
                 }}
               />
@@ -792,12 +901,9 @@ export default function SignupPage() {
               display: "flex",
               flexDirection: "column",
               gap: 2
-            }}  >
-
-
+            }}>
               <Box>
                 <Typography
-
                   sx={{
                     fontWeight: 500,
                     fontSize: "17px",
@@ -810,7 +916,6 @@ export default function SignupPage() {
                 </Typography>
                 <TextField
                   fullWidth
-
                   name="name"
                   placeholder="Enter Name"
                   value={formData.name}
@@ -824,9 +929,7 @@ export default function SignupPage() {
                 />
               </Box>
               <Box>
-
                 <Typography
-
                   sx={{
                     fontWeight: 500,
                     fontSize: "17px",
@@ -839,7 +942,6 @@ export default function SignupPage() {
                 </Typography>
                 <TextField
                   fullWidth
-
                   name="mobileNo"
                   placeholder="Enter Mobile No."
                   value={formData.mobileNo}
@@ -851,10 +953,8 @@ export default function SignupPage() {
                   }}
                 />
               </Box>
-
               <Box>
                 <Typography
-
                   sx={{
                     fontWeight: 500,
                     fontSize: "17px",
@@ -867,7 +967,6 @@ export default function SignupPage() {
                 </Typography>
                 <TextField
                   fullWidth
-
                   name="email"
                   type="email"
                   placeholder="Enter Email"
@@ -881,10 +980,8 @@ export default function SignupPage() {
                   }}
                 />
               </Box>
-
               <Box>
                 <Typography
-
                   sx={{
                     fontWeight: 500,
                     fontSize: "17px",
@@ -897,7 +994,6 @@ export default function SignupPage() {
                 </Typography>
                 <TextField
                   fullWidth
-
                   name="address"
                   placeholder="Enter Address"
                   value={formData.address}
@@ -930,7 +1026,8 @@ export default function SignupPage() {
                 py: 1.5,
                 mt:"40px",
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -955,7 +1052,7 @@ export default function SignupPage() {
       }}
     >
       {/* Header Bar */}
-      {step !== "select-profile" && (
+      {/* {step !== "select-profile" && (
         <Box
           sx={{
             position: "absolute",
@@ -977,7 +1074,7 @@ export default function SignupPage() {
             {step === "add-details" && "04_Create Password"}
           </Typography>
         </Box>
-      )}
+      )} */}
 
       {/* Left side - Image Section */}
       <Box
@@ -1068,13 +1165,18 @@ export default function SignupPage() {
                 <Link
                   href={ROUTES.SIGNUP}
                   sx={{
-                    color: 'primary.normal',
-                    textDecoration: 'none',
-                    offset: "3%",
+                    fontFamily: "Lato, sans-serif",
                     fontWeight: 600,
-                    fontSize: "20px",
-                    lineHeight: "24px"
-
+                    fontSize: "1.25rem", // 20px -> 20 / 16 = 1.25rem
+                    lineHeight: "1.5rem", // 24px -> 24 / 16 = 1.5rem
+                    letterSpacing: "0em",
+                    textAlign: "center",
+                    color: "#2C6587", // or primary.normal if defined in theme
+                    textDecorationLine: "underline",
+                    textDecorationThickness: "0.08em", // 8% of font-size
+                    textUnderlineOffset: "0.03em", // 3% of font-size
+                    textDecorationSkipInk: "auto", // skip-ink effect
+                    display: "inline-block", // ensures text-align works if needed
                   }}
                 >
                   Log In
