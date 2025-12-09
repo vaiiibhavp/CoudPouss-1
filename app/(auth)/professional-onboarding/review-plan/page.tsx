@@ -12,7 +12,6 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
@@ -137,7 +136,7 @@ export default function ReviewPlanPage() {
             <Box>
               <Typography
                 sx={{
-                  fontWeight: `700`,
+                  fontWeight: 500,
                   fontSize: `1.5rem`,
                   color: `primary.normal`,
                   mb: "0.75rem",
@@ -153,30 +152,61 @@ export default function ReviewPlanPage() {
                   fontSize: "1rem",
                   textAlign: "left",
                   lineHeight: "140%",
+                  letterSpacing: "0%",
                   mb: "2.5rem",
-                  color: "secondary.neutralWhiteDark",
+                  color: "#939393",
                 }}
               >
-                Find new clients and grow your business with CoudPouss. We're offering you a full month completely free to get started!
+                Subscribe now and enjoy your first month completely free. No payment today – your subscription will start immediately, and you'll be charged only after 30 days.
               </Typography>
 
               {/* Plan Details */}
               <Paper
                 elevation={0}
                 sx={{
-                  border: "1px solid #e0e0e0",
-                  borderRadius: 2,
-                  p: 3,
+                  border: "0.0625rem solid rgba(204, 204, 204, 0.4)",
+                  borderRadius: "0.75rem",
+                  paddingTop: "1.5rem",
+                  paddingRight: "1.25rem",
+                  paddingBottom: "1.5rem",
+                  paddingLeft: "1.25rem",
+                  gap: "0.75rem",
                   mb: 3,
-                  bgcolor: "#f9fafb",
                 }}
               >
-                <Typography variant="subtitle1" fontWeight="600" gutterBottom>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1.1875rem",
+                    lineHeight: "1.25rem",
+                    letterSpacing: "1%",
+                    color: "#214C65",
+                  }}
+                  gutterBottom
+                >
                   {plan.name}
                 </Typography>
-                <Typography variant="h4" color="#2F6B8E" fontWeight="bold" gutterBottom>
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: "1.6875rem",
+                    lineHeight: "2rem",
+                    letterSpacing: "3%",
+                    color: "#214C65",
+                  }}
+                  gutterBottom
+                >
                   {plan.price}
-                  <Typography component="span" variant="body1" color="text.secondary">
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "1rem",
+                      lineHeight: "1.125rem",
+                      letterSpacing: "0%",
+                      color: "#214C65",
+                    }}
+                  >
                     {plan.period}
                   </Typography>
                 </Typography>
@@ -186,12 +216,23 @@ export default function ReviewPlanPage() {
                 <List dense disablePadding>
                   {features.map((feature, index) => (
                     <ListItem key={index} sx={{ px: 0, py: 0.5 }}>
-                      <CheckCircleIcon sx={{ fontSize: 18, color: "#2F6B8E", mr: 1 }} />
+                      <Image
+                        src="/icons/verify.png"
+                        alt="verify"
+                        width={18}
+                        height={18}
+                        style={{ marginRight: "0.5rem" }}
+                      />
                       <ListItemText
                         primary={feature}
                         primaryTypographyProps={{
-                          variant: "body2",
-                          color: "text.secondary",
+                          sx: {
+                            fontWeight: 500,
+                            fontSize: "1rem",
+                            lineHeight: "150%",
+                            letterSpacing: "0%",
+                            color: "#424242",
+                          },
                         }}
                       />
                     </ListItem>
