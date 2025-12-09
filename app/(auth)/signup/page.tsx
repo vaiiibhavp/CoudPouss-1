@@ -12,13 +12,25 @@ import {
   IconButton,
   Paper,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Password, Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { apiPost } from "@/lib/api";
+import { buildInputData, emailRegex } from "@/utils/validation";
+import ResponseCache from "next/dist/server/response-cache";
 
 type SignupStep = "select-profile" | "enter-contact" | "verify-otp" | "create-password" | "add-details";
-type UserType = "elder" | "professional" | null;
+type UserType = "elderly_user" | "professional" | null;
+
+interface SignUpApiError {
+  [key: string]: string;
+}
+
+interface SignUpApiResponse {
+  data: any | null;
+  error: SignUpApiError | null;
+}
 
 export default function SignupPage() {
   const router = useRouter();
@@ -43,6 +55,7 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    console.log(name)
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -69,7 +82,7 @@ export default function SignupPage() {
     }
   };
 
-  const handleProfileSelect = (type: "elder" | "professional") => {
+  const handleProfileSelect = (type: "elderly_user" | "professional") => {
     setUserType(type);
     if (type === "professional") {
       // Redirect to professional signup flow
@@ -80,23 +93,166 @@ export default function SignupPage() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async() => {
+    console.log(formData);
+    setLoading(true);
     if (step === "enter-contact") {
       if (!formData.emailOrMobile) {
         setErrors({ emailOrMobile: "Please enter email or mobile number" });
+        setLoading(false)
         return;
       }
-      setStep("verify-otp");
+      
+
+      let {data} = await apiCallToSignUpUser("");
+      data = true
+      
+      if(data){
+        setStep("verify-otp");
+      }else{
+        setErrors({ emailOrMobile: "Something Went Wrong!" });
+      }
+
     } else if (step === "verify-otp") {
       if (formData.otp.some((digit) => !digit)) {
         setErrors({ otp: "Please enter valid code" });
+        setLoading(false)
         return;
       }
-      setStep("create-password");
+
+      let {data,error} = await apiCallToSignUpUser("");
+      console.log(data)
+      data = true
+      if(data){
+        setStep("create-password");
+      }else{
+        setErrors({ otp: "Something Went Wrong!" });
+      }
     } else if (step === "create-password") {
-      setStep("add-details");
+      if(formData.password !== formData.confirmPassword){
+        setErrors({ confirmPassword : "Please make sure your passwords match." });
+        setLoading(false)
+        return
+      }
+      
+      let {data,error} = await apiCallToSignUpUser("");
+      console.log(data)
+      if(data){
+        setStep("add-details");
+      }else{
+        setErrors({ emailOrMobile: "Something Went Wrong!" });
+      }
+      setLoading(false)
     }
   };
+
+  const apiCallToSignUpUser = async(submit:string) : Promise<SignUpApiResponse> =>{
+    try {
+      let payload = {}
+      let url = ""
+      let validData = buildInputData(formData.emailOrMobile)
+      console.log(validData)
+      let error = {}
+
+      if (step === "enter-contact") {
+        url = "userService/auth/start"
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "role": userType 
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "role": userType
+          }  
+        }
+
+      }else if (step === "verify-otp") {
+        url = "userService/auth/verify"
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "otp": formData.otp.join("")
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "otp": formData.otp.join("")
+          }  
+        }
+      } else if (step === "create-password") {
+        url = "userService/auth/password"
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "password": formData.password,
+            "confirm_password" : formData.confirmPassword
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "password": formData.password,
+            "confirm_password" : formData.confirmPassword
+          }  
+        }
+      }
+
+      if(submit){
+        url = "userService/auth/details";
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "address": formData.address,
+            "name" : formData.name,
+            "role" : userType
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "name": formData.name,
+            "address" : formData.address,
+            "role" : userType
+          }  
+        }
+      }
+
+      let response  = await apiPost(url,payload)
+
+      if (response?.error) {
+        let error = {}
+         if (step === "enter-contact") {
+          error =  { submit: response.error.message || "Something went wrong." }
+        }else if (step === "verify-otp") {
+          error =  { otp: response.error.message || "Something went wrong." }
+        }else if (step === "create-password") {
+          error =  { password: response.error.message || "Something went wrong." }
+        }''
+        setErrors(error)
+      }
+
+      return {
+        data: null,
+        error
+      };
+    } catch (error:any) {
+      console.error("Signup error:", error);
+      return {
+          data: null,
+          error:  error || "Something went wrong. Please try again."
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,8 +260,13 @@ export default function SignupPage() {
     try {
       // TODO: Implement actual signup API call
       console.log("Signup data:", { userType, formData });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push(ROUTES.LOGIN);
+      
+      
+      let response  = await apiCallToSignUpUser("submit")
+
+      if(response){
+        router.push(ROUTES.LOGIN);
+      }
     } catch (error) {
       console.error("Signup error:", error);
       setErrors({ submit: "Something went wrong. Please try again." });
@@ -152,7 +313,7 @@ export default function SignupPage() {
               fullWidth
               variant="contained"
               size="large"
-              onClick={() => handleProfileSelect("elder")}
+              onClick={() => handleProfileSelect("elderly_user")}
               sx={{
                 bgcolor: "primary.dark",
                 color: "white",
@@ -205,7 +366,6 @@ export default function SignupPage() {
         return (
           <Box>
             <Typography
-
               sx={{
                 fontWeight: `700`,
                 fontSize: `1.5rem`,
@@ -213,14 +373,11 @@ export default function SignupPage() {
                 mb: "0.75rem",
                 lineHeight: "1.75rem",
                 textAlign: "center"
-
-
               }}
             >
               Welcome To CoudPouss
             </Typography>
             <Typography
-
               sx={{
                 fontWeight: 400,
                 fontSize: "1rem",
@@ -260,6 +417,7 @@ export default function SignupPage() {
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
                 bgcolor: "primary.dark",
@@ -380,6 +538,7 @@ export default function SignupPage() {
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
                 bgcolor: "primary.dark",
@@ -500,6 +659,7 @@ export default function SignupPage() {
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Re-enter Password"
               value={formData.confirmPassword}
+              error={!!errors.confirmPassword}
               onChange={handleChange}
               margin="normal"
               InputProps={{
@@ -517,6 +677,7 @@ export default function SignupPage() {
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
                 bgcolor: "primary.dark",

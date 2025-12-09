@@ -1,6 +1,8 @@
 // lib/redux/authSlice.ts
 "use client";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { apiGet, apiPost } from "../api";
+import { buildInputData } from "@/utils/validation";
 
 export interface LoginPayload {
   emailOrMobile: string;
@@ -35,10 +37,29 @@ export const loginUser = createAsyncThunk<
   async ({ emailOrMobile, password }, { rejectWithValue }) => {
     try {
       // TODO: replace with real API call
-      console.log("Login attempt (thunk):", { emailOrMobile, password });
 
-      // Fake delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+     if (!emailOrMobile || !password) {
+        return rejectWithValue("Email/Mobile and password are required");
+      }
+
+      // Build payload here
+      let inputData;
+      try {
+        inputData = buildInputData(emailOrMobile);
+      } catch (err) {
+        return rejectWithValue("Invalid email or mobile number");
+      }
+
+      // Now add password
+      const apiPayload = {
+        ...inputData,
+        password,
+      };
+
+      console.log(apiPayload)
+      const data = await apiPost("userService/auth/login",apiPayload);
+      console.log(data);
+      console.log("Login attempt (thunk):", { emailOrMobile, password });
 
       // Simple fake validation
       if (!emailOrMobile || !password) {
