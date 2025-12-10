@@ -16,8 +16,19 @@ import { Visibility, VisibilityOff, ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
 import Image from 'next/image';
+import { buildInputData, isValidPassword } from '@/utils/validation';
+import { apiPost } from '@/lib/api';
 
 type ResetStep = 'enter-email' | 'verify-otp' | 'set-password';
+
+interface SignUpApiError {
+  [key: string]: string;
+}
+
+interface SignUpApiResponse {
+  data: any | null;
+  error: SignUpApiError | null;
+}
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -29,12 +40,24 @@ export default function ResetPasswordPage() {
     reEnterPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [showReEnterPassword, setShowReEnterPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    if(name == "newPassword"){
+      const {valid, errors} = isValidPassword(value) 
+      if(!valid){
+        console.log(errors)
+        setPasswordErrors(errors)
+      }else{
+        setPasswordErrors([])
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
@@ -61,21 +84,120 @@ export default function ResetPasswordPage() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async() => {
+    setLoading(true)
     if (step === 'enter-email') {
       if (!formData.emailOrMobile) {
         setErrors({ emailOrMobile: 'Please enter email or mobile number' });
+        setLoading(false)
         return;
       }
-      setStep('verify-otp');
+
+      let {data,error} = await apiCallToSignUpUser("");
+
+      if(data){
+        setStep('verify-otp');
+      }else{
+        setErrors({ emailOrMobile: "Something Went Wrong!" });
+      }
     } else if (step === 'verify-otp') {
       if (formData.otp.some((digit) => !digit)) {
         setErrors({ otp: 'Please enter valid code' });
+        setLoading(false)
         return;
       }
-      setStep('set-password');
+
+      let {data,error} = await apiCallToSignUpUser("");
+
+      if(data){
+        setStep('set-password');
+      }else{
+        setErrors({ otp: "Something Went Wrong!" });
+      }
     }
   };
+
+  
+  const apiCallToSignUpUser = async(submit:string) : Promise<SignUpApiResponse> =>{
+    try {
+      let payload = {}
+      let url = ""
+      let validData = buildInputData(formData.emailOrMobile)
+      console.log(validData)
+      let error = {}
+
+      if (step === "enter-email") {
+        url = "userService/auth/start"
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+          }  
+        }
+      }else if (step === "verify-otp") {
+        url = "userService/auth/reset/verify"
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "otp": formData.otp.join("")
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "otp": formData.otp.join("")
+          }  
+        }
+      }
+
+      if(submit){
+        url = "userService/auth/reset/confirm";
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "password": formData.newPassword,
+            "confirmPassword" : formData.reEnterPassword,
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "password": formData.newPassword,
+            "confirmPassword" : formData.reEnterPassword,
+          }  
+        }
+      }
+
+      let response  = await apiPost(url,payload)
+      
+      if (response?.error?.message) {
+        error =  { submit: response.error.message || "Something went wrong." }
+        setErrors({
+          profilePicture: response.error.message,
+        });
+      }
+
+      return {
+        data: null,
+        error
+      };
+    } catch (error:any) {
+      console.error("Signup error:", error);
+      return {
+          data: null,
+          error:  error || "Something went wrong. Please try again."
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,8 +216,13 @@ export default function ResetPasswordPage() {
     try {
       // TODO: Implement actual reset password API call
       console.log('Reset password:', formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push(ROUTES.LOGIN);
+      let {data,error} = await apiCallToSignUpUser("submit");
+      console.log(data)
+      if(data){
+        router.push(ROUTES.LOGIN);
+      }else{
+        // setErrors({ emailOrMobile: "Something Went Wrong!" });
+      }
     } catch (error) {
       console.error('Reset password error:', error);
       setErrors({ submit: 'Something went wrong. Please try again.' });
@@ -118,7 +245,6 @@ export default function ResetPasswordPage() {
 
             <Box>
               <Typography
-
                 sx={{
                   fontSize: "1.125rem",
                   lineHeight: "100%",
@@ -130,7 +256,6 @@ export default function ResetPasswordPage() {
               </Typography>
               <TextField
                 fullWidth
-
                 name="emailOrMobile"
                 placeholder="Enter Email/ Mobile No"
                 value={formData.emailOrMobile}
@@ -141,20 +266,20 @@ export default function ResetPasswordPage() {
                 sx={{ m: 0, mb: "3.6875rem" }}
               />
             </Box>
-
-
             <Button
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
-                bgcolor: '#2F6B8E',
+                bgcolor: '#214C65',
                 color: 'white',
                 py: 1.5,
                 mb: 2,
                 textTransform: 'none',
-                fontSize: '1rem',
+                fontWeight:700,
+                fontSize: '1.1875rem',
                 '&:hover': {
                   bgcolor: '#25608A',
                 },
@@ -168,7 +293,7 @@ export default function ResetPasswordPage() {
                 display: 'flex',
                 alignItems: 'center',
                 lineHeight: "140%",
-
+                fontWeight:400,
                 justifyContent: 'center',
                 color: '#424242',
                 textDecoration: 'none',
@@ -243,10 +368,12 @@ export default function ResetPasswordPage() {
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
                 bgcolor: '#2F6B8E',
                 color: 'white',
+                
                 py: 1.5,
                 mb: 2,
                 textTransform: 'none',
@@ -310,6 +437,15 @@ export default function ResetPasswordPage() {
                 ),
               }}
             />
+            {
+              passwordErrors && passwordErrors.map((err)=>{
+                return(
+                  <Typography color="error" variant="body2" sx={{fontSize:"0.9rem", textAlign: "left",fontWeight:400 }}>
+                    {err}
+                  </Typography>
+                )
+              })
+            }
             <TextField
               fullWidth
               label="Re-enter New Password"
