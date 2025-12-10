@@ -3,6 +3,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { apiGet, apiPost } from "../api";
 import { buildInputData } from "@/utils/validation";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export interface LoginPayload {
   emailOrMobile: string;
@@ -57,16 +58,11 @@ export const loginUser = createAsyncThunk<
       };
 
       console.log(apiPayload)
-      const data = await apiPost("userService/auth/login",apiPayload);
+      const data = await apiPost(API_ENDPOINTS.AUTH.LOGIN,apiPayload);
       console.log(data);
       console.log("Login attempt (thunk):", { emailOrMobile, password });
 
-      // Simple fake validation
-      if (!emailOrMobile || !password) {
-        return rejectWithValue("Invalid credentials. Please try again.");
-      }
-
-      const email = emailOrMobile; // adjust if you support mobile separately
+      const email = apiPayload["email"] || ""; // adjust if you support mobile separately
       const user: User = {
         email,
         initial: email.charAt(0).toUpperCase(),
@@ -74,6 +70,7 @@ export const loginUser = createAsyncThunk<
 
       return user;
     } catch (err) {
+      console.log(err)
       return rejectWithValue("Something went wrong. Please try again.");
     }
   }

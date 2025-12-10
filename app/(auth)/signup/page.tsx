@@ -19,6 +19,7 @@ import Image from "next/image";
 import { apiPost } from "@/lib/api";
 import { buildInputData, emailRegex, isValidPassword } from "@/utils/validation";
 import ResponseCache from "next/dist/server/response-cache";
+import { API_ENDPOINTS } from "@/constants/api";
 
 type SignupStep = "select-profile" | "enter-contact" | "verify-otp" | "create-password" | "add-details";
 type UserType = "elderly_user" | "professional" | null;
@@ -173,7 +174,7 @@ export default function SignupPage() {
       let error = {}
 
       if (step === "enter-contact") {
-        url = "userService/auth/start"
+        url = API_ENDPOINTS.AUTH.START
 
         if(validData.email){
           payload = {
@@ -189,7 +190,7 @@ export default function SignupPage() {
         }
 
       }else if (step === "verify-otp") {
-        url = "userService/auth/verify"
+        url = API_ENDPOINTS.AUTH.VERIFY_OTP
 
         if(validData.email){
           payload = {
@@ -204,7 +205,7 @@ export default function SignupPage() {
           }  
         }
       } else if (step === "create-password") {
-        url = "userService/auth/password"
+        url = API_ENDPOINTS.AUTH.CREATE_PASSWORD
 
         if(validData.email){
           payload = {
@@ -223,7 +224,7 @@ export default function SignupPage() {
       }
 
       if(submit == "submit"){
-        url = "userService/auth/details";
+        url = API_ENDPOINTS.AUTH.CREATE_ACCOUNT
 
         if(validData.email){
           payload = {
@@ -244,7 +245,7 @@ export default function SignupPage() {
       }
 
       if(submit == "resendOTP"){
-        url = "userService/auth/resend-otp";
+        url = API_ENDPOINTS.AUTH.RESEND_OTP;
 
         if(validData.email){
           payload = {
@@ -315,7 +316,7 @@ export default function SignupPage() {
     setLoading(true)
      try {
       let payload = {}
-      let url = "userService/auth/upload-profile-photo"
+      let url = API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC
       let validData = buildInputData(formData.emailOrMobile)
       let error = {}
 
