@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import {
   Box,
   Container,
@@ -8,12 +8,9 @@ import {
   TextField,
   InputAdornment,
   IconButton,
-  Select,
-  MenuItem,
-  FormControl,
   Button,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Header from "@/components/Header";
@@ -26,6 +23,78 @@ export default function ExploreRequestsPage() {
   const [serviceFilter, setServiceFilter] = useState("all");
   const [priceFilter, setPriceFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
+
+  const CustomSelect = ({
+    value,
+    onChange,
+    options,
+  }: {
+    value: string;
+    onChange: (val: string) => void;
+    options: { label: string; value: string }[];
+  }) => (
+    <Box
+      sx={{
+        minWidth: 150,
+        bgcolor: "white",
+        borderRadius: "0.625rem",
+        border: "0.7px solid #BECFDA",
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      <select
+        value={value}
+        onChange={(e: ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
+        style={{
+          appearance: "none",
+          WebkitAppearance: "none",
+          MozAppearance: "none",
+          border: "none",
+          outline: "none",
+          width: "100%",
+          padding: "12px 16px",
+          background: "transparent",
+          color: "#555555",
+          fontSize: "14px",
+          lineHeight: "140%",
+          fontWeight: 400,
+          cursor: "pointer",
+        }}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <Box
+        sx={{
+          position: "absolute",
+          right: 12,
+          top: "50%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Image src="/icons/chevron-down.png" alt="Open" width={24} height={24} />
+      </Box>
+    </Box>
+  );
+
+  const DropdownIcon = (props: any) => (
+    <Box
+      component="span"
+      {...props}
+      sx={{ display: "flex", alignItems: "center", pr: "0.25rem" }}
+    >
+      <Image src="/icons/chevron-down.png" alt="Open" width={24} height={24} />
+    </Box>
+  );
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -116,15 +185,23 @@ export default function ExploreRequestsPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      
-
       {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Box
+        sx={{
+          px: "5rem",
+          mt: "2.5rem",
+        }}
+      >
         {/* Page Title */}
         <Typography
-          variant="h4"
-          fontWeight="600"
-          sx={{ mb: 4, color: "#1F2937" }}
+          sx={{
+            color: "#2C6587",
+            fontWeight: 700,
+            fontSize: "1.5rem", // 24px
+            lineHeight: "1.75rem", // 28px
+            letterSpacing: "0rem",
+            mb: 4,
+          }}
         >
           Explore Requests
         </Typography>
@@ -135,20 +212,31 @@ export default function ExploreRequestsPage() {
             display: "flex",
             gap: 2,
             mb: 4,
+            justifyContent: "space-between",
             flexWrap: { xs: "wrap", md: "nowrap" },
           }}
         >
           {/* Search Bar */}
           <TextField
-            fullWidth
             placeholder="What are you looking for?"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             sx={{
+              width: { xs: "100%", md: "525px" },
               bgcolor: "white",
-              borderRadius: 2,
+              borderRadius: "0.625rem", // 10px
+              "& fieldset": {
+                borderColor: "#BECFDA",
+                borderWidth: "0.7px",
+              },
               "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
+                borderRadius: "0.625rem",
+                "&:hover fieldset": {
+                  borderColor: "#BECFDA",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#BECFDA",
+                },
               },
             }}
             InputProps={{
@@ -156,89 +244,65 @@ export default function ExploreRequestsPage() {
                 <InputAdornment position="end">
                   <IconButton
                     sx={{
-                      bgcolor: "#2F6B8E",
+                      bgcolor: "#2C6587",
                       color: "white",
-                      borderRadius: 1,
+                      borderRadius: "50%",
                       "&:hover": {
-                        bgcolor: "#25608A",
+                        bgcolor: "primary.dark",
                       },
                     }}
                   >
-                    <SearchIcon />
+                    <Image
+                      src="/icons/searhIcon.png"
+                      alt="Search Icon"
+                      width={16}
+                      height={16}
+                    />
                   </IconButton>
                 </InputAdornment>
               ),
+              sx: {
+                "& .MuiInputBase-input::placeholder": {
+                  color: "#555555",
+                  fontSize: "0.875rem", // 14px
+                  lineHeight: "140%",
+                  fontWeight: 400,
+                },
+              },
             }}
           />
-
-          {/* Services Filter */}
-          <FormControl
-            sx={{
-              minWidth: 150,
-              bgcolor: "white",
-              borderRadius: 2,
-            }}
-          >
-            <Select
+          <Box sx={{ display: "flex", gap: "1.25rem" }}>
+            <CustomSelect
               value={serviceFilter}
-              onChange={(e) => setServiceFilter(e.target.value)}
-              displayEmpty
-              sx={{
-                borderRadius: 2,
-              }}
-            >
-              <MenuItem value="all">Services</MenuItem>
-              <MenuItem value="diy">DIY</MenuItem>
-              <MenuItem value="gardening">Gardening</MenuItem>
-              <MenuItem value="cleaning">Cleaning</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Price Filter */}
-          <FormControl
-            sx={{
-              minWidth: 150,
-              bgcolor: "white",
-              borderRadius: 2,
-            }}
-          >
-            <Select
+              onChange={setServiceFilter}
+              options={[
+                { label: "Services", value: "all" },
+                { label: "DIY", value: "diy" },
+                { label: "Gardening", value: "gardening" },
+                { label: "Cleaning", value: "cleaning" },
+              ]}
+            />
+            <CustomSelect
               value={priceFilter}
-              onChange={(e) => setPriceFilter(e.target.value)}
-              displayEmpty
-              sx={{
-                borderRadius: 2,
-              }}
-            >
-              <MenuItem value="all">Price</MenuItem>
-              <MenuItem value="low">€0 - €200</MenuItem>
-              <MenuItem value="medium">€200 - €500</MenuItem>
-              <MenuItem value="high">€500+</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Time Filter */}
-          <FormControl
-            sx={{
-              minWidth: 150,
-              bgcolor: "white",
-              borderRadius: 2,
-            }}
-          >
-            <Select
+              onChange={setPriceFilter}
+              options={[
+                { label: "Price", value: "all" },
+                { label: "€0 - €200", value: "low" },
+                { label: "€200 - €500", value: "medium" },
+                { label: "€500+", value: "high" },
+              ]}
+            />
+            <CustomSelect
               value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value)}
-              displayEmpty
-              sx={{
-                borderRadius: 2,
-              }}
-            >
-              <MenuItem value="all">Time</MenuItem>
-              <MenuItem value="today">Today</MenuItem>
-              <MenuItem value="week">This Week</MenuItem>
-              <MenuItem value="month">This Month</MenuItem>
-            </Select>
-          </FormControl>
+              onChange={setTimeFilter}
+              options={[
+                { label: "Time", value: "all" },
+                { label: "Today", value: "today" },
+                { label: "This Week", value: "week" },
+                { label: "This Month", value: "month" },
+              ]}
+            />
+          </Box>
         </Box>
 
         {/* Service Request Cards Grid */}
@@ -291,9 +355,7 @@ export default function ExploreRequestsPage() {
             Load More
           </Button>
         </Box>
-      </Container>
-
-
+      </Box>
     </Box>
   );
 }

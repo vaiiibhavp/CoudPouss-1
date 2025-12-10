@@ -101,19 +101,29 @@ export default function RequestViewPage() {
       
 
       {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box  sx={{  mt: "3.375rem", mb:"2.688rem",px:"4.875rem"}}>
         {/* Back Button */}
         <Button
-          startIcon={<ArrowBackIcon />}
+          startIcon={<ArrowBackIcon  sx={{
+            color:"#424242"
+          }}  />}
           onClick={() => router.back()}
           sx={{
-            color: "text.secondary",
-            textTransform: "none",
-            mb: 3,
-            "&:hover": {
-              bgcolor: "transparent",
-              color: "primary.main",
-            },
+          color: "#424242",
+          fontWeight: 400,
+          fontSize: "1rem", // 16px
+          lineHeight: "140%",
+          textTransform: "none",
+          mb: "1.813rem",
+          px: 0,
+          minWidth: 0,
+          "& .MuiButton-startIcon": {
+            mr: "0.5rem",
+          },
+          "&:hover": {
+            bgcolor: "transparent",
+            color: "#2C6587",
+          },
           }}
         >
           Back to All requests
@@ -133,9 +143,9 @@ export default function RequestViewPage() {
             <Box
               sx={{
                 position: "relative",
-                borderRadius: 3,
+                borderRadius: "1.25rem",
                 overflow: "hidden",
-                mb: 3,
+                mb: "1.5rem",
                 bgcolor: "#F9FAFB",
                 border: "0.0625rem solid #E5E7EB",
               }}
@@ -149,16 +159,30 @@ export default function RequestViewPage() {
                   bgcolor: "#2F6B8E",
                   color: "white",
                   px: 2,
-                  py: 0.5,
-                  borderRadius: 1,
+                  py: "0.543rem",
+                  borderRadius: "1.25rem",
                   display: "flex",
                   alignItems: "center",
-                  gap: 0.5,
+                gap: "12px",
                   zIndex: 2,
                 }}
               >
-                <BusinessIcon sx={{ fontSize: "1rem" }} />
-                <Typography variant="body2" fontWeight="600">
+                  <Image
+                    src="/icons/Frame 2087326561.png"
+                    alt="Business Icon"
+                    width={22.25}
+                    height={24}
+                  />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#FFFFFF",
+                    fontWeight: 400,
+                    fontSize: "1rem", // 16px
+                    lineHeight: "140%",
+                    letterSpacing: 0,
+                  }}
+                >
                   {requestData.category}
                 </Typography>
               </Box>
@@ -167,7 +191,7 @@ export default function RequestViewPage() {
               <Box
                 sx={{
                   position: "relative",
-                  height: 350,
+                  height: "31.563rem",
                   width: "100%",
                   bgcolor: "#F3F4F6",
                 }}
@@ -220,16 +244,16 @@ export default function RequestViewPage() {
             </Box>
 
             {/* Thumbnail Images */}
-            <Box sx={{ display: "flex", gap: 2, mb: 4 }}>
+            <Box sx={{ display: "flex", gap: "1.25rem", mb: "1.5rem" }}>
               {requestData.images.map((image, index) => (
                 <Box
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
                   sx={{
                     position: "relative",
-                    width: 90,
-                    height: 70,
-                    borderRadius: 2,
+                    width: "10.422rem",
+                    height: "7.867rem",
+                    borderRadius: "0.656rem",
                     overflow: "hidden",
                     cursor: "pointer",
                     border:
@@ -258,37 +282,79 @@ export default function RequestViewPage() {
               sx={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: 3,
+                gap: "1.5rem",
                 mb: 4,
               }}
             >
               {/* Exchange Product */}
-              <Box sx={{ border: "0.0625rem solid #E5E7EB", borderRadius: 2, p: 2 }}>
+              <Box
+                sx={{
+                  border: "1px solid #E6E6E6",
+                  borderRadius: "0.75rem", // 12px
+                  p: "13px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  bgcolor: "white",
+                }}
+              >
                 <Typography
-                  variant="body2"
-                  sx={{ color: "#6B7280", mb: 1, fontSize: "0.875rem" }}
+                  sx={{
+                    color: "#555555",
+                    fontWeight: 500,
+                    fontSize: "1.125rem", // 18px
+                    lineHeight: "100%",
+                    letterSpacing: 0,
+                  }}
                 >
                   Exchange Product
                 </Typography>
                 <Typography
-                  variant="h6"
-                  sx={{ color: "#1F2937", fontWeight: 600, fontSize: "1.125rem" }}
+                  sx={{
+                    color: "#0F232F",
+                    fontWeight: 800,
+                    fontSize: "1.6875rem", // 27px
+                    lineHeight: "2rem", // 32px
+                    letterSpacing: "0.03em",
+                    textAlign: "left",
+                  }}
                 >
                   Shoes
                 </Typography>
               </Box>
 
               {/* Quantity */}
-              <Box sx={{ border: "0.0625rem solid #E5E7EB", borderRadius: 2, p: 2 }}>
+              <Box
+                sx={{
+                  border: "1px solid #E6E6E6",
+                  borderRadius: "0.75rem",
+                  p: "13px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                  bgcolor: "white",
+                }}
+              >
                 <Typography
-                  variant="body2"
-                  sx={{ color: "#6B7280", mb: 1, fontSize: "0.875rem" }}
+                  sx={{
+                    color: "#555555",
+                    fontWeight: 500,
+                    fontSize: "1.125rem", // 18px
+                    lineHeight: "100%",
+                    letterSpacing: 0,
+                  }}
                 >
                   Quantity
                 </Typography>
                 <Typography
-                  variant="h6"
-                  sx={{ color: "#1F2937", fontWeight: 600, fontSize: "1.125rem" }}
+                  sx={{
+                    color: "#0F232F",
+                    fontWeight: 800,
+                    fontSize: "1.6875rem", // 27px
+                    lineHeight: "2rem", // 32px
+                    letterSpacing: "0.03em",
+                    textAlign: "left",
+                  }}
                 >
                   2 Units
                 </Typography>
@@ -296,24 +362,41 @@ export default function RequestViewPage() {
             </Box>
 
             {/* Product Images */}
-            <Box sx={{ mb: 4, border: "0.0625rem solid #E5E7EB", borderRadius: 3, p: 3, bgcolor: "white" }}>
+            <Box
+              sx={{
+                mb: 4,
+                border: "1px solid #E6E6E6",
+                borderRadius: "0.75rem", // 12px
+                pt: "13px",
+                pb: "13px",
+                pl: "16px",
+                pr: "16px",
+                bgcolor: "white",
+              }}
+            >
               <Typography
-                variant="body1"
-                sx={{ color: "#374151", mb: 3, fontSize: "1rem", fontWeight: 500 }}
+                sx={{
+                  color: "#555555",
+                  fontWeight: 500,
+                  fontSize: "1.125rem", // 18px
+                  lineHeight: "1", // 100%
+                  letterSpacing: 0,
+                  mb: 3,
+                }}
               >
                 Product Images
               </Typography>
-              <Box sx={{ display: "flex", gap: 3 }}>
+              <Box sx={{ display: "flex", gap: "12px" }}>
                 <Box
                   sx={{
                     position: "relative",
                     flex: 1,
-                    height: 160,
-                    borderRadius: 2,
+                    height: 200,
+                    borderRadius: "0.75rem",
                     overflow: "hidden",
-                    border: "0.0625rem solid #E5E7EB",
+                    border: "1px solid #E6E6E6",
                     bgcolor: "#FAFAFA",
-                    p: 2,
+                    p: 0,
                   }}
                 >
                   <Box
@@ -327,7 +410,7 @@ export default function RequestViewPage() {
                       src="/image/main.png"
                       alt="Product 1"
                       fill
-                      style={{ objectFit: "contain" }}
+                      style={{ objectFit: "cover" }}
                     />
                   </Box>
                 </Box>
@@ -335,12 +418,12 @@ export default function RequestViewPage() {
                   sx={{
                     position: "relative",
                     flex: 1,
-                    height: 160,
-                    borderRadius: 2,
+                    height: 200,
+                    borderRadius: "0.75rem",
                     overflow: "hidden",
-                    border: "0.0625rem solid #E5E7EB",
+                    border: "1px solid #E6E6E6",
                     bgcolor: "#FAFAFA",
-                    p: 2,
+                    p: 0,
                   }}
                 >
                   <Box
@@ -354,7 +437,7 @@ export default function RequestViewPage() {
                       src="/image/main.png"
                       alt="Product 2"
                       fill
-                      style={{ objectFit: "contain" }}
+                      style={{ objectFit: "cover" }}
                     />
                   </Box>
                 </Box>
@@ -637,7 +720,7 @@ export default function RequestViewPage() {
             </Paper>
           </Box>
         </Box>
-      </Container>
+      </Box>
 
 
 
