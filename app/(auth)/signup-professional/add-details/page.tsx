@@ -155,7 +155,7 @@ export default function ProfessionalAddDetailsPage() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: 'primary.main',
+                  // bgcolor: 'primary.main',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

@@ -57,20 +57,19 @@ export const loginUser = createAsyncThunk<
         password,
       };
 
-      console.log(apiPayload)
       const data = await apiPost(API_ENDPOINTS.AUTH.LOGIN,apiPayload);
-      console.log(data);
       console.log("Login attempt (thunk):", { emailOrMobile, password });
 
-      const email = apiPayload["email"] || ""; // adjust if you support mobile separately
       const user: User = {
-        email,
-        initial: email.charAt(0).toUpperCase(),
+        email : apiPayload["email"] || "",
+        initial: (apiPayload["email"] || "").charAt(0).toUpperCase(),
       };
-
       return user;
-    } catch (err) {
-      console.log(err)
+    } catch (err:unknown) {
+      if (err instanceof Error) {
+        return rejectWithValue(err.message);
+      }
+      
       return rejectWithValue("Something went wrong. Please try again.");
     }
   }

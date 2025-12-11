@@ -61,24 +61,27 @@ export function validateLoginForm(emailOrMobile: string, password: string): {
   };
 }
 
-const parseMobile = (value: string) => {
+export const parseMobile = (value: string) => {
+  const validCountryCodes = ["1", "44", "91", "61", "81"]; // add all you want
+
   const cleaned = value.replace(/\s|-/g, "");
 
-  // Case 1: starts with + and follows E.164
   if (cleaned.startsWith("+")) {
-    const match = cleaned.match(/^\+(\d{1,4})(\d{6,14})$/);
-    if (match) {
-      return {
-        countryCode: match[1],
-        mobile: match[2],
-      };
+    for (let code of validCountryCodes.sort((a, b) => b.length - a.length)) {
+      // try longest codes first
+      if (cleaned.startsWith(`+${code}`)) {
+        return {
+          countryCode: `+${code}`,
+          mobile: cleaned.slice(code.length + 1), // remove + and code
+        };
+      }
     }
   }
 
   // Case 2: plain 10-digit mobile → default country (India)
   if (/^\d{10}$/.test(cleaned)) {
     return {
-      countryCode: "91",
+      countryCode: "+91",
       mobile: cleaned,
     };
   }

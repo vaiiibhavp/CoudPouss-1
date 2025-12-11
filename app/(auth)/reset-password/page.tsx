@@ -12,12 +12,15 @@ import {
   InputAdornment,
   IconButton,
 } from '@mui/material';
-import { Visibility, VisibilityOff, ArrowBack } from '@mui/icons-material';
+import { ArrowBack } from '@mui/icons-material';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
 import Image from 'next/image';
 import { buildInputData, isValidPassword } from '@/utils/validation';
 import { apiPost } from '@/lib/api';
+import { API_ENDPOINTS } from '@/constants/api';
 
 type ResetStep = 'enter-email' | 'verify-otp' | 'set-password';
 
@@ -51,7 +54,6 @@ export default function ResetPasswordPage() {
     if(name == "newPassword"){
       const {valid, errors} = isValidPassword(value) 
       if(!valid){
-        console.log(errors)
         setPasswordErrors(errors)
       }else{
         setPasswordErrors([])
@@ -123,11 +125,10 @@ export default function ResetPasswordPage() {
       let payload = {}
       let url = ""
       let validData = buildInputData(formData.emailOrMobile)
-      console.log(validData)
       let error = {}
 
       if (step === "enter-email") {
-        url = "userService/auth/start"
+        url = API_ENDPOINTS.AUTH.START
 
         if(validData.email){
           payload = {
@@ -140,7 +141,7 @@ export default function ResetPasswordPage() {
           }  
         }
       }else if (step === "verify-otp") {
-        url = "userService/auth/reset/verify"
+        url = API_ENDPOINTS.AUTH.VERIFY_OTP
 
         if(validData.email){
           payload = {
@@ -157,7 +158,7 @@ export default function ResetPasswordPage() {
       }
 
       if(submit){
-        url = "userService/auth/reset/confirm";
+        url = API_ENDPOINTS.AUTH.RESET_PASSWORD
 
         if(validData.email){
           payload = {
@@ -215,9 +216,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
     try {
       // TODO: Implement actual reset password API call
-      console.log('Reset password:', formData);
       let {data,error} = await apiCallToSignUpUser("submit");
-      console.log(data)
       if(data){
         router.push(ROUTES.LOGIN);
       }else{
@@ -431,7 +430,7 @@ export default function ResetPasswordPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {showPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon/>}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -460,7 +459,7 @@ export default function ResetPasswordPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowReEnterPassword(!showReEnterPassword)} edge="end">
-                      {showReEnterPassword ? <VisibilityOff /> : <Visibility />}
+                      {showReEnterPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon/>}
                     </IconButton>
                   </InputAdornment>
                 ),

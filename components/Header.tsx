@@ -30,6 +30,7 @@ import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
 import { logout, setUserFromStorage } from "@/lib/redux/authSlice";
 import { AppDispatch, RootState } from "@/lib/redux/store";
+import { Lato } from "next/font/google";
 
 interface HeaderProps {
   showExploreServices?: boolean;
@@ -324,30 +325,23 @@ export default function Header({
               {/* Action Buttons */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 {/* Explore Services Dropdown - Only for non-professional routes */}
-                {!isProfessionalDashboard &&
-                  showExploreServices &&
-                  isAuthenticated && (
-                    <Button
-                      onClick={handleServicesMenuOpen}
-                      endIcon={<ExpandMoreIcon />}
-                      sx={{
-                        color: "text.secondary",
-                        textTransform: "none",
-                        display: {
-                          xs: "none",
-                          lg: "flex",
-                          fontSize: "1rem",
-                          lineHeight: "140%",
-                        },
-                        "&:hover": {
-                          bgcolor: "transparent",
-                          color: "primary.main",
-                        },
-                      }}
-                    >
-                      Explore Services
-                    </Button>
-                  )}
+                {!isProfessionalDashboard && showExploreServices  && (
+                  <Button
+                    onClick={handleServicesMenuOpen}
+                    endIcon={<ExpandMoreIcon />}
+                    sx={{
+                      color: "text.secondary",
+                      textTransform: "none",
+                      display: { xs: "none", lg: "flex", fontSize: "1rem", lineHeight: "140%" },
+                      "&:hover": {
+                        bgcolor: "transparent",
+                        color: "primary.main",
+                      },
+                    }}
+                  >
+                    Explore Services
+                  </Button>
+                )}
                 <Menu
                   anchorEl={servicesMenuAnchor}
                   open={Boolean(servicesMenuAnchor)}
@@ -647,26 +641,24 @@ export default function Header({
                   )}
 
                 {/* Book a Service Button - Only show when authenticated and not on professional dashboard */}
-                {!isProfessionalDashboard &&
-                  showBookServiceButton &&
-                  isAuthenticated && (
-                    <Button
-                      variant="contained"
-                      onClick={() => setBookServiceModalOpen(true)}
-                      sx={{
-                        bgcolor: "primary.normal",
-                        textTransform: "none",
-                        px: 2,
-                        py: 1,
-                        borderRadius: 2,
-                        display: { xs: "none", sm: "flex" },
-                        gap: 0.5,
-                      }}
-                      endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
-                    >
-                      Book a Service
-                    </Button>
-                  )}
+                {!isProfessionalDashboard && showBookServiceButton && (
+                  <Button
+                    variant="contained"
+                    onClick={() => isAuthenticated ? setBookServiceModalOpen(true) : router.push(ROUTES.LOGIN)}
+                    sx={{
+                      bgcolor: "primary.normal",
+                      textTransform: "none",
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      display: { xs: "none", sm: "flex" },
+                      gap: 0.5,
+                    }}
+                    endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
+                  >
+                    Book a Service
+                  </Button>
+                )}
 
                 {/* Get Started Button - Only show when NOT authenticated */}
                 {showAuthButtons && !isAuthenticated && (
@@ -678,8 +670,14 @@ export default function Header({
                     sx={{
                       textTransform: "none",
                       px: 2,
+                      fontSize:"1rem",
+                      fontWeight:400,
+                      border:"1px solid #2C6587",
+                      backgroundColor:"white",
+                      color:"#2C6587",
+                      fontFamily:"lato",
                       py: 1,
-                      borderRadius: 2,
+                      borderRadius: "12px",
                       display: { xs: "none", sm: "flex" },
                     }}
                   >
@@ -1221,13 +1219,7 @@ export default function Header({
                       <Box>
                         {/* User Name */}
                         <Typography
-                          sx={{
-                            color: "primary.normal",
-                            fontSize: "1.125rem",
-                            lineHeight: "1.25rem",
-                            fontWeight: 500,
-                            mb: "0.25rem",
-                          }}
+                          sx={{ color: "primary.normal", fontSize: "1.125rem", lineHeight: "1.25rem", fontWeight: 500, mb: "0.25rem" }}
                         >
                           Cameron Williamson
                         </Typography>
@@ -1289,8 +1281,8 @@ export default function Header({
                           </Box>
                         )}
                         <Divider color={"#E7E7E7"} />
-                        {/* Menu Items */}
 
+                        {/* Menu Items */}
                         <Box
                           sx={{
                             display: "flex",
@@ -1337,15 +1329,25 @@ export default function Header({
                           </Typography>
                           <Divider color={"#E7E7E7"} />
 
-                          <Typography
+                          <Button
+                            component={Link}
+                            onClick={handleLogout}
                             sx={{
+                              textTransform: "none",
+                              p: 0,
+                              mb: "0.9rem",
+                              justifyContent: "flex-start",
+                              "&:hover": {
+                                bgcolor: "transparent",
+                                color: "#2F6B8E",
+                              },
                               color: "primary.normal",
                               lineHeight: "1.125rem",
                               cursor: "pointer",
                             }}
                           >
                             Sign Out
-                          </Typography>
+                          </Button>
                         </Box>
                       </Box>
                     </Menu>

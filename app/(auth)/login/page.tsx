@@ -14,7 +14,8 @@ import {
   Paper,
   Link,
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { validateLoginForm } from '@/utils/validation';
@@ -64,7 +65,6 @@ export default function LoginPage() {
     e.preventDefault();
 
     const validation = validateLoginForm(formData.emailOrMobile, formData.password);
-
     if (!validation.valid) {
       setErrors(validation.errors);
       return;
@@ -146,7 +146,7 @@ export default function LoginPage() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: 'primary.main',
+                  // bgcolor: 'primary.main',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -279,7 +279,7 @@ export default function LoginPage() {
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
                           >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                            {showPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon />}
 
                           </IconButton>
                         </InputAdornment>

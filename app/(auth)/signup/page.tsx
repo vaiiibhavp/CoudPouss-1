@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -12,12 +12,12 @@ import {
   IconButton,
   Paper,
 } from "@mui/material";
-import { Password, Visibility, VisibilityOff } from "@mui/icons-material";
+import { Password, Visibility, VisibilityOff, VisibilityOffOutlined, VisibilityOutlined } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
 import { apiPost } from "@/lib/api";
-import { buildInputData, emailRegex, isValidPassword } from "@/utils/validation";
+import { buildInputData, emailRegex, isValidPassword, parseMobile } from "@/utils/validation";
 import ResponseCache from "next/dist/server/response-cache";
 import { API_ENDPOINTS } from "@/constants/api";
 
@@ -65,12 +65,10 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log(name)
 
     if(name == "password"){
       const {valid, errors} = isValidPassword(value) 
       if(!valid){
-        console.log(errors)
         setPasswordErrors(errors)
       }else{
         setPasswordErrors([])
@@ -116,7 +114,6 @@ export default function SignupPage() {
   };
 
   const handleContinue = async() => {
-    console.log(formData);
     setLoading(true);
     if (step === "enter-contact") {
       if (!formData.emailOrMobile) {
@@ -125,12 +122,22 @@ export default function SignupPage() {
         return;
       }
 
-      let {data} = await apiCallToSignUpUser("");
-      
+      let {data,error} = await apiCallToSignUpUser("");
       if(data){
         setStep("verify-otp");
       }else{
-        setErrors({ emailOrMobile: "Something Went Wrong!" });
+        if(error){
+          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+          if(errorMsg.includes("OTP already sent")){
+            setStep("verify-otp");
+          }else if(errorMsg.includes("OTP already verified")){
+            setStep("create-password");
+          }else if(errorMsg.includes("Password already set")){
+            setStep("add-details")
+          }else{
+            setErrors({ emailOrMobile: errorMsg });
+          }
+        }
       }
 
     } else if (step === "verify-otp") {
@@ -141,11 +148,21 @@ export default function SignupPage() {
       }
 
       let {data,error} = await apiCallToSignUpUser("");
-      console.log(data)
       if(data){
         setStep("create-password");
       }else{
-        setErrors({ otp: "Something Went Wrong!" });
+         if(error){
+          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+          if(errorMsg.includes("OTP already sent")){
+            setStep("verify-otp");
+          }else if(errorMsg.includes("OTP already verified")){
+            setStep("create-password");
+          }else if(errorMsg.includes("Password already set")){
+            setStep("add-details")
+          }else{
+            setErrors({ otp: errorMsg });
+          }
+        }
       }
     } else if (step === "create-password") {
       if(formData.password !== formData.confirmPassword){
@@ -155,11 +172,21 @@ export default function SignupPage() {
       }
       
       let {data,error} = await apiCallToSignUpUser("");
-      console.log(data)
       if(data){
         setStep("add-details");
       }else{
-        setErrors({ emailOrMobile: "Something Went Wrong!" });
+        if(error){
+          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+         if(errorMsg.includes("OTP already sent")){
+            setStep("verify-otp");
+          }else if(errorMsg.includes("OTP already verified")){
+            setStep("create-password");
+          }else if(errorMsg.includes("Password already set")){
+            setStep("add-details")
+          }else{
+            setErrors({ confirmPassword: errorMsg });
+          }
+        }
       }
       setLoading(false)
     }
@@ -170,7 +197,6 @@ export default function SignupPage() {
       let payload = {}
       let url = ""
       let validData = buildInputData(formData.emailOrMobile)
-      console.log(validData)
       let error = {}
 
       if (step === "enter-contact") {
@@ -224,24 +250,17 @@ export default function SignupPage() {
       }
 
       if(submit == "submit"){
+        const mobileData = parseMobile(formData.mobileNo)
         url = API_ENDPOINTS.AUTH.CREATE_ACCOUNT
-
-        if(validData.email){
-          payload = {
-            "email": validData.email || "",
-            "address": formData.address,
-            "name" : formData.name,
-            "role" : userType
-          } 
-        }else{
-          payload = {
-            "mobile": validData.mobile || "",
-            "phone_country_code": validData.phone_country_code || "",
-            "name": formData.name,
-            "address" : formData.address,
-            "role" : userType
-          }  
-        }
+        
+        payload = {
+          "email": formData.email || "",
+          "address": formData.address,
+          "name" : formData.name,
+          "role" : userType,
+          "mobile": (mobileData && mobileData.mobile) || "",
+          "phone_country_code": (mobileData && mobileData.countryCode) || "",
+        } 
       }
 
       if(submit == "resendOTP"){
@@ -260,7 +279,6 @@ export default function SignupPage() {
       }
 
       let response  = await apiPost(url,payload)
-
       if (response?.error) {
         let error = {}
          if (step === "enter-contact") {
@@ -274,14 +292,15 @@ export default function SignupPage() {
       }
 
       return {
-        data: null,
+        data: response.data,
         error
       };
     } catch (error:any) {
       console.error("Signup error:", error);
+      const errorObj: SignUpApiError = { general: error.message || "Something went wrong. Please try again." };
       return {
-          data: null,
-          error:  error || "Something went wrong. Please try again."
+        data: null,
+        error: errorObj,
       };
     } finally {
       setLoading(false);
@@ -292,17 +311,27 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      
       // TODO: validate the form Data
-      console.log("Signup data:", { userType, formData });
-      
       let {data,error} = await apiCallToSignUpUser("submit");
-      console.log(data)
       if(data){
         router.push(ROUTES.LOGIN);
         setStep("add-details");
       }else{
-        // setErrors({ emailOrMobile: "Something Went Wrong!" });
+        if(error){
+          const errorMsg =  error.general || error.msg || "Something Went Wrong";
+          if(errorMsg.includes("Name is required")){
+            setErrors({ name: errorMsg });
+          }else if(errorMsg.includes("Address")){
+            setErrors({ address: errorMsg });
+          }else if(errorMsg.includes("country code") || errorMsg.includes("Mobile")){
+            setErrors({ mobileNo: errorMsg });
+          }else if(errorMsg.includes("email")){
+            setErrors({ email: errorMsg });
+          }
+          else{
+
+          }
+        }
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -334,7 +363,6 @@ export default function SignupPage() {
       }
 
       const response : ProfilePhotoApi  = await apiPost(url,payload)
-      console.log(response)
       if (response?.error?.message) {
         setErrors({
           profilePicture: response.error.message,
@@ -706,7 +734,7 @@ export default function SignupPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {showPassword ? <VisibilityOffOutlined /> : <VisibilityOutlined />}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -750,7 +778,7 @@ export default function SignupPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      {showConfirmPassword ? <VisibilityOffOutlined /> : <VisibilityOutlined />}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -1135,7 +1163,7 @@ export default function SignupPage() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: 'primary.main',
+                  // bgcolor: 'primary.main',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
