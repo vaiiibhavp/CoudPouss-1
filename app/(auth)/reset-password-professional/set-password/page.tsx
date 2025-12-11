@@ -58,6 +58,13 @@ export default function ProfessionalResetPasswordSetPasswordPage() {
       const otp = sessionStorage.getItem("professional_reset_otp");
 
       // TODO: Implement actual reset password API call
+      console.log("Professional Reset password:", {
+        userType: "professional",
+        contact,
+        otp,
+        newPassword: formData.newPassword,
+      });
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Clear sessionStorage
