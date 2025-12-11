@@ -51,14 +51,21 @@ export default function Header({
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   // Check if we're on professional dashboard or its sub-routes (including professional profile)
-  const isProfessionalDashboard = pathname?.startsWith('/professional');
-  const [servicesMenuAnchor, setServicesMenuAnchor] = useState<null | HTMLElement>(null);
-  const [notificationsMenuAnchor, setNotificationsMenuAnchor] = useState<null | HTMLElement>(null);
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
+  const isProfessionalDashboard = pathname?.startsWith("/professional");
+  const [servicesMenuAnchor, setServicesMenuAnchor] =
+    useState<null | HTMLElement>(null);
+  const [notificationsMenuAnchor, setNotificationsMenuAnchor] =
+    useState<null | HTMLElement>(null);
+  const [profileMenuAnchor, setProfileMenuAnchor] =
+    useState<null | HTMLElement>(null);
   const [bookServiceModalOpen, setBookServiceModalOpen] = useState(false);
+  const [isAccountUnderVerification, setIsAccountUnderVerification] =
+    useState(false);
 
   useEffect(() => {
     // Sync Redux state with localStorage on component mount
@@ -78,7 +85,9 @@ export default function Header({
     setServicesMenuAnchor(null);
   };
 
-  const handleNotificationsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleNotificationsMenuOpen = (
+    event: React.MouseEvent<HTMLElement>
+  ) => {
     setNotificationsMenuAnchor(event.currentTarget);
   };
 
@@ -95,15 +104,19 @@ export default function Header({
   };
 
   // Determine home route - use prop if provided, otherwise based on authentication
-  const finalHomeRoute = homeRoute || (isAuthenticated ? ROUTES.AUTH_HOME : ROUTES.HOME);
+  const finalHomeRoute =
+    homeRoute || (isAuthenticated ? ROUTES.AUTH_HOME : ROUTES.HOME);
 
   return (
     <>
-      <AppBar position="static" elevation={0} sx={{
-        bgcolor: "white",
-        borderBottom: "0.0625rem solid #DFE8ED"
-
-      }}>
+      <AppBar
+        position="static"
+        elevation={0}
+        sx={{
+          bgcolor: "white",
+          borderBottom: "0.0625rem solid #DFE8ED",
+        }}
+      >
         <Toolbar sx={{ py: 2 }}>
           <Container maxWidth="xl">
             <Box
@@ -167,10 +180,16 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_DASHBOARD}
                       sx={{
-                        color: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "primary.main" : "text.secondary",
+                        color:
+                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
+                            ? "primary.main"
+                            : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? "0.125rem solid" : "none",
+                        borderBottom:
+                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
+                            ? "0.125rem solid"
+                            : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
                         pb: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? 1 : 0,
@@ -186,14 +205,23 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_EXPLORE_REQUESTS}
                       sx={{
-                        color: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "primary.main" : "text.secondary",
+                        color:
+                          pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS
+                            ? "primary.main"
+                            : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
                         fontWeight: "400",
-                        borderBottom: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? "0.125rem solid" : "none",
+                        borderBottom:
+                          pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS
+                            ? "0.125rem solid"
+                            : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
-                        pb: pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS ? 1 : 0,
+                        pb:
+                          pathname === ROUTES.PROFESSIONAL_EXPLORE_REQUESTS
+                            ? 1
+                            : 0,
                         "&:hover": {
                           bgcolor: "transparent",
                           color: "primary.main",
@@ -206,13 +234,22 @@ export default function Header({
                       component={Link}
                       href={ROUTES.PROFESSIONAL_TASK_MANAGEMENT}
                       sx={{
-                        color: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "primary.main" : "text.secondary",
+                        color:
+                          pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT
+                            ? "primary.main"
+                            : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
-                        borderBottom: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? "0.125rem solid" : "none",
+                        borderBottom:
+                          pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT
+                            ? "0.125rem solid"
+                            : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
-                        pb: pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT ? 1 : 0,
+                        pb:
+                          pathname === ROUTES.PROFESSIONAL_TASK_MANAGEMENT
+                            ? 1
+                            : 0,
                         "&:hover": {
                           bgcolor: "transparent",
                           color: "primary.main",
@@ -245,7 +282,7 @@ export default function Header({
                     border: "0.0625rem solid",
                     borderColor: "grey.300",
                     overflow: "hidden",
-                    paddingRight: "1rem"
+                    paddingRight: "1rem",
                   }}
                 >
                   <InputBase
@@ -287,23 +324,30 @@ export default function Header({
               {/* Action Buttons */}
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 {/* Explore Services Dropdown - Only for non-professional routes */}
-                {!isProfessionalDashboard && showExploreServices && isAuthenticated && (
-                  <Button
-                    onClick={handleServicesMenuOpen}
-                    endIcon={<ExpandMoreIcon />}
-                    sx={{
-                      color: "text.secondary",
-                      textTransform: "none",
-                      display: { xs: "none", lg: "flex", fontSize: "1rem", lineHeight: "140%" },
-                      "&:hover": {
-                        bgcolor: "transparent",
-                        color: "primary.main",
-                      },
-                    }}
-                  >
-                    Explore Services
-                  </Button>
-                )}
+                {!isProfessionalDashboard &&
+                  showExploreServices &&
+                  isAuthenticated && (
+                    <Button
+                      onClick={handleServicesMenuOpen}
+                      endIcon={<ExpandMoreIcon />}
+                      sx={{
+                        color: "text.secondary",
+                        textTransform: "none",
+                        display: {
+                          xs: "none",
+                          lg: "flex",
+                          fontSize: "1rem",
+                          lineHeight: "140%",
+                        },
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      Explore Services
+                    </Button>
+                  )}
                 <Menu
                   anchorEl={servicesMenuAnchor}
                   open={Boolean(servicesMenuAnchor)}
@@ -316,7 +360,7 @@ export default function Header({
                       borderRadius: 2,
                       boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
                       px: "2rem",
-                      py: "1.25rem"
+                      py: "1.25rem",
                     },
                   }}
                   transformOrigin={{ horizontal: "left", vertical: "top" }}
@@ -352,8 +396,7 @@ export default function Header({
                           border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          bgcolor: "#F7F7F7"
-
+                          bgcolor: "#F7F7F7",
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -363,7 +406,6 @@ export default function Header({
                             flexDirection: "column",
                             alignItems: "center",
                             gap: 1.5,
-
                           }}
                         >
                           <Box
@@ -387,7 +429,11 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
+                            sx={{
+                              textAlign: "center",
+                              color: "#787878",
+                              lineHeight: "1.125rem",
+                            }}
                           >
                             Home Assistance
                           </Typography>
@@ -407,7 +453,7 @@ export default function Header({
                           textDecoration: "none",
 
                           transition: "all 0.2s ease",
-                          bgcolor: "#F7F7F7"
+                          bgcolor: "#F7F7F7",
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -441,7 +487,11 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
+                            sx={{
+                              textAlign: "center",
+                              color: "#787878",
+                              lineHeight: "1.125rem",
+                            }}
                           >
                             Transport
                           </Typography>
@@ -461,7 +511,7 @@ export default function Header({
                           textDecoration: "none",
 
                           transition: "all 0.2s ease",
-                          bgcolor: "#F7F7F7"
+                          bgcolor: "#F7F7F7",
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -495,7 +545,11 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
+                            sx={{
+                              textAlign: "center",
+                              color: "#787878",
+                              lineHeight: "1.125rem",
+                            }}
                           >
                             Personal Care
                           </Typography>
@@ -513,7 +567,7 @@ export default function Header({
                           border: "0.0625rem solid",
                           borderColor: "grey.200",
                           textDecoration: "none",
-                          bgcolor: "#F7F7F7"
+                          bgcolor: "#F7F7F7",
                         }}
                         onClick={handleServicesMenuClose}
                       >
@@ -547,7 +601,11 @@ export default function Header({
                           <Typography
                             variant="body1"
                             fontWeight="600"
-                            sx={{ textAlign: "center", color: "#787878", lineHeight: "1.125rem" }}
+                            sx={{
+                              textAlign: "center",
+                              color: "#787878",
+                              lineHeight: "1.125rem",
+                            }}
                           >
                             Tech Support
                           </Typography>
@@ -558,47 +616,57 @@ export default function Header({
                 </Menu>
 
                 {/* My Requests Link - Only show when authenticated and not on professional dashboard */}
-                {!isProfessionalDashboard && showMyRequests && isAuthenticated && (
-                  <Button
-                    component={Link}
-                    href={ROUTES.MY_REQUESTS}
-                    sx={{
-                      color: pathname === ROUTES.MY_REQUESTS ? "primary.main" : "text.secondary",
-                      textTransform: "none",
-                      display: { xs: "none", lg: "block" },
-                      borderBottom: pathname === ROUTES.MY_REQUESTS ? "0.125rem solid" : "none",
-                      borderColor: "primary.main",
-                      borderRadius: 0,
-                      pb: 1,
-                      "&:hover": {
-                        bgcolor: "transparent",
-                        color: "primary.main",
-                      },
-                    }}
-                  >
-                    My Requests
-                  </Button>
-                )}
+                {!isProfessionalDashboard &&
+                  showMyRequests &&
+                  isAuthenticated && (
+                    <Button
+                      component={Link}
+                      href={ROUTES.MY_REQUESTS}
+                      sx={{
+                        color:
+                          pathname === ROUTES.MY_REQUESTS
+                            ? "primary.main"
+                            : "text.secondary",
+                        textTransform: "none",
+                        display: { xs: "none", lg: "block" },
+                        borderBottom:
+                          pathname === ROUTES.MY_REQUESTS
+                            ? "0.125rem solid"
+                            : "none",
+                        borderColor: "primary.main",
+                        borderRadius: 0,
+                        pb: 1,
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      My Requests
+                    </Button>
+                  )}
 
                 {/* Book a Service Button - Only show when authenticated and not on professional dashboard */}
-                {!isProfessionalDashboard && showBookServiceButton && isAuthenticated && (
-                  <Button
-                    variant="contained"
-                    onClick={() => setBookServiceModalOpen(true)}
-                    sx={{
-                      bgcolor: "primary.normal",
-                      textTransform: "none",
-                      px: 2,
-                      py: 1,
-                      borderRadius: 2,
-                      display: { xs: "none", sm: "flex" },
-                      gap: 0.5,
-                    }}
-                    endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
-                  >
-                    Book a Service
-                  </Button>
-                )}
+                {!isProfessionalDashboard &&
+                  showBookServiceButton &&
+                  isAuthenticated && (
+                    <Button
+                      variant="contained"
+                      onClick={() => setBookServiceModalOpen(true)}
+                      sx={{
+                        bgcolor: "primary.normal",
+                        textTransform: "none",
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
+                        display: { xs: "none", sm: "flex" },
+                        gap: 0.5,
+                      }}
+                      endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
+                    >
+                      Book a Service
+                    </Button>
+                  )}
 
                 {/* Get Started Button - Only show when NOT authenticated */}
                 {showAuthButtons && !isAuthenticated && (
@@ -667,7 +735,6 @@ export default function Header({
                         height={20}
                         alt="notification"
                         src={"/icons/bellIcon.png"}
-
                       />
                     </IconButton>
                     <Menu
@@ -724,19 +791,26 @@ export default function Header({
                                 height={36}
                                 alt="msg"
                                 src={"/icons/doubleMsg.png"}
-
                               />
                             </Box>
 
                             <Box sx={{ flex: 1, minWidth: 0 }}>
                               <Typography
-                                sx={{ mb: 0.5,color:"#424242",lineHeight:"1.125rem" }}
+                                sx={{
+                                  mb: 0.5,
+                                  color: "#424242",
+                                  lineHeight: "1.125rem",
+                                }}
                               >
                                 Your service has started.
                               </Typography>
                               <Typography
-                                
-                                sx={{ color: "#595959", mb: 1.5,lineHeight:"140%",fontSize:"0.875rem" }}
+                                sx={{
+                                  color: "#595959",
+                                  mb: 1.5,
+                                  lineHeight: "140%",
+                                  fontSize: "0.875rem",
+                                }}
                               >
                                 The provider has proposed a revised budget of
                                 €620 for your service.
@@ -777,7 +851,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
-                                    bgcolor:"primary.normal"
+                                    bgcolor: "primary.normal",
                                   }}
                                 >
                                   Accept
@@ -819,7 +893,6 @@ export default function Header({
                                 flexShrink: 0,
                               }}
                             >
-
                               <Box>
                                 <Image
                                   width={36}
@@ -880,7 +953,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
-                                    bgcolor:"primary.normal"
+                                    bgcolor: "primary.normal",
                                   }}
                                 >
                                   Accept
@@ -976,7 +1049,7 @@ export default function Header({
                                     fontSize: "0.85rem",
                                     px: 2,
                                     py: 0.5,
-                                    bgcolor:"primary.normal"
+                                    bgcolor: "primary.normal",
                                   }}
                                 >
                                   Accept
@@ -1061,7 +1134,7 @@ export default function Header({
                                   textTransform: "none",
                                   fontSize: "0.85rem",
                                   py: 0.5,
-                                  bgcolor:"primary.normal"
+                                  bgcolor: "primary.normal",
                                 }}
                               >
                                 Check Task Status
@@ -1138,9 +1211,8 @@ export default function Header({
                           p: "1.25rem",
                           "& .MuiMenu-list": {
                             padding: 0,
-                            margin: 0
+                            margin: 0,
                           },
-
                         },
                       }}
                       transformOrigin={{ horizontal: "right", vertical: "top" }}
@@ -1149,14 +1221,23 @@ export default function Header({
                       <Box>
                         {/* User Name */}
                         <Typography
-
-                          sx={{ color: "primary.normal", fontSize: "1.125rem", lineHeight: "1.25rem", fontWeight: 500, mb: "0.25rem" }}
+                          sx={{
+                            color: "primary.normal",
+                            fontSize: "1.125rem",
+                            lineHeight: "1.25rem",
+                            fontWeight: 500,
+                            mb: "0.25rem",
+                          }}
                         >
                           Cameron Williamson
                         </Typography>
                         <Button
                           component={Link}
-                          href={isProfessionalDashboard ? ROUTES.PROFESSIONAL_PROFILE : ROUTES.PROFILE}
+                          href={
+                            isProfessionalDashboard
+                              ? ROUTES.PROFESSIONAL_PROFILE
+                              : ROUTES.PROFILE
+                          }
                           onClick={handleProfileMenuClose}
                           sx={{
                             textTransform: "none",
@@ -1173,10 +1254,42 @@ export default function Header({
                         >
                           View my profile
                         </Button>
+
+                        {isAccountUnderVerification && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              padding: "0.75rem",
+                              borderRadius: "0.75rem",
+                              border: "0.5px solid #2C6587",
+                              mb: "0.875rem",
+                            }}
+                          >
+                            <Image
+                              src={"/icons/headerWarning.png"}
+                              alt="warning"
+                              width={42}
+                              height={42}
+                            />
+                            <Typography
+                              sx={{
+                                color: "#214C65",
+                                fontWeight: 700,
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                letterSpacing: 0,
+                                textAlign: "center",
+                              }}
+                            >
+                              Account under verification
+                            </Typography>
+                          </Box>
+                        )}
                         <Divider color={"#E7E7E7"} />
                         {/* Menu Items */}
-
-
 
                         <Box
                           sx={{
@@ -1184,13 +1297,13 @@ export default function Header({
                             flexDirection: "column",
                             gap: "1rem",
                             margin: 0,
-                            marginTop: "0.9rem"
+                            marginTop: "0.9rem",
                           }}
                         >
                           <Typography
                             sx={{
                               color: "#989898",
-                              lineHeight: "1.125rem"
+                              lineHeight: "1.125rem",
                             }}
                           >
                             My Requests
@@ -1199,7 +1312,7 @@ export default function Header({
                             sx={{
                               color: "#989898",
                               lineHeight: "1.125rem",
-                              cursor: "pointer"
+                              cursor: "pointer",
                             }}
                           >
                             My Favorite Professionals
@@ -1207,7 +1320,8 @@ export default function Header({
                           <Typography
                             sx={{
                               color: "#989898",
-                              lineHeight: "1.125rem", cursor: "pointer"
+                              lineHeight: "1.125rem",
+                              cursor: "pointer",
                             }}
                           >
                             My Transactions
@@ -1216,7 +1330,7 @@ export default function Header({
                             sx={{
                               color: "#989898",
                               lineHeight: "1.125rem",
-                              cursor: "pointer"
+                              cursor: "pointer",
                             }}
                           >
                             Help Center
@@ -1227,12 +1341,11 @@ export default function Header({
                             sx={{
                               color: "primary.normal",
                               lineHeight: "1.125rem",
-                              cursor: "pointer"
+                              cursor: "pointer",
                             }}
                           >
                             Sign Out
                           </Typography>
-
                         </Box>
                       </Box>
                     </Menu>

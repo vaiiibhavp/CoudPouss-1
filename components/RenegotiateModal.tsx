@@ -31,7 +31,6 @@ export default function RenegotiateModal({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          p: 2,
         },
       }}
     >
@@ -42,15 +41,14 @@ export default function RenegotiateModal({
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            py: 2,
           }}
         >
           {/* Renegotiation Icon */}
           <Box
             sx={{
               mb: 3,
-              width: 80,
-              height: 80,
+              width: 60,
+              height: 60,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -68,9 +66,13 @@ export default function RenegotiateModal({
           {/* Title */}
           <Typography
             variant="h6"
-            fontWeight="600"
+            fontWeight={600}
             sx={{
-              color: "#1F2937",
+              color: "#214C65",
+              fontSize: "1.375rem",
+              lineHeight: "1.875rem",
+              letterSpacing: 0,
+              textAlign: "center",
               mb: 2,
             }}
           >
@@ -86,39 +88,88 @@ export default function RenegotiateModal({
               lineHeight: 1.6,
             }}
           >
-            You can send a price renegotiation to the client
+            If you believe the task is more extensive than planned, you can
+            request a price increase (max +20%)
           </Typography>
 
           {/* Payment Breakdown */}
-          <Box sx={{ width: "100%", mb: 3, textAlign: "left" }}>
+          <Box
+            sx={{
+              width: "100%",
+              mb: 3,
+              textAlign: "left",
+              border: "1px solid #E6E6E6",
+              p: "1rem",
+              borderRadius: "0.75rem",
+            }}
+          >
             <Typography
-              variant="body2"
-              fontWeight="600"
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#424242",
+                fontSize: "1.0625rem", // 17px
+                lineHeight: "1rem", // 16px
+                letterSpacing: 0,
+                mb: 2,
+              }}
             >
               Current Payment Breakdown
             </Typography>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-              <Typography variant="body2" sx={{ color: "#6B7280" }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mb: 1,
+              }}
+            >
+              <Typography
+                sx={{
+                  color: "#595959",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: 0,
+                }}
+              >
                 Finalized Quote Amount
               </Typography>
-              <Typography variant="body2" fontWeight="600" sx={{ color: "#1F2937" }}>
+              <Typography
+                sx={{
+                  color: "#595959",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: 0,
+                }}
+              >
                 €499
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography variant="body2" sx={{ color: "#6B7280" }}>
                 Platform Fee (15%)
               </Typography>
-              <Typography variant="body2" fontWeight="600" sx={{ color: "#1F2937" }}>
+              <Typography
+                variant="body2"
+                fontWeight="600"
+                sx={{ color: "#1F2937" }}
+              >
                 €74.85
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+            >
               <Typography variant="body2" sx={{ color: "#6B7280" }}>
                 Taxes
               </Typography>
-              <Typography variant="body2" fontWeight="600" sx={{ color: "#1F2937" }}>
+              <Typography
+                variant="body2"
+                fontWeight="600"
+                sx={{ color: "#1F2937" }}
+              >
                 €1.20
               </Typography>
             </Box>
@@ -130,10 +181,18 @@ export default function RenegotiateModal({
                 borderTop: "0.0625rem dashed #D1D5DB",
               }}
             >
-              <Typography variant="body1" fontWeight="600" sx={{ color: "#1F2937" }}>
+              <Typography
+                variant="body1"
+                fontWeight="600"
+                sx={{ color: "#1F2937" }}
+              >
                 Total
               </Typography>
-              <Typography variant="h6" fontWeight="700" sx={{ color: "#2F6B8E" }}>
+              <Typography
+                variant="h6"
+                fontWeight="700"
+                sx={{ color: "#2F6B8E" }}
+              >
                 €340.00
               </Typography>
             </Box>
@@ -142,9 +201,15 @@ export default function RenegotiateModal({
           {/* Input Field */}
           <Box sx={{ width: "100%", mb: 3 }}>
             <Typography
-              variant="body2"
-              fontWeight="600"
-              sx={{ color: "#1F2937", mb: 1, textAlign: "left" }}
+              fontWeight={600}
+              sx={{
+                color: "#424242",
+                fontSize: "1.0625rem", // 17px
+                lineHeight: "1rem", // 16px
+                letterSpacing: 0,
+                mb: "0.5rem",
+                textAlign: "left",
+              }}
             >
               Enter Requested Adjustment
             </Typography>
@@ -155,7 +220,18 @@ export default function RenegotiateModal({
               size="small"
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: 2,
+                  borderRadius: "0.75rem",
+                  p: "1rem",
+                },
+                "& .MuiInputBase-input": {
+                  p: 0,
+                },
+                "& .MuiInputBase-input::placeholder": {
+                  color: "#A5A5A5",
+                  fontWeight: 500,
+                  fontSize: "1.125rem", // 18px
+                  lineHeight: "1",
+                  letterSpacing: 0,
                 },
               }}
             />
@@ -165,7 +241,7 @@ export default function RenegotiateModal({
           <Box
             sx={{
               display: "flex",
-              gap: 2,
+              gap: "1rem",
               width: "100%",
             }}
           >
@@ -174,14 +250,18 @@ export default function RenegotiateModal({
               fullWidth
               onClick={onClose}
               sx={{
-                borderColor: "#D1D5DB",
-                color: "#6B7280",
+                borderColor: "#214C65",
+                color: "#214C65",
                 textTransform: "none",
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
+                py: "1.125rem",
+                px: "1rem",
+                borderRadius: "0.75rem",
+                fontWeight: 700,
+                fontSize: "1.1875rem", // 19px
+                lineHeight: "1.25rem", // 20px
+                letterSpacing: "0.01em",
                 "&:hover": {
-                  borderColor: "#9CA3AF",
+                  borderColor: "#214C65",
                   bgcolor: "transparent",
                 },
               }}
@@ -193,14 +273,18 @@ export default function RenegotiateModal({
               fullWidth
               onClick={onProceed}
               sx={{
-                bgcolor: "#2F6B8E",
-                color: "white",
+                bgcolor: "#214C65",
+                color: "#FFFFFF",
                 textTransform: "none",
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
+                py: "1.125rem",
+                px: "1rem",
+                borderRadius: "0.75rem",
+                fontWeight: 700,
+                fontSize: "1.1875rem",
+                lineHeight: "1.25rem",
+                letterSpacing: "0.01em",
                 "&:hover": {
-                  bgcolor: "#25608A",
+                  bgcolor: "#1b3f55",
                 },
               }}
             >

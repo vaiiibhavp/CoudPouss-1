@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  Box,
-  Typography,
-  Button,
-} from "@mui/material";
+import { Dialog, DialogContent, Box, Typography, Button } from "@mui/material";
 import Image from "next/image";
 
 interface SecurityCodeMatchModalProps {
@@ -32,7 +26,6 @@ export default function SecurityCodeMatchModal({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          p: 2,
         },
       }}
     >
@@ -43,15 +36,14 @@ export default function SecurityCodeMatchModal({
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            py: 2,
           }}
         >
           {/* Security Code Icon */}
           <Box
             sx={{
               mb: 3,
-              width: 80,
-              height: 80,
+              width: 60,
+              height: 60,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -68,11 +60,14 @@ export default function SecurityCodeMatchModal({
 
           {/* Message */}
           <Typography
-            variant="body1"
             sx={{
-              color: "#374151",
+              color: "#555555",
+              fontWeight: 600,
+              fontSize: "1.375rem", // 22px
+              lineHeight: "1.875rem", // 30px
+              letterSpacing: 0,
+              textAlign: "center",
               mb: 2,
-              lineHeight: 1.6,
               px: 2,
             }}
           >
@@ -81,42 +76,63 @@ export default function SecurityCodeMatchModal({
           </Typography>
 
           {/* Security Code Display */}
-          <Typography
-            variant="body2"
-            fontWeight="600"
-            sx={{ color: "#2F6B8E", mb: 1 }}
-          >
-            Security Code
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1.5, mb: 3 }}>
-            {securityCode.map((digit, index) => (
-              <Box
-                key={index}
-                sx={{
-                  width: 40,
-                  height: 48,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "0.0625rem solid #D1D5DB",
-                  borderRadius: 1,
-                  bgcolor: "#F9FAFB",
-                }}
-              >
-                <Typography variant="h6" fontWeight="600" sx={{ color: "#1F2937" }}>
-                  {digit}
-                </Typography>
-              </Box>
-            ))}
+          <Box sx={{
+            px:"1rem",
+            py:"1.25rem",
+            borderRadius:"0.75rem",
+            border:"1px solid #E6E6E6",
+            mb:"1.5rem"
+          }}  >
+            <Typography
+              fontWeight={500}
+              sx={{
+                color: "#2C6587",
+                fontSize: "1rem",
+                lineHeight: "1.125rem",
+                letterSpacing: 0,
+                textAlign: "left",
+                mb: "0.75rem",
+                width: "100%",
+              }}
+            >
+              Security Code
+            </Typography>
+
+            <Box sx={{ display: "flex", gap: 1.5, justifyContent: "space-between" }}>
+              {securityCode.map((digit, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    width: 40,
+                    height: 48,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    // border: "0.0625rem solid #D1D5DB
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    fontWeight="600"
+                    sx={{ color: "#1F2937" }}
+                  >
+                    {digit}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
           </Box>
 
           {/* Question */}
           <Typography
-            variant="body1"
             sx={{
-              color: "#374151",
+              color: "#555555",
+              fontWeight: 600,
+              fontSize: "1.375rem", // 22px
+              lineHeight: "1.875rem", // 30px
+              letterSpacing: 0,
+              textAlign: "center",
               mb: 3,
-              lineHeight: 1.6,
               px: 2,
             }}
           >
@@ -137,14 +153,18 @@ export default function SecurityCodeMatchModal({
               fullWidth
               onClick={onClose}
               sx={{
-                borderColor: "#D1D5DB",
-                color: "#6B7280",
+                borderColor: "#214C65",
+                color: "#214C65",
                 textTransform: "none",
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
+                py: "1.125rem",
+                px: "1rem",
+                borderRadius: "0.75rem",
+                fontWeight: 700,
+                fontSize: "1.1875rem", // 19px
+                lineHeight: "1.25rem", // 20px
+                letterSpacing: "0.01em",
                 "&:hover": {
-                  borderColor: "#9CA3AF",
+                  borderColor: "#214C65",
                   bgcolor: "transparent",
                 },
               }}
@@ -156,14 +176,18 @@ export default function SecurityCodeMatchModal({
               fullWidth
               onClick={onConfirm}
               sx={{
-                bgcolor: "#2F6B8E",
-                color: "white",
+                bgcolor: "#214C65",
+                color: "#FFFFFF",
                 textTransform: "none",
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
+                py: "0.625rem",
+                px: "1rem",
+                borderRadius: "0.75rem",
+                fontWeight: 700,
+                fontSize: "1.1875rem",
+                lineHeight: "1.25rem",
+                letterSpacing: "0.01em",
                 "&:hover": {
-                  bgcolor: "#25608A",
+                  bgcolor: "#1b3f55",
                 },
               }}
             >

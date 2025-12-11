@@ -10,6 +10,7 @@ import {
   Paper,
   IconButton,
   Avatar,
+  Divider,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -85,7 +86,7 @@ export default function RequestViewPage() {
       amount: quoteAmount,
       message: personalizedMessage,
     });
-    
+
     // Open success modal
     setIsModalOpen(true);
   };
@@ -97,33 +98,41 @@ export default function RequestViewPage() {
   };
 
   return (
-    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      
-
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", overflowX: "hidden" }}>
       {/* Main Content */}
-      <Box  sx={{  mt: "3.375rem", mb:"2.688rem",px:"4.875rem"}}>
+      <Box
+        sx={{
+          mt: { xs: "2rem", md: "3.375rem" },
+          mb: { xs: "2rem", md: "2.688rem" },
+          px: { xs: "1rem", sm: "1.5rem", md: "4.875rem" },
+        }}
+      >
         {/* Back Button */}
         <Button
-          startIcon={<ArrowBackIcon  sx={{
-            color:"#424242"
-          }}  />}
+          startIcon={
+            <ArrowBackIcon
+              sx={{
+                color: "#424242",
+              }}
+            />
+          }
           onClick={() => router.back()}
           sx={{
-          color: "#424242",
-          fontWeight: 400,
-          fontSize: "1rem", // 16px
-          lineHeight: "140%",
-          textTransform: "none",
-          mb: "1.813rem",
-          px: 0,
-          minWidth: 0,
-          "& .MuiButton-startIcon": {
-            mr: "0.5rem",
-          },
-          "&:hover": {
-            bgcolor: "transparent",
-            color: "#2C6587",
-          },
+            color: "#214C65",
+            fontWeight: 500,
+            fontSize: "1rem", // 16px
+            lineHeight: "140%",
+            textTransform: "none",
+            mb: "1.813rem",
+            px: 0,
+            minWidth: 0,
+            "& .MuiButton-startIcon": {
+              mr: "0.5rem",
+            },
+            "&:hover": {
+              bgcolor: "transparent",
+              color: "#2C6587",
+            },
           }}
         >
           Back to All requests
@@ -134,11 +143,13 @@ export default function RequestViewPage() {
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1.5fr 1fr" },
-            gap: 4,
+            gap: { xs: 2, md: 4 },
+            width: "100%",
+            minWidth: 0,
           }}
         >
           {/* Left Column - Images and Description */}
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             {/* Image Carousel */}
             <Box
               sx={{
@@ -163,16 +174,16 @@ export default function RequestViewPage() {
                   borderRadius: "1.25rem",
                   display: "flex",
                   alignItems: "center",
-                gap: "12px",
+                  gap: "12px",
                   zIndex: 2,
                 }}
               >
-                  <Image
-                    src="/icons/Frame 2087326561.png"
-                    alt="Business Icon"
-                    width={22.25}
-                    height={24}
-                  />
+                <Image
+                  src="/icons/Frame 2087326561.png"
+                  alt="Business Icon"
+                  width={22.25}
+                  height={24}
+                />
                 <Typography
                   variant="body2"
                   sx={{
@@ -391,8 +402,8 @@ export default function RequestViewPage() {
                   sx={{
                     position: "relative",
                     flex: 1,
-                    height: 200,
-                    borderRadius: "0.75rem",
+                    height: "9rem",
+                    borderRadius: "0.5rem",
                     overflow: "hidden",
                     border: "1px solid #E6E6E6",
                     bgcolor: "#FAFAFA",
@@ -418,8 +429,8 @@ export default function RequestViewPage() {
                   sx={{
                     position: "relative",
                     flex: 1,
-                    height: 200,
-                    borderRadius: "0.75rem",
+                    height: "9rem",
+                    borderRadius: "0.5rem",
                     overflow: "hidden",
                     border: "1px solid #E6E6E6",
                     bgcolor: "#FAFAFA",
@@ -445,40 +456,72 @@ export default function RequestViewPage() {
             </Box>
 
             {/* Service Description */}
-            <Box sx={{ mb: 4, border: "0.0625rem solid #E5E7EB", borderRadius: 2, p: 2 }}>
+            <Box
+              sx={{
+                mb: 4,
+                border: "0.0625rem solid #E5E7EB",
+                borderRadius: 2,
+                p: 2,
+              }}
+            >
               <Typography
-                variant="h6"
-                fontWeight="600"
-                gutterBottom
-                sx={{ color: "#1F2937", fontSize: "1.125rem" }}
+                sx={{
+                  color: "#323232",
+                  fontWeight: 600,
+                  fontSize: "1.125rem", // 18px
+                  lineHeight: "1.25rem", // 20px
+                  letterSpacing: 0,
+                  mb: 1.5,
+                }}
               >
                 Service description
               </Typography>
               <Typography
-                variant="body2"
-                sx={{ color: "#6B7280", lineHeight: 1.8, fontSize: "0.9rem" }}
+                sx={{
+                  color: "#555555",
+                  fontWeight: 400,
+                  fontSize: "1.125rem", // 18px
+                  lineHeight: "1.4",
+                  letterSpacing: 0,
+                  textAlign: "justify",
+                }}
               >
                 {requestData.description}
               </Typography>
             </Box>
 
             {/* About Client */}
-            <Box sx={{ mb: 4, border: "0.0625rem solid #E5E7EB", borderRadius: 2, p: 2 }}>
+            <Box
+              sx={{
+                mb: 4,
+                border: "0.0625rem solid #E5E7EB",
+                borderRadius: 2,
+                p: 2,
+              }}
+            >
               <Typography
-                variant="h6"
-                fontWeight="600"
-                gutterBottom
-                sx={{ color: "#1F2937", mb: 2, fontSize: "1.125rem" }}
+                sx={{
+                  color: "#0F232F",
+                  fontWeight: 600,
+                  fontSize: "1.25rem", // 20px
+                  lineHeight: "1.5rem", // 24px
+                  letterSpacing: 0,
+                  mb: 2,
+                }}
               >
                 About client
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: "24px" }}>
                 <Avatar
                   src={requestData.clientAvatar}
                   alt={requestData.clientName}
                   sx={{ width: 48, height: 48 }}
                 />
-                <Typography variant="body1" fontWeight="600" sx={{ color: "#1F2937" }}>
+                <Typography
+                  variant="body1"
+                  fontWeight="600"
+                  sx={{ color: "#1F2937" }}
+                >
                   {requestData.clientName}
                 </Typography>
               </Box>
@@ -486,14 +529,15 @@ export default function RequestViewPage() {
           </Box>
 
           {/* Right Column - Request Details and Quote Form */}
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             {/* Request Info Card */}
-            <Paper
+            <Box
               sx={{
-                p: 3,
-                borderRadius: 3,
-                bgcolor: "#F3F4F6",
-                mb: 3,
+                p: "16px",
+                borderRadius: "1rem", // 16px
+                bgcolor: "#FBFBFB",
+                border: "1px solid #E6E6E6",
+                mb: "1.25rem",
               }}
             >
               <Box
@@ -501,49 +545,144 @@ export default function RequestViewPage() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
-                  mb: 2,
+                  mb: "16px",
                 }}
               >
-                <Typography variant="h5" fontWeight="600" sx={{ color: "#2F6B8E" }}>
+                <Typography
+                  variant="h5"
+                  fontWeight="600"
+                  sx={{ color: "#2F6B8E" }}
+                >
                   {requestData.title}
                 </Typography>
-                <Typography variant="caption" sx={{ color: "#6B7280" }}>
+                <Typography
+                  sx={{
+                    color: "#555555",
+                    fontWeight: 500,
+                    fontSize: "0.875rem", // 14px
+                    lineHeight: "1.125rem", // 18px
+                    letterSpacing: 0,
+                  }}
+                >
                   {requestData.timeAgo}
                 </Typography>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <BusinessIcon sx={{ fontSize: "1.2rem", color: "#6B7280" }} />
-                  <Typography variant="body2" sx={{ color: "#374151" }}>
+              <Box
+                sx={{
+                  bgcolor: "white",
+                  p: "16px",
+                  display: "grid",
+                  borderRadius: "16px",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "1fr",
+                  md: "repeat(2, minmax(0, 1fr))",
+                },
+                gap: { xs: "10px", md: "12px 16px" },
+                }}
+              >
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: "12px" }}
+                >
+                  <Image
+                    src="/icons/fi_6374086.png"
+                    alt="Service"
+                    width={24}
+                    height={24}
+                  />
+                  <Typography
+                    sx={{
+                      color: "#555555",
+                      fontWeight: 500,
+                      fontSize: "0.875rem", // 14px
+                      lineHeight: "1.125rem", // 18px
+                      letterSpacing: 0,
+                    }}
+                  >
                     {requestData.serviceProvider}
                   </Typography>
                 </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CalendarTodayIcon sx={{ fontSize: "1.2rem", color: "#6B7280" }} />
-                  <Typography variant="body2" sx={{ color: "#374151" }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: "12px" }}
+                >
+                  <Image
+                    src="/icons/Calendar.png"
+                    alt="Date"
+                    width={24}
+                    height={24}
+                  />
+                  <Typography
+                    sx={{
+                      color: "#555555",
+                      fontWeight: 500,
+                      fontSize: "0.875rem",
+                      lineHeight: "1.125rem",
+                      letterSpacing: 0,
+                    }}
+                  >
                     {requestData.date}
                   </Typography>
                 </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <AccessTimeIcon sx={{ fontSize: "1.2rem", color: "#6B7280" }} />
-                  <Typography variant="body2" sx={{ color: "#374151" }}>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: "12px" }}
+                >
+                  <Image
+                    src="/icons/Clock.png"
+                    alt="Time"
+                    width={24}
+                    height={24}
+                  />
+                  <Typography
+                    sx={{
+                      color: "#555555",
+                      fontWeight: 500,
+                      fontSize: "0.875rem",
+                      lineHeight: "1.125rem",
+                      letterSpacing: 0,
+                    }}
+                  >
                     {requestData.time}
                   </Typography>
                 </Box>
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-                  <LocationOnIcon sx={{ fontSize: "1.2rem", color: "#6B7280", mt: 0.2 }} />
-                  <Typography variant="body2" sx={{ color: "#374151" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                  }}
+                >
+                  <Image
+                    src="/icons/MapPin.png"
+                    alt="Location"
+                    width={24}
+                    height={24}
+                  />
+                  <Typography
+                    sx={{
+                      color: "#555555",
+                      fontWeight: 500,
+                      fontSize: "0.875rem",
+                      lineHeight: "1.125rem",
+                      letterSpacing: 0,
+                    }}
+                  >
                     {requestData.location}
                   </Typography>
                 </Box>
               </Box>
-            </Paper>
+            </Box>
+
+            <Divider
+              sx={{
+                color: "#EAF0F3",
+                mb: "1.25rem",
+              }}
+            />
 
             {/* Quote Form */}
-            <Paper
+            <Box
               sx={{
-                p: 3,
                 borderRadius: 3,
                 bgcolor: "white",
               }}
@@ -551,10 +690,14 @@ export default function RequestViewPage() {
               {/* Enter Quote Amount */}
               <Box sx={{ mb: 3 }}>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  gutterBottom
-                  sx={{ color: "#374151" }}
+                  sx={{
+                    color: "#424242",
+                    fontWeight: 500,
+                    fontSize: "1.0625rem", // 17px
+                    lineHeight: "1.25rem", // 20px
+                    letterSpacing: 0,
+                    mb: "0.35rem",
+                  }}
                 >
                   Enter Quote Amount
                 </Typography>
@@ -567,6 +710,13 @@ export default function RequestViewPage() {
                     "& .MuiOutlinedInput-root": {
                       borderRadius: 2,
                     },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "#939393",
+                      fontSize: "1.125rem", // 18px
+                      lineHeight: "140%",
+                      fontWeight: 400,
+                      letterSpacing: 0,
+                    },
                   }}
                 />
               </Box>
@@ -574,10 +724,14 @@ export default function RequestViewPage() {
               {/* Personalized Message */}
               <Box sx={{ mb: 3 }}>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  gutterBottom
-                  sx={{ color: "#374151" }}
+                  sx={{
+                    color: "#424242",
+                    fontWeight: 500,
+                    fontSize: "1.0625rem", // 17px
+                    lineHeight: "1.25rem", // 20px
+                    letterSpacing: 0,
+                    mb: "0.35rem",
+                  }}
                 >
                   Add personalized short message
                 </Typography>
@@ -590,7 +744,27 @@ export default function RequestViewPage() {
                   onChange={(e) => setPersonalizedMessage(e.target.value)}
                   sx={{
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
+                      borderRadius: "0.75rem", // 12px
+                      "& fieldset": {
+                        borderColor: "#D5D5D5",
+                        borderWidth: "1px",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "#D5D5D5",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#D5D5D5",
+                      },
+                    },
+                    "& textarea": {
+                      padding: "14px 16px",
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: "#939393",
+                      fontSize: "1.125rem", // 18px
+                      lineHeight: "140%",
+                      fontWeight: 400,
+                      letterSpacing: 0,
                     },
                   }}
                 />
@@ -599,61 +773,121 @@ export default function RequestViewPage() {
               {/* Attach Supporting Documents */}
               <Box sx={{ mb: 3 }}>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  gutterBottom
-                  sx={{ color: "#374151" }}
+                  sx={{
+                    color: "#424242",
+                    fontWeight: 500,
+                    fontSize: "1.0625rem", // 17px
+                    lineHeight: "1.25rem", // 20px
+                    letterSpacing: 0,
+                    mb: "0.35rem",
+                  }}
                 >
                   Attach supporting documents
                 </Typography>
-                <Box sx={{ display: "flex", gap: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                }}
+              >
                   <Button
                     variant="outlined"
                     component="label"
-                    fullWidth
                     sx={{
-                      borderColor: "#D1D5DB",
+                    flex: 1,
+                    minWidth: { xs: "100%", sm: "calc(50% - 5px)" },
+                    height: "144px",
+                    borderColor: "#D5D5D5",
                       color: "#6B7280",
                       textTransform: "none",
-                      py: 2,
-                      borderRadius: 2,
+                    py: "10px",
+                    borderRadius: "12px",
                       borderStyle: "dashed",
                       "&:hover": {
-                        borderColor: "#2F6B8E",
-                        bgcolor: "rgba(47, 107, 142, 0.04)",
+                      borderColor: "#214C65",
+                      bgcolor: "rgba(33, 76, 101, 0.04)",
                       },
                     }}
                   >
-                    <Box sx={{ textAlign: "center" }}>
-                      <CloudUploadIcon sx={{ fontSize: "2rem", mb: 0.5 }} />
-                      <Typography variant="caption" display="block">
-                        upload from device
-                      </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  >
+                    <Image
+                      src="/icons/folder-upload-line.png"
+                      alt="Upload"
+                      width={24}
+                      height={24}
+                    />
+                    <Typography
+                      sx={{
+                        color: "#818285",
+                        fontWeight: 300,
+                        fontSize: "0.75rem", // 12px
+                        lineHeight: "1", // 100%
+                        letterSpacing: 0,
+                      }}
+                    >
+                      upload from device
+                    </Typography>
                     </Box>
                     <input type="file" hidden multiple accept="image/*,.pdf" />
                   </Button>
                   <Button
                     variant="outlined"
                     component="label"
-                    fullWidth
                     sx={{
-                      borderColor: "#D1D5DB",
+                    flex: 1,
+                    minWidth: { xs: "100%", sm: "calc(50% - 5px)" },
+                    height: "144px",
+                    borderColor: "#D5D5D5",
                       color: "#6B7280",
                       textTransform: "none",
-                      py: 2,
-                      borderRadius: 2,
+                    py: "10px",
+                    borderRadius: "12px",
                       borderStyle: "dashed",
                       "&:hover": {
-                        borderColor: "#2F6B8E",
-                        bgcolor: "rgba(47, 107, 142, 0.04)",
+                      borderColor: "#214C65",
+                      bgcolor: "rgba(33, 76, 101, 0.04)",
                       },
                     }}
                   >
-                    <Box sx={{ textAlign: "center" }}>
-                      <CloudUploadIcon sx={{ fontSize: "2rem", mb: 0.5 }} />
-                      <Typography variant="caption" display="block">
-                        upload from device
-                      </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  >
+                    <Image
+                      src="/icons/folder-upload-line.png"
+                      alt="Upload"
+                      width={24}
+                      height={24}
+                    />
+                    <Typography
+                      sx={{
+                        color: "#818285",
+                        fontWeight: 300,
+                        fontSize: "0.75rem", // 12px
+                        lineHeight: "1", // 100%
+                        letterSpacing: 0,
+                      }}
+                    >
+                      upload from device
+                    </Typography>
                     </Box>
                     <input type="file" hidden multiple accept="image/*,.pdf" />
                   </Button>
@@ -663,33 +897,61 @@ export default function RequestViewPage() {
               {/* Upload Video */}
               <Box sx={{ mb: 3 }}>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  gutterBottom
-                  sx={{ color: "#374151" }}
+                  sx={{
+                    color: "#424242",
+                    fontWeight: 500,
+                    fontSize: "1.0625rem", // 17px
+                    lineHeight: "1.25rem", // 20px
+                    letterSpacing: 0,
+                    mb: "0.35rem",
+                  }}
                 >
                   Upload a short video (max 2 minutes)
                 </Typography>
                 <Button
                   variant="outlined"
                   component="label"
-                  fullWidth
                   sx={{
-                    borderColor: "#D1D5DB",
+                    width: "100%",
+                    height: "144px",
+                    borderColor: "#D5D5D5",
                     color: "#6B7280",
                     textTransform: "none",
-                    py: 3,
-                    borderRadius: 2,
+                    py: "10px",
+                    borderRadius: "12px",
                     borderStyle: "dashed",
                     "&:hover": {
-                      borderColor: "#2F6B8E",
-                      bgcolor: "rgba(47, 107, 142, 0.04)",
+                      borderColor: "#214C65",
+                      bgcolor: "rgba(33, 76, 101, 0.04)",
                     },
                   }}
                 >
-                  <Box sx={{ textAlign: "center" }}>
-                    <VideocamIcon sx={{ fontSize: "2.5rem", mb: 0.5 }} />
-                    <Typography variant="caption" display="block">
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  >
+                    <Image
+                      src="/icons/folder-upload-line.png"
+                      alt="Upload Video"
+                      width={24}
+                      height={24}
+                    />
+                    <Typography
+                      sx={{
+                        color: "#818285",
+                        fontWeight: 300,
+                        fontSize: "0.75rem", // 12px
+                        lineHeight: "1", // 100%
+                        letterSpacing: 0,
+                      }}
+                    >
                       upload from device
                     </Typography>
                   </Box>
@@ -703,13 +965,15 @@ export default function RequestViewPage() {
                 fullWidth
                 onClick={handleSubmitQuote}
                 sx={{
-                  bgcolor: "#2F6B8E",
-                  color: "white",
+                  bgcolor: "#214C65",
+                  color: "#FFFFFF",
                   textTransform: "none",
-                  py: 1.5,
+                  py: "1.125rem",
                   borderRadius: 2,
-                  fontSize: "1rem",
-                  fontWeight: 600,
+                  fontSize: "1.1875rem", // 19px
+                  lineHeight: "1.25rem", // 20px
+                  fontWeight: 700,
+                  letterSpacing: "0.01em",
                   "&:hover": {
                     bgcolor: "#25608A",
                   },
@@ -717,12 +981,10 @@ export default function RequestViewPage() {
               >
                 Submit Quote
               </Button>
-            </Paper>
+            </Box>
           </Box>
         </Box>
       </Box>
-
-
 
       {/* Quote Submitted Modal */}
       <QuoteSubmittedModal open={isModalOpen} onClose={handleCloseModal} />

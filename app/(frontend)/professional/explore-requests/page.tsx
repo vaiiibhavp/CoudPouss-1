@@ -315,7 +315,7 @@ export default function ExploreRequestsPage() {
             },
             gap: 3,
             mb: 4,
-            justifyContent: "center",
+            justifyContent: "space-between",
           }}
         >
           {allServiceRequests.map((request) => (
@@ -335,17 +335,20 @@ export default function ExploreRequestsPage() {
         </Box>
 
         {/* Load More Button */}
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: "1.75rem", mb:"2.688rem" }}>
           <Button
             variant="outlined"
             sx={{
-              borderColor: "#2F6B8E",
-              color: "#2F6B8E",
+              borderColor: "#214C65",
+              color: "#214C65",
               textTransform: "none",
               px: 4,
               py: 1.5,
-              borderRadius: 2,
+              borderRadius: "0.75rem",
               fontWeight: 600,
+              fontSize: "1rem",
+              lineHeight: "150%",
+              letterSpacing: "0",
               "&:hover": {
                 borderColor: "#25608A",
                 bgcolor: "rgba(47, 107, 142, 0.04)",
