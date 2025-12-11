@@ -102,29 +102,51 @@ export default function MyEarnings() {
         <Box
           sx={{
             flex: 1,
-            p: 3,
+            p: "1.5rem",
             bgcolor: "white",
-            borderRadius: 2,
-            border: "0.0625rem solid #E5E7EB",
-            boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
+            borderRadius: "0.75rem",
+            border: "0.0625rem solid #DBE0E5",
           }}
         >
           <Typography
             variant="h6"
-            fontWeight="600"
-            sx={{ color: "#2F6B8E", mb: 3 }}
+            sx={{
+              mb: 3,
+              color: "#2C6587",
+              fontWeight: 700,
+              fontSize: "1.25rem", // 20px
+              lineHeight: "1.5rem", // 24px
+              letterSpacing: "0%",
+              verticalAlign: "middle",
+            }}
           >
             My Earnings
           </Typography>
 
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="body2" sx={{ color: "#6B7280", mb: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "rgba(14, 27, 39, 0.5)",
+                mb: 1,
+                fontWeight: 500,
+                fontSize: "1.018rem", // ~16.29px
+                lineHeight: "1",
+                letterSpacing: "0%",
+              }}
+            >
               Available Balance
             </Typography>
             <Typography
               variant="h3"
-              fontWeight="700"
-              sx={{ color: "#1F2937", mb: 1 }}
+              sx={{
+                mb: "1rem",
+                color: "#0E1B27",
+                fontWeight: 800,
+                fontSize: "2.29rem", // ~36.64px
+                lineHeight: "2.714rem", // ~43.43px
+                letterSpacing: "3%",
+              }}
             >
               €53,278.22
             </Typography>
@@ -134,11 +156,20 @@ export default function MyEarnings() {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 0.5,
-                mb: 3,
+                mb: "3.438rem",
               }}
             >
-              <TrendingUpIcon sx={{ color: "#10B981", fontSize: "1rem" }} />
-              <Typography variant="body2" sx={{ color: "#10B981" }}>
+              <TrendingUpIcon sx={{ color: "#4CAF50", fontSize: "1rem" }} />
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#4CAF50",
+                  fontWeight: 500,
+                  fontSize: "1.018rem", // ~16.29px
+                  lineHeight: "1",
+                  letterSpacing: "0%",
+                }}
+              >
                 +0.97% increase from last month
               </Typography>
             </Box>
@@ -150,10 +181,13 @@ export default function MyEarnings() {
                 bgcolor: "#2F6B8E",
                 color: "white",
                 textTransform: "none",
-                py: 1.5,
+                py: "0.625rem", // 10px
+                px: "3.75rem", // 60px; keep fullWidth so horizontal padding is minimal impact
                 fontSize: "1rem",
-                fontWeight: "600",
-                borderRadius: 2,
+                fontWeight: 700,
+                lineHeight: "1.125rem", // 18px
+                letterSpacing: "0%",
+                borderRadius: "0.75rem", // 12px
                 "&:hover": {
                   bgcolor: "#1e4a5f",
                 },
@@ -168,11 +202,13 @@ export default function MyEarnings() {
         <Box
           sx={{
             flex: 2,
-            p: 3,
-            bgcolor: "white",
-            borderRadius: 2,
-            border: "0.0625rem solid #E5E7EB",
-            boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
+            p: "1rem 1.5rem", // 16px top/bottom, 24px left/right
+            bgcolor: "#FFFFFF",
+            borderRadius: "0.75rem", // 12px
+            border: "1px solid #DBE0E5",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.75rem", // 12px
           }}
         >
           <Box
@@ -180,13 +216,36 @@ export default function MyEarnings() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mb: 3,
+              mb: "0.75rem",
             }}
           >
-            <Typography variant="h6" fontWeight="600" sx={{ color: "#2F6B8E" }}>
+            <Typography
+              variant="h6"
+              sx={{
+                color: "#2C6587",
+                fontWeight: 700,
+                fontSize: "1.25rem", // 20px
+                lineHeight: "1.5rem", // 24px
+                letterSpacing: "0%",
+                verticalAlign: "middle",
+              }}
+            >
               Earning Dashboard
             </Typography>
-            <FormControl size="small">
+            <FormControl
+              size="small"
+              sx={{
+                "& .MuiInputBase-root": {
+                  borderRadius: "0.75rem", // 12px
+                  paddingTop: "0.5rem", // 8px
+                  paddingBottom: "0.5rem", // 8px
+                  paddingLeft: "1rem", // 16px
+                  paddingRight: "1.5rem", // 24px
+                  gap: "0.75rem", // 12px
+                  backgroundColor: "#EAF0F3",
+                },
+              }}
+            >
               <Select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
@@ -208,7 +267,7 @@ export default function MyEarnings() {
           <Box
             sx={{
               height: 200,
-              bgcolor: "#F9FAFB",
+              // bgcolor: "#F9FAFB",
               borderRadius: 2,
               display: "flex",
               alignItems: "flex-end",
@@ -271,8 +330,7 @@ export default function MyEarnings() {
           p: 3,
           bgcolor: "white",
           borderRadius: 2,
-          border: "0.0625rem solid #E5E7EB",
-          boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
+          border: "0.0625rem solid #DBE0E5",
           mb: 3,
         }}
       >
@@ -285,14 +343,17 @@ export default function MyEarnings() {
             "& .MuiTab-root": {
               textTransform: "none",
               fontSize: "1rem",
-              fontWeight: "500",
-              color: "#6B7280",
+              fontWeight: 600,
+              lineHeight: "1.125rem", // 18px
+              letterSpacing: "0%",
+              color: "#2C6587",
+              alignItems: "center",
             },
             "& .Mui-selected": {
-              color: "#2F6B8E !important",
+              color: "#2C6587 !important",
             },
             "& .MuiTabs-indicator": {
-              backgroundColor: "#2F6B8E",
+              backgroundColor: "#2C6587",
             },
           }}
         >
@@ -326,7 +387,9 @@ export default function MyEarnings() {
                 {transactions.map((transaction) => (
                   <TableRow key={transaction.id}>
                     <TableCell>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                      >
                         <Avatar
                           src={transaction.elderAvatar}
                           alt={transaction.elderName}
