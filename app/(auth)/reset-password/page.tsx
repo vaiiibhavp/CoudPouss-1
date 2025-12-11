@@ -21,6 +21,7 @@ import Image from 'next/image';
 import { buildInputData, isValidPassword } from '@/utils/validation';
 import { apiPost } from '@/lib/api';
 import { API_ENDPOINTS } from '@/constants/api';
+import { ApiResponse } from '@/types';
 
 type ResetStep = 'enter-email' | 'verify-otp' | 'set-password';
 
@@ -28,8 +29,13 @@ interface SignUpApiError {
   [key: string]: string;
 }
 
+interface OtpData {
+  message: string;
+}
+
 interface SignUpApiResponse {
-  data: any | null;
+  data?: any | null;
+  message?:string;
   error: SignUpApiError | null;
 }
 
@@ -100,7 +106,9 @@ export default function ResetPasswordPage() {
       if(data){
         setStep('verify-otp');
       }else{
-        setErrors({ emailOrMobile: "Something Went Wrong!" });
+        if(error){
+          setErrors({ emailOrMobile: error.message || "Something Went Wrong!" });
+        }
       }
     } else if (step === 'verify-otp') {
       if (formData.otp.some((digit) => !digit)) {
@@ -114,7 +122,9 @@ export default function ResetPasswordPage() {
       if(data){
         setStep('set-password');
       }else{
-        setErrors({ otp: "Something Went Wrong!" });
+         if(error){
+          setErrors({ otp: error.message || "Something Went Wrong!" });
+        }
       }
     }
   };
@@ -126,9 +136,10 @@ export default function ResetPasswordPage() {
       let url = ""
       let validData = buildInputData(formData.emailOrMobile)
       let error = {}
+      setErrors({})
 
       if (step === "enter-email") {
-        url = API_ENDPOINTS.AUTH.START
+        url = API_ENDPOINTS.AUTH.RESET_PASSWORD_START
 
         if(validData.email){
           payload = {
@@ -141,7 +152,7 @@ export default function ResetPasswordPage() {
           }  
         }
       }else if (step === "verify-otp") {
-        url = API_ENDPOINTS.AUTH.VERIFY_OTP
+        url = API_ENDPOINTS.AUTH.VERIFY_RESET_PASSWORD_OTP
 
         if(validData.email){
           payload = {
@@ -157,26 +168,47 @@ export default function ResetPasswordPage() {
         }
       }
 
-      if(submit){
+      if(submit == "submit"){
         url = API_ENDPOINTS.AUTH.RESET_PASSWORD
 
         if(validData.email){
           payload = {
             "email": validData.email || "",
             "password": formData.newPassword,
-            "confirmPassword" : formData.reEnterPassword,
+            "confirm_password" : formData.reEnterPassword,
           } 
         }else{
           payload = {
             "mobile": validData.mobile || "",
             "phone_country_code": validData.phone_country_code || "",
             "password": formData.newPassword,
-            "confirmPassword" : formData.reEnterPassword,
+            "confirm_password" : formData.reEnterPassword,
           }  
         }
       }
 
-      let response  = await apiPost(url,payload)
+      if(submit == "resendOTP"){
+        url = API_ENDPOINTS.AUTH.RESEND_OTP;
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+          }  
+        }
+      }
+
+      const response = await apiPost<OtpData>(url,payload)
+
+      if(response){
+        if(response.data?.message?.includes("OTP sent successfully")){
+          setErrors({otp : "OTP sent successfully"})
+        }
+      }
       
       if (response?.error?.message) {
         error =  { submit: response.error.message || "Something went wrong." }
@@ -186,8 +218,8 @@ export default function ResetPasswordPage() {
       }
 
       return {
-        data: null,
-        error
+        data: response.data,
+        error:null
       };
     } catch (error:any) {
       console.error("Signup error:", error);
@@ -346,8 +378,11 @@ export default function ResetPasswordPage() {
             )}
             <Link
               href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                apiCallToSignUpUser("resendOTP");   
+              }}
               sx={{
-
                 display: 'block',
                 textAlign: 'center',
                 mb: "2.4375rem",
@@ -430,7 +465,7 @@ export default function ResetPasswordPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon/>}
+                      {showPassword ?  <VisibilityOutlinedIcon/> : <VisibilityOffOutlinedIcon />}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -459,7 +494,7 @@ export default function ResetPasswordPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowReEnterPassword(!showReEnterPassword)} edge="end">
-                      {showReEnterPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon/>}
+                      {showReEnterPassword ?  <VisibilityOutlinedIcon/> : <VisibilityOffOutlinedIcon /> }
                     </IconButton>
                   </InputAdornment>
                 ),

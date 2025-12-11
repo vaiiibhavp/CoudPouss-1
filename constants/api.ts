@@ -17,7 +17,9 @@ export const API_ENDPOINTS = {
     SIGNUP: `${API_BASE_URL}userService/auth/signup`,
     LOGOUT: `${API_BASE_URL}userService/auth/logout`,
     REFRESH: `${API_BASE_URL}userService/auth/refresh`,
-    RESET_PASSWORD: `${API_BASE_URL}userService/auth/confirm`,
+    RESET_PASSWORD_START: `${API_BASE_URL}userService/auth/reset/start`,
+    VERIFY_RESET_PASSWORD_OTP: `${API_BASE_URL}userService/auth/reset/verify`,
+    RESET_PASSWORD: `${API_BASE_URL}userService/auth/reset/confirm`,
     VERIFY_EMAIL: `${API_BASE_URL}userService/auth/verify-email`,
   },
   USER: {

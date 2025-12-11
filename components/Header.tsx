@@ -74,8 +74,8 @@ export default function Header({
   }, [dispatch]);
 
   const handleLogout = () => {
-    dispatch(logout());
     router.push(ROUTES.HOME);
+    dispatch(logout());
   };
 
   const handleServicesMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -328,7 +328,7 @@ export default function Header({
                 {!isProfessionalDashboard && showExploreServices  && (
                   <Button
                     onClick={handleServicesMenuOpen}
-                    endIcon={<ExpandMoreIcon />}
+                    // endIcon={<ExpandMoreIcon />}
                     sx={{
                       color: "text.secondary",
                       textTransform: "none",
@@ -686,7 +686,7 @@ export default function Header({
                 )}
 
                 {/* Logout Button - Only show when authenticated */}
-                {showAuthButtons && isAuthenticated && (
+                {/* {showAuthButtons && isAuthenticated && (
                   <Button
                     onClick={handleLogout}
                     variant="outlined"
@@ -707,7 +707,7 @@ export default function Header({
                   >
                     Logout
                   </Button>
-                )}
+                )} */}
 
                 {/* User Icons - Only show when authenticated */}
                 {showUserIcons && isAuthenticated && user && (
@@ -1219,7 +1219,7 @@ export default function Header({
                       <Box>
                         {/* User Name */}
                         <Typography
-                          sx={{ color: "primary.normal", fontSize: "1.125rem", lineHeight: "1.25rem", fontWeight: 500, mb: "0.25rem" }}
+                          sx={{ color: "primary.normal", fontSize: "1.125rem", lineHeight: "1.25rem", fontWeight: 600, mb: "0.25rem" }}
                         >
                           Cameron Williamson
                         </Typography>
@@ -1330,7 +1330,6 @@ export default function Header({
                           <Divider color={"#E7E7E7"} />
 
                           <Button
-                            component={Link}
                             onClick={handleLogout}
                             sx={{
                               textTransform: "none",
