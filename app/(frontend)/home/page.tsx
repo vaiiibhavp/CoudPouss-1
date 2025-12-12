@@ -250,12 +250,15 @@ export default function AuthenticatedHomePage() {
                 </Typography>
 
               </Box>
-              <Image
-                src={"/icons/Frame 2087326562.png"}
-                alt={"home-assistance"}
-                width={148}
-                height={115}
-              />
+              <div className="d-flex w-full justify-items-end mr-25">
+                <Image
+                  src={"/icons/home_assistance_icon_home.svg"}
+                  alt={"home-assistance"}
+                  width={98}
+                  style={{marginRight: "0.5rem"}}
+                  height={95}
+                />
+              </div>
             </Box>
 
             {/* Service Icons */}
@@ -267,9 +270,9 @@ export default function AuthenticatedHomePage() {
               }}
             >
               {[
-                { icon: "/icons/transport.png", label: "Transport", color: "#EF4444", borderTopLeftRadius: "2.535rem", borderRadius: "12.17px" },
-                { icon: "/icons/personal-care.png", label: "Personal Care", color: "#3B82F6", borderRadius: "12.17px" },
-                { icon: "/icons/support.png", label: "Tech Support", color: "#10B981", borderRadius: "12.17px", borderTopRightRadius: "2.535rem" },
+                { icon: "/icons/transport.svg", label: "Transport", color: "#EF4444", borderTopLeftRadius: "2.535rem", borderRadius: "12.17px" },
+                { icon: "/icons/makeup.svg", label: "Personal Care", color: "#3B82F6", borderRadius: "12.17px" },
+                { icon: "/icons/laptop.svg", label: "Tech Support", color: "#10B981", borderRadius: "12.17px", borderTopRightRadius: "2.535rem" },
               ].map((service, index) => (
                 <Box
                   key={index}

@@ -4,10 +4,11 @@ import React, { useState } from "react";
 import { Card, Box, Typography, Button, Avatar } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import EditProfile from "./EditProfile";
+import { UseSelector } from "react-redux";
 
 export default function ProfileOverview() {
   const [isEditMode, setIsEditMode] = useState(false);
-
+  let role  = localStorage.getItem("role")
   if (isEditMode) {
     return <EditProfile onCancel={() => setIsEditMode(false)} />;
   }
@@ -180,29 +181,32 @@ export default function ProfileOverview() {
                 +11 (480) 555-0103
               </Typography>
             </Box>
-            <Box>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "text.secondary",
-                  mb: 0.5,
-                  fontSize: "0.85rem",
-                  fontWeight: 500,
-                }}
-              >
-                Year of Experience
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "text.primary",
-                  fontWeight: 400,
-                  fontSize: "1rem",
-                }}
-              >
-                4
-              </Typography>
-            </Box>
+            {
+              role != "elderly_user" && 
+                <Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "text.secondary",
+                      mb: 0.5,
+                      fontSize: "0.85rem",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Year of Experience
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: "text.primary",
+                      fontWeight: 400,
+                      fontSize: "1rem",
+                    }}
+                  >
+                    4
+                  </Typography>
+                </Box>
+            }
           </Box>
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>

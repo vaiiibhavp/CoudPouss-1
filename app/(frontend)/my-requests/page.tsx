@@ -233,8 +233,8 @@ export default function MyRequestsPage() {
                   sx={{
                     textTransform: "none",
                     borderRadius: 2,
-                    px: "1.125rem",
-                    py: "1.125rem",
+                    px: 2,
+                    py: 1,
                     fontSize: "1rem",
                     fontWeight: 500,
                     bgcolor:
@@ -268,7 +268,7 @@ export default function MyRequestsPage() {
               sx={{
                 display: "flex",
                 alignItems: "center",
-                width: { xs: "100%", sm: 300 },
+                width: { xs: "100%", sm: 478 },
                 bgcolor: "white",
                 borderRadius: 2,
                 border: "0.0625rem solid",
@@ -291,7 +291,7 @@ export default function MyRequestsPage() {
                 }
                 sx={{
                   flex: 1,
-                  px: 2,
+                  px: 1,
                   py: 1,
                   "& .MuiInputBase-input": {
                     color: "text.primary",
@@ -844,6 +844,7 @@ export default function MyRequestsPage() {
                               textTransform: "none",
                               borderRadius: "0.5rem",
                               pt: "0.625rem",
+                              minWidth:"200px",
                               pr: "3.75rem",
                               pb: "0.625rem",
                               pl: "3.75rem",
