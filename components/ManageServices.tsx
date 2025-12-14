@@ -67,25 +67,36 @@ export default function ManageServices() {
   return (
     <Box
       sx={{
-        p: { xs: 2, sm: 3, md: 4 },
+        p: { xs: 2, sm: 3, md: "1.5rem" },
         bgcolor: "white",
         borderRadius: 2,
-        border: "0.0625rem solid #E5E7EB",
+        border: "0.0625rem solid #DBE0E5",
         width: "100%",
         minHeight: { xs: "auto", md: "calc(100vh - 18.75rem)" },
       }}
     >
       <Typography
-        variant="h6"
-        fontWeight="600"
-        sx={{ color: "#2F6B8E", mb: 2 }}
+        sx={{
+          fontWeight: 700,
+          fontSize: "20px",
+          lineHeight: "24px",
+          letterSpacing: "0%",
+          verticalAlign: "middle",
+          color: "#2C6587",
+          mb: 2,
+        }}
       >
         Manage Services
       </Typography>
 
       <Typography
-        variant="body2"
-        sx={{ color: "#6B7280", mb: 4, lineHeight: 1.6 }}
+        sx={{
+          fontWeight: 600,
+          fontSize: "16px",
+          lineHeight: "150%",
+          letterSpacing: "0%",
+          color: "#939393",
+        }}
       >
         Here, you can easily manage your service categories. Each additional
         category you add will incur a monthly fee of €1.
@@ -134,16 +145,19 @@ export default function ManageServices() {
             startIcon={<AddIcon />}
             onClick={() => setModalOpen(true)}
             sx={{
-              bgcolor: "#2F6B8E",
+              bgcolor: "#214C65",
               color: "white",
               textTransform: "none",
-              px: 4,
-              py: 1.5,
+              paddingTop: "10px",
+              paddingRight: "20px",
+              paddingBottom: "10px",
+              paddingLeft: "20px",
               fontSize: "1rem",
               fontWeight: "500",
-              borderRadius: 2,
+              borderRadius: "8px",
+              gap: "10px",
               "&:hover": {
-                bgcolor: "#1e4a5f",
+                bgcolor: "#1a3d52",
               },
             }}
           >
@@ -154,14 +168,14 @@ export default function ManageServices() {
         /* Services Display */
         <Box>
           {/* Category Chips and Add Button */}
-          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }, mb: 3 }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }, mt:"1.375rem" }}>
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", width: { xs: "100%", sm: "auto" } }}>
               {categories.map((categoryId) => (
                 <Chip
                   key={categoryId}
                   label={groupedServices[categoryId].categoryName}
                   sx={{
-                    bgcolor: "#2F6B8E",
+                    bgcolor: "#2C6587",
                     color: "white",
                     fontWeight: "500",
                     fontSize: "0.875rem",
@@ -180,18 +194,21 @@ export default function ManageServices() {
               endIcon={<AddIcon />}
               onClick={() => setModalOpen(true)}
               sx={{
-                bgcolor: "#2F6B8E",
+                bgcolor: "#214C65",
                 color: "white",
                 textTransform: "none",
-                px: { xs: 2, sm: 3 },
-                py: 1.2,
-                fontSize: { xs: "0.875rem", sm: "0.95rem" },
+                paddingTop: "10px",
+                paddingRight: { xs: "20px", sm: "20px" },
+                paddingBottom: "10px",
+                paddingLeft: { xs: "20px", sm: "20px" },
+                fontSize: { xs: "0.875rem", sm: "1rem" },
                 fontWeight: "500",
-                borderRadius: 2,
+                borderRadius: "8px",
+                gap: "10px",
                 whiteSpace: "nowrap",
                 width: { xs: "100%", sm: "auto" },
                 "&:hover": {
-                  bgcolor: "#1e4a5f",
+                  bgcolor: "#1a3d52",
                 },
               }}
             >
@@ -200,29 +217,28 @@ export default function ManageServices() {
           </Box>
 
           {/* Services List */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt:"1.375rem" }}>
             {selectedServices.map((service) => (
-              <Card
+              <Box
                 key={service.serviceId}
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  p: { xs: 1.5, sm: 2, md: 2.5 },
-                  borderRadius: 2,
-                  border: "0.0625rem solid #E5E7EB",
+                  borderRadius: "20px",
+                  paddingTop: "10px",
+                  paddingRight: "20px",
+                  paddingBottom: "10px",
+                  paddingLeft: "10px",
                   boxShadow: "none",
-                  bgcolor: "#F9FAFB",
-                  "&:hover": {
-                    boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
-                  },
+                  bgcolor: "#F2F2F2",
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1.5, sm: 2, md: 3 }, flex: 1, minWidth: 0 }}>
                   <Box
                     sx={{
-                      width: { xs: 60, sm: 70, md: 80 },
-                      height: { xs: 60, sm: 70, md: 80 },
+                      width: { xs: 60, sm: 70, md: "119px" },
+                      height: { xs: 60, sm: 70, md: "96px" },
                       borderRadius: 2,
                       overflow: "hidden",
                       position: "relative",
@@ -237,9 +253,15 @@ export default function ManageServices() {
                     />
                   </Box>
                   <Typography
-                    variant="h6"
-                    fontWeight="500"
-                    sx={{ color: "#1F2937", fontSize: { xs: "0.95rem", sm: "1rem", md: "1.1rem" }, overflow: "hidden", textOverflow: "ellipsis" }}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: { xs: "16px", sm: "17px", md: "18px" },
+                      lineHeight: "20px",
+                      letterSpacing: "0%",
+                      color: "#323232",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
                   >
                     {service.serviceName}
                   </Typography>
@@ -255,7 +277,7 @@ export default function ManageServices() {
                 >
                   <MoreVertIcon />
                 </IconButton>
-              </Card>
+              </Box>
             ))}
           </Box>
 

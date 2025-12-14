@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, Button, Divider } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import Image from "next/image";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 export default function ManageSubscription() {
   return (
@@ -23,7 +22,7 @@ export default function ManageSubscription() {
       <Typography
         sx={{
           fontWeight: 700,
-          fontSize: "1.1875rem", // 19px
+          fontSize: { xs: "1.0625rem", sm: "1.125rem", md: "1.1875rem" }, // 17px mobile, 18px tablet, 19px desktop
           lineHeight: "1.25rem", // 20px
           letterSpacing: "1%",
           verticalAlign: "middle",
@@ -37,7 +36,7 @@ export default function ManageSubscription() {
       <Box
         sx={{
           display: "flex",
-          gap: "2rem", // 32px
+          gap: { xs: "1rem", sm: "1.5rem", md: "2rem" }, // 16px mobile, 24px tablet, 32px desktop
           p: {
             xs: "1.5rem 1.25rem",
             sm: "1.875rem 2rem",
@@ -50,8 +49,8 @@ export default function ManageSubscription() {
       >
         <Box
           sx={{
-            width: 48,
-            height: 48,
+            width: { xs: 40, sm: 48 },
+            height: { xs: 40, sm: 48 },
             flexShrink: 0,
             position: "relative",
           }}
@@ -61,7 +60,7 @@ export default function ManageSubscription() {
             alt="Important"
             width={48}
             height={48}
-            style={{ objectFit: "contain" }}
+            style={{ objectFit: "contain", width: "100%", height: "100%" }}
           />
         </Box>
         <Box>
@@ -90,8 +89,8 @@ export default function ManageSubscription() {
         sx={{
           borderRadius: "0.75rem", // 12px
           border: "1px solid rgba(219, 224, 229, 0.4)", // #DBE0E5 with 40% opacity
-          padding: "1.5rem", // 24px
-          gap: "1.75rem", // 28px
+          padding: { xs: "1rem", sm: "1.25rem", md: "1.5rem" }, // 16px mobile, 20px tablet, 24px desktop
+          gap: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" }, // 20px mobile, 24px tablet, 28px desktop
           bgcolor: "#FFFFFF",
           display: "flex",
           flexDirection: "column",
@@ -101,7 +100,7 @@ export default function ManageSubscription() {
         <Typography
           sx={{
             fontWeight: 700,
-            fontSize: "1.1875rem", // 19px
+            fontSize: { xs: "1.0625rem", sm: "1.125rem", md: "1.1875rem" }, // 17px mobile, 18px tablet, 19px desktop
             lineHeight: "1.25rem", // 20px
             letterSpacing: "1%",
             verticalAlign: "middle",
@@ -126,7 +125,7 @@ export default function ManageSubscription() {
             sx={{
               borderRadius: "0.75rem", // 12px
               border: "1px solid rgba(219, 224, 229, 0.4)", // #DBE0E5 with 40% opacity
-              padding: " 1.188rem  1.5rem", // 24px
+              padding: { xs: "1rem 1.25rem", sm: "1.125rem 1.375rem", md: "1.188rem 1.5rem" },
               gap: "1.188rem", // 28px
               bgcolor: "#FFFFFF",
               display: "flex",
@@ -137,7 +136,7 @@ export default function ManageSubscription() {
             <Typography
               sx={{
                 fontWeight: 700,
-                fontSize: "1.1875rem", // 19px
+                fontSize: { xs: "1.0625rem", sm: "1.125rem", md: "1.1875rem" }, // 17px mobile, 18px tablet, 19px desktop
                 lineHeight: "1.25rem", // 20px
                 letterSpacing: "1%",
                 verticalAlign: "middle",
@@ -148,15 +147,19 @@ export default function ManageSubscription() {
             </Typography>
             <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
               <Typography
-
-                sx={{ color: "#214C65",fontWeight:800, fontSize:"1.688rem",lineHeight:"2rem" }}
+                sx={{
+                  color: "#214C65",
+                  fontWeight: 800,
+                  fontSize: { xs: "1.5rem", sm: "1.625rem", md: "1.688rem" }, // 24px mobile, 26px tablet, 27px desktop
+                  lineHeight: "2rem",
+                }}
               >
                 €15.99
               </Typography>
               <Typography
                 sx={{
                   fontWeight: 500,
-                  fontSize: "1rem", // 16px
+                  fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" }, // 14px mobile, 15px tablet, 16px desktop
                   lineHeight: "1.125rem", // 18px
                   letterSpacing: "0%",
                   verticalAlign: "middle",
@@ -172,9 +175,9 @@ export default function ManageSubscription() {
             sx={{
               borderRadius: "0.75rem", // 12px
               border: "1px solid rgba(219, 224, 229, 0.4)", // #DBE0E5 with 40% opacity
-              px: "1.5rem", // 24px
-              py:"1.625rem",
-              gap: "1.75rem", // 28px
+              px: { xs: "1rem", sm: "1.25rem", md: "1.5rem" }, // 16px mobile, 20px tablet, 24px desktop
+              py: { xs: "1.25rem", sm: "1.5rem", md: "1.625rem" }, // 20px mobile, 24px tablet, 26px desktop
+              gap: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" }, // 20px mobile, 24px tablet, 28px desktop
               bgcolor: "#FFFFFF",
               display: "flex",
               flexDirection: { xs: "column", sm: "row" },
@@ -190,8 +193,8 @@ export default function ManageSubscription() {
                   lineHeight: "1.125rem", // 18px
                   letterSpacing: "0%",
                   color: "#555555",
-                  mb: "1rem",
-                  textWrap: "nowrap",
+                  mb: { xs: "0.75rem", sm: "1rem" },
+                  textWrap: { xs: "wrap", sm: "nowrap" },
                 }}
               >
                 Next Payment
@@ -203,7 +206,7 @@ export default function ManageSubscription() {
                   lineHeight: "1rem", // 16px
                   letterSpacing: "0%",
                   color: "#0F232F",
-                  textWrap: "nowrap",
+                  textWrap: { xs: "wrap", sm: "nowrap" },
                 }}
               >
                 September 1, 2024
@@ -218,8 +221,8 @@ export default function ManageSubscription() {
                   lineHeight: "1.125rem", // 18px
                   letterSpacing: "0%",
                   color: "#555555",
-                  mb: "1rem",
-                  textWrap: "nowrap",
+                  mb: { xs: "0.75rem", sm: "1rem" },
+                  textWrap: { xs: "wrap", sm: "nowrap" },
                 }}
               >
                 Payment Method
@@ -251,7 +254,7 @@ export default function ManageSubscription() {
                     lineHeight: "1rem", // 16px
                     letterSpacing: "0%",
                     color: "#0F232F",
-                    textWrap: "nowrap",
+                    textWrap: { xs: "wrap", sm: "nowrap" },
                   }}
                 >
                   Credit Card
@@ -267,8 +270,8 @@ export default function ManageSubscription() {
                   lineHeight: "1.125rem", // 18px
                   letterSpacing: "0%",
                   color: "#555555",
-                  mb: "1rem",
-                  textWrap: "nowrap",
+                  mb: { xs: "0.75rem", sm: "1rem" },
+                  textWrap: { xs: "wrap", sm: "nowrap" },
                 }}
               >
                 Total
@@ -280,7 +283,7 @@ export default function ManageSubscription() {
                   lineHeight: "1rem", // 16px
                   letterSpacing: "0%",
                   color: "#0F232F",
-                  textWrap: "nowrap",
+                  textWrap: { xs: "wrap", sm: "nowrap" },
                 }}
               >
                 €15.99
@@ -293,18 +296,20 @@ export default function ManageSubscription() {
         <Button
           variant="contained"
           sx={{
-            bgcolor: "#2F6B8E",
+            bgcolor: "#214C65",
             color: "white",
             textTransform: "none",
-            px: { xs: 3, sm: 4 },
-            py: 1.5,
+            paddingTop: "10px",
+            paddingRight: { xs: "2rem", sm: "3rem", md: "60px" }, // 32px mobile, 48px tablet, 60px desktop
+            paddingBottom: "10px",
+            paddingLeft: { xs: "2rem", sm: "3rem", md: "60px" }, // 32px mobile, 48px tablet, 60px desktop
             fontSize: { xs: "0.9rem", sm: "1rem" },
             fontWeight: "500",
-            borderRadius: 2,
-            mb: 3,
-            width: "fit-content",
+            borderRadius: "12px",
+            width: { xs: "100%", sm: "fit-content" },
+            gap: "10px",
             "&:hover": {
-              bgcolor: "#1e4a5f",
+              bgcolor: "#1a3d52",
             },
           }}
         >
@@ -314,25 +319,37 @@ export default function ManageSubscription() {
         {/* Description */}
         <Typography
           variant="body2"
-          sx={{ color: "#6B7280", mb: 4, lineHeight: 1.6 }}
+          sx={{
+            fontWeight: 400,
+            fontSize: { xs: "14px", sm: "16px" },
+            lineHeight: "140%",
+            letterSpacing: "0%",
+            color: "#555555",
+            mb: { xs: 3, sm: 4 },
+          }}
         >
           Enjoy exclusive benefits with your Premium Membership. From enhanced
           features to priority support, this plan unlocks the full experience
           tailored just for you.
         </Typography>
 
-        <Divider sx={{ mb: 3 }} />
+       
 
         {/* Benefits Section */}
         <Typography
-          variant="h6"
-          fontWeight="600"
-          sx={{ color: "#1F2937", mb: 3 }}
+          sx={{
+            fontWeight: 700,
+            fontSize: { xs: "17px", sm: "19px" },
+            lineHeight: "20px",
+            letterSpacing: "1%",
+            verticalAlign: "middle",
+            color: "#323232",
+          }}
         >
           Benefits
         </Typography>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 1.5, sm: 2 } }}>
           {[
             "Earn money through CoudPouss (secure escrow payments)",
             "Certified Badge visible to all clients",
@@ -342,19 +359,33 @@ export default function ManageSubscription() {
           ].map((benefit, index) => (
             <Box
               key={index}
-              sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}
+              sx={{ display: "flex", alignItems: "flex-start", gap: { xs: 1, sm: 1.5 } }}
             >
-              <CheckCircleIcon
+              <Box
                 sx={{
-                  color: "#2F6B8E",
-                  fontSize: "1.25rem",
-                  mt: 0.2,
+                  width: 18,
+                  height: 18,
                   flexShrink: 0,
+                  position: "relative",
+                  mt: 0.125,
                 }}
-              />
+              >
+                <Image
+                  src="/icons/verify.png"
+                  alt="Benefit"
+                  width={18}
+                  height={18}
+                  style={{ objectFit: "contain" }}
+                />
+              </Box>
               <Typography
-                variant="body1"
-                sx={{ color: "#374151", lineHeight: 1.6 }}
+                sx={{
+                  fontWeight: 600,
+                  fontSize: { xs: "14px", sm: "16px" },
+                  lineHeight: "150%",
+                  letterSpacing: "0%",
+                  color: "#323232",
+                }}
               >
                 {benefit}
               </Typography>

@@ -119,17 +119,19 @@ export default function RatingsAndReviews() {
       sx={{
         p: { xs: 2, sm: 3, md: 4 },
         bgcolor: "white",
-        borderRadius: 2,
-        border: "0.0625rem solid #E5E7EB",
-        boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
         width: "100%",
         minHeight: { xs: "auto", md: "calc(100vh - 18.75rem)" },
       }}
     >
       <Typography
-        variant="h6"
-        fontWeight="600"
-        sx={{ color: "#2F6B8E", mb: 3 }}
+        sx={{
+          fontWeight: 700,
+          fontSize: "24px",
+          lineHeight: "28px",
+          letterSpacing: "0%",
+          color: "#2C6587",
+          mb: 3,
+        }}
       >
         Recent works reviews
       </Typography>
@@ -139,16 +141,17 @@ export default function RatingsAndReviews() {
         sx={{
           display: "grid",
           gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
-          gap: { xs: 2, sm: 2.5, md: 3 },
+          gap: "16px",
         }}
       >
         {reviews.map((review) => (
-          <Card
+          <Box
             key={review.id}
             sx={{
-              p: { xs: 2, sm: 2.5, md: 3 },
-              borderRadius: 2,
-              border: "0.0625rem solid #E5E7EB",
+              p: "16px",
+              borderRadius: "8px",
+              border: "1px solid #D5D5D5",
+              bgcolor: "#FFFFFF",
               boxShadow: "none",
               "&:hover": {
                 boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
@@ -168,13 +171,17 @@ export default function RatingsAndReviews() {
                 <Avatar
                   src={review.reviewerAvatar}
                   alt={review.reviewerName}
-                  sx={{ width: 40, height: 40 }}
+                  sx={{ width: 40, height: 40, borderRadius: "50%" }}
                 />
                 <Box>
                   <Typography
-                    variant="body1"
-                    fontWeight="600"
-                    sx={{ color: "#1F2937" }}
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: "15px",
+                      lineHeight: "18px",
+                      letterSpacing: "0%",
+                      color: "#1B1B1B",
+                    }}
                   >
                     {review.reviewerName}
                   </Typography>
@@ -200,11 +207,13 @@ export default function RatingsAndReviews() {
 
             {/* Review Text */}
             <Typography
-              variant="body2"
               sx={{
-                color: "#374151",
+                fontWeight: 400,
+                fontSize: "14px",
+                lineHeight: "20px",
+                letterSpacing: "0%",
+                color: "#1B1B1B",
                 mb: 1.5,
-                lineHeight: 1.6,
               }}
             >
               {expandedReviews.has(review.id)
@@ -214,12 +223,13 @@ export default function RatingsAndReviews() {
 
             {/* Service Name / Read More Link */}
             <Typography
-              variant="body2"
               onClick={() => toggleExpand(review.id)}
               sx={{
-                color: "#10B981",
-                fontWeight: "500",
-                mb: 2,
+                fontWeight: 400,
+                fontSize: "11px",
+                lineHeight: "16px",
+                letterSpacing: "0%",
+                color: "#436A00",
                 cursor: "pointer",
                 "&:hover": {
                   textDecoration: "underline",
@@ -235,8 +245,6 @@ export default function RatingsAndReviews() {
                 display: "flex",
                 justifyContent: "flex-end",
                 gap: 2,
-                pt: 1,
-                borderTop: "0.0625rem solid #F3F4F6",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -279,7 +287,7 @@ export default function RatingsAndReviews() {
                 </Typography>
               </Box>
             </Box>
-          </Card>
+          </Box>
         ))}
       </Box>
     </Box>
