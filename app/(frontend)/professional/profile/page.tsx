@@ -50,11 +50,11 @@ export default function ProfessionalProfilePage() {
       <Box
         sx={{
           flex: 1,
-          px: "5rem",
-          py: "3.188rem",
+          px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" },
+          py: { xs: "1.5rem", sm: "2rem", md: "2.5rem", lg: "3.188rem" },
           display: "flex",
           flexDirection: "column",
-          gap: "2rem",
+          gap: { xs: "1rem", md: "2rem" },
         }}
       >
         <Typography
@@ -195,8 +195,8 @@ export default function ProfessionalProfilePage() {
                 >
                   <Avatar
                     sx={{
-                      width: "8.125rem",
-                      height: "8.125rem",
+                      width: { xs: "6rem", sm: "7rem", md: "8.125rem" },
+                      height: { xs: "6rem", sm: "7rem", md: "8.125rem" },
                       bgcolor: "#E5E7EB",
                     }}
                   >
@@ -280,8 +280,8 @@ export default function ProfessionalProfilePage() {
                 {/* Personal Information */}
                 <Box
                   sx={{
-                    mb: "1.5rem",
-                    p: "1.5rem",
+                    mb: { xs: "1rem", md: "1.5rem" },
+                    p: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
                     borderRadius: "0.75rem",
                     border: "0.0625rem solid #EAF5F4",
                     bgcolor: "#FFFFFF",
@@ -292,7 +292,7 @@ export default function ProfessionalProfilePage() {
                     fontWeight={400}
                     sx={{
                       color: "primary.normal",
-                      mb: "1.5rem",
+                      mb: { xs: "1rem", md: "1.5rem" },
                       fontSize: { xs: "1.25rem", md: "1.5rem" },
                     }}
                   >
@@ -452,8 +452,8 @@ export default function ProfessionalProfilePage() {
                 {/* Public Profile Details */}
                 <Box
                   sx={{
-                    mb: "1.5rem",
-                    p: "1.5rem",
+                    mb: { xs: "1rem", md: "1.5rem" },
+                    p: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
                     borderRadius: "0.75rem",
                     border: "0.0625rem solid #EAF5F4",
                     bgcolor: "#FFFFFF",
@@ -463,8 +463,8 @@ export default function ProfessionalProfilePage() {
                     fontWeight={500}
                     sx={{
                       color: "#2C6587",
-                      mb: 3,
-                      fontSize: "1.125rem",
+                      mb: { xs: 2, md: 3 },
+                      fontSize: { xs: "1rem", md: "1.125rem" },
                       lineHeight: "1.5rem",
                       letterSpacing: "0%",
                     }}
@@ -560,7 +560,7 @@ export default function ProfessionalProfilePage() {
                 {/* Images of Past Works */}
                 <Box
                   sx={{
-                    p: "1.5rem",
+                    p: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
                     borderRadius: "0.75rem",
                     border: "0.0625rem solid #EAF5F4",
                     bgcolor: "#FFFFFF",
@@ -570,8 +570,8 @@ export default function ProfessionalProfilePage() {
                     fontWeight={500}
                     sx={{
                       color: "#2C6587",
-                      mb: 3,
-                      fontSize: "1.125rem",
+                      mb: { xs: 2, md: 3 },
+                      fontSize: { xs: "1rem", md: "1.125rem" },
                       lineHeight: "1.5rem",
                       letterSpacing: "0%",
                     }}
@@ -581,8 +581,12 @@ export default function ProfessionalProfilePage() {
                   <Box
                     sx={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(auto-fill, minmax(15.625rem, 1fr))",
-                      gap: 2,
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, 1fr)",
+                        md: "repeat(auto-fill, minmax(15.625rem, 1fr))",
+                      },
+                      gap: { xs: 1.5, md: 2 },
                     }}
                   >
                     <Box

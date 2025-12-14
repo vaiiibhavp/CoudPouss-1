@@ -67,13 +67,12 @@ export default function ManageServices() {
   return (
     <Box
       sx={{
-        p: 4,
+        p: { xs: 2, sm: 3, md: 4 },
         bgcolor: "white",
         borderRadius: 2,
         border: "0.0625rem solid #E5E7EB",
-        boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
         width: "100%",
-        minHeight: "calc(100vh - 18.75rem)",
+        minHeight: { xs: "auto", md: "calc(100vh - 18.75rem)" },
       }}
     >
       <Typography
@@ -155,8 +154,8 @@ export default function ManageServices() {
         /* Services Display */
         <Box>
           {/* Category Chips and Add Button */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-            <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "flex-start", sm: "center" }, gap: { xs: 2, sm: 0 }, mb: 3 }}>
+            <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", width: { xs: "100%", sm: "auto" } }}>
               {categories.map((categoryId) => (
                 <Chip
                   key={categoryId}
@@ -184,12 +183,13 @@ export default function ManageServices() {
                 bgcolor: "#2F6B8E",
                 color: "white",
                 textTransform: "none",
-                px: 3,
+                px: { xs: 2, sm: 3 },
                 py: 1.2,
-                fontSize: "0.95rem",
+                fontSize: { xs: "0.875rem", sm: "0.95rem" },
                 fontWeight: "500",
                 borderRadius: 2,
                 whiteSpace: "nowrap",
+                width: { xs: "100%", sm: "auto" },
                 "&:hover": {
                   bgcolor: "#1e4a5f",
                 },
@@ -208,7 +208,7 @@ export default function ManageServices() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  p: 2.5,
+                  p: { xs: 1.5, sm: 2, md: 2.5 },
                   borderRadius: 2,
                   border: "0.0625rem solid #E5E7EB",
                   boxShadow: "none",
@@ -218,14 +218,15 @@ export default function ManageServices() {
                   },
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1.5, sm: 2, md: 3 }, flex: 1, minWidth: 0 }}>
                   <Box
                     sx={{
-                      width: 80,
-                      height: 80,
+                      width: { xs: 60, sm: 70, md: 80 },
+                      height: { xs: 60, sm: 70, md: 80 },
                       borderRadius: 2,
                       overflow: "hidden",
                       position: "relative",
+                      flexShrink: 0,
                     }}
                   >
                     <Image
@@ -238,7 +239,7 @@ export default function ManageServices() {
                   <Typography
                     variant="h6"
                     fontWeight="500"
-                    sx={{ color: "#1F2937", fontSize: "1.1rem" }}
+                    sx={{ color: "#1F2937", fontSize: { xs: "0.95rem", sm: "1rem", md: "1.1rem" }, overflow: "hidden", textOverflow: "ellipsis" }}
                   >
                     {service.serviceName}
                   </Typography>

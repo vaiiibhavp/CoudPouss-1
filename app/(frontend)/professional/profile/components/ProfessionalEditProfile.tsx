@@ -161,31 +161,31 @@ export default function ProfessionalEditProfile({
           gap: "1.5rem",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 2,
-            flexWrap: "wrap",
-            p: "1.5rem",
-            borderRadius: "0.75rem",
-            border: "0.0625rem solid #EAF5F4",
-            bgcolor: "#FFFFFF",
-          }}
-        >
-          <Avatar
+          <Box
             sx={{
-              width: "5rem",
-              height: "5rem",
-              bgcolor: "#E0E0E0",
-              color: "#616161",
-              fontSize: "1.5rem",
-              fontWeight: 500,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              flexWrap: "wrap",
+              p: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #EAF5F4",
+              bgcolor: "#FFFFFF",
             }}
           >
-            BC
-          </Avatar>
+            <Avatar
+              sx={{
+                width: { xs: "4rem", sm: "4.5rem", md: "5rem" },
+                height: { xs: "4rem", sm: "4.5rem", md: "5rem" },
+                bgcolor: "#E0E0E0",
+                color: "#616161",
+                fontSize: { xs: "1.25rem", md: "1.5rem" },
+                fontWeight: 500,
+              }}
+            >
+              BC
+            </Avatar>
           <Box>
             <Typography
               sx={{ color: "#131313", fontSize: "1.125rem", fontWeight: 600 }}
@@ -218,7 +218,7 @@ export default function ProfessionalEditProfile({
         >
           <Box
             sx={{
-              p: "1.5rem",
+              p: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
               borderRadius: "0.75rem",
               border: "0.0625rem solid #EAF5F4",
               bgcolor: "#FFFFFF",
@@ -404,7 +404,7 @@ export default function ProfessionalEditProfile({
 
           <Box
             sx={{
-              p: "1.5rem",
+              p: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
               borderRadius: "0.75rem",
               border: "0.0625rem solid #EAF5F4",
               bgcolor: "#FFFFFF",
@@ -501,7 +501,7 @@ export default function ProfessionalEditProfile({
 
           <Box
             sx={{
-              p: "1.5rem",
+              p: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
               borderRadius: "0.75rem",
               border: "0.0625rem solid #EAF5F4",
               bgcolor: "#FFFFFF",
@@ -539,7 +539,7 @@ export default function ProfessionalEditProfile({
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "flex-end", gap: 2 }}>
             <Button
               type="button"
               onClick={onCancel}
@@ -548,12 +548,13 @@ export default function ProfessionalEditProfile({
                 border: "1px solid #214C65",
                 borderRadius: "0.75rem",
                 color: "#214C65",
-                fontSize: "1.1875rem", // 19px
+                fontSize: { xs: "1rem", md: "1.1875rem" }, // 19px
                 fontWeight: 700,
                 lineHeight: "1.25rem", // 20px
                 letterSpacing: "1%",
-                padding: "0.625rem 3.75rem", // 10px top/bottom, 60px left/right
+                padding: { xs: "0.875rem 2rem", md: "0.625rem 3.75rem" }, // 10px top/bottom, 60px left/right
                 textTransform: "none",
+                width: { xs: "100%", sm: "auto" },
                 "&:hover": {
                   backgroundColor: "#FFFFFF",
                   borderColor: "#214C65",
@@ -569,12 +570,13 @@ export default function ProfessionalEditProfile({
                 border: "none",
                 borderRadius: "0.75rem",
                 color: "#FFFFFF",
-                fontSize: "1.1875rem", // 19px
+                fontSize: { xs: "1rem", md: "1.1875rem" }, // 19px
                 fontWeight: 700,
                 lineHeight: "1.25rem", // 20px
                 letterSpacing: "1%",
-                padding: "0.625rem 3.75rem", // 10px top/bottom, 60px left/right
+                padding: { xs: "0.875rem 2rem", md: "0.625rem 3.75rem" }, // 10px top/bottom, 60px left/right
                 textTransform: "none",
+                width: { xs: "100%", sm: "auto" },
                 "&:hover": {
                   backgroundColor: "#2F6B8E",
                 },

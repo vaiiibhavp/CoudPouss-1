@@ -117,13 +117,13 @@ export default function RatingsAndReviews() {
   return (
     <Box
       sx={{
-        p: 4,
+        p: { xs: 2, sm: 3, md: 4 },
         bgcolor: "white",
         borderRadius: 2,
         border: "0.0625rem solid #E5E7EB",
         boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
         width: "100%",
-        minHeight: "calc(100vh - 18.75rem)",
+        minHeight: { xs: "auto", md: "calc(100vh - 18.75rem)" },
       }}
     >
       <Typography
@@ -138,15 +138,15 @@ export default function RatingsAndReviews() {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: 3,
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+          gap: { xs: 2, sm: 2.5, md: 3 },
         }}
       >
         {reviews.map((review) => (
           <Card
             key={review.id}
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 2.5, md: 3 },
               borderRadius: 2,
               border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
