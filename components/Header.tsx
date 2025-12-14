@@ -349,8 +349,8 @@ export default function Header({
                   PaperProps={{
                     sx: {
                       mt: 1.5,
-                      minWidth: 500,
-                      maxWidth: 600,
+                      minWidth: 400,
+                      maxWidth: 500,
                       borderRadius: 2,
                       boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
                       px: "2rem",
@@ -413,7 +413,7 @@ export default function Header({
                             }}
                           >
                             <Image
-                              src="/icons/home-assistance.png"
+                              src="/icons/home_assistance_icon_home.svg"
                               alt="Home Assistance"
                               width={60}
                               height={60}
@@ -471,7 +471,7 @@ export default function Header({
                             }}
                           >
                             <Image
-                              src="/icons/transport.png"
+                              src="/icons/transport.svg"
                               alt="Transport"
                               width={60}
                               height={60}
@@ -529,7 +529,7 @@ export default function Header({
                             }}
                           >
                             <Image
-                              src="/icons/personal-care.png"
+                              src="/icons/makeup.svg"
                               alt="Personal Care"
                               width={60}
                               height={60}
@@ -585,7 +585,7 @@ export default function Header({
                             }}
                           >
                             <Image
-                              src="/icons/support.png"
+                              src="/icons/laptop.svg"
                               alt="Tech Support"
                               width={60}
                               height={60}

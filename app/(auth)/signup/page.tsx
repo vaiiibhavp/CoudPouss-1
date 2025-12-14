@@ -1207,7 +1207,7 @@ export default function SignupPage() {
                   }}>
                     Already have an account?{" "}
                     <Link
-                      href={ROUTES.SIGNUP}
+                      href={ROUTES.LOGIN}
                       sx={{
                         fontFamily: "Lato, sans-serif",
                         fontWeight: 600,

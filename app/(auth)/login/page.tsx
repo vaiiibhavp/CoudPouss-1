@@ -27,8 +27,8 @@ import { AppDispatch, RootState } from '@/lib/redux/store';
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
-
+  const { loading, error, isAuthenticated,user } = useSelector((state: RootState) => state.auth);
+  console.log(user)
   const [formData, setFormData] = useState({
     emailOrMobile: '',
     password: '',
