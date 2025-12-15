@@ -130,7 +130,7 @@ export default function AdditionalDetailsPage() {
             <Box>
               <Typography
                 sx={{
-                  fontWeight: `700`,
+                  fontWeight: 500,
                   fontSize: `1.5rem`,
                   color: `primary.normal`,
                   mb: "0.75rem",
@@ -142,12 +142,13 @@ export default function AdditionalDetailsPage() {
               </Typography>
               <Typography
                 sx={{
-                  fontWeight: 400,
+                  fontWeight: 500,
                   fontSize: "1rem",
                   textAlign: "left",
-                  lineHeight: "140%",
+                  lineHeight: "150%",
+                  letterSpacing: "0%",
                   mb: "2.5rem",
-                  color: "secondary.neutralWhiteDark",
+                  color: "#939393",
                 }}
               >
                 Upload the required documents to complete your profile and gain the Certified badge.
@@ -195,29 +196,11 @@ export default function AdditionalDetailsPage() {
                   textAlign: "center",
                   cursor: "pointer",
                   mb: 3,
-                  bgcolor: "#fafafa",
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
                 }}
                 onClick={() => document.getElementById("id-upload")?.click()}
               >
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1,
-                      bgcolor: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      mb: 1,
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <Typography variant="h6">📄</Typography>
-                  </Box>
+                  <Image src="/icons/folder-upload-line.png" width={24} height={24} alt="Upload" style={{ marginBottom: "0.5rem" }} />
                   <Typography variant="body2" color="text.secondary">
                     {formData.idCopy ? formData.idCopy.name : "Upload from device"}
                   </Typography>
@@ -252,29 +235,11 @@ export default function AdditionalDetailsPage() {
                   textAlign: "center",
                   cursor: "pointer",
                   mb: 3,
-                  bgcolor: "#fafafa",
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
                 }}
                 onClick={() => document.getElementById("kbis-upload")?.click()}
               >
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1,
-                      bgcolor: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      mb: 1,
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <Typography variant="h6">📄</Typography>
-                  </Box>
+                  <Image src="/icons/folder-upload-line.png" width={24} height={24} alt="Upload" style={{ marginBottom: "0.5rem" }} />
                   <Typography variant="body2" color="text.secondary">
                     {formData.kbisExtract ? formData.kbisExtract.name : "Upload from device"}
                   </Typography>
@@ -312,29 +277,11 @@ export default function AdditionalDetailsPage() {
                   textAlign: "center",
                   cursor: "pointer",
                   mb: 3,
-                  bgcolor: "#fafafa",
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
                 }}
                 onClick={() => document.getElementById("residence-upload")?.click()}
               >
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1,
-                      bgcolor: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      mb: 1,
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <Typography variant="h6">📄</Typography>
-                  </Box>
+                  <Image src="/icons/folder-upload-line.png" width={24} height={24} alt="Upload" style={{ marginBottom: "0.5rem" }} />
                   <Typography variant="body2" color="text.secondary">
                     {formData.proofOfResidence ? formData.proofOfResidence.name : "Upload from device"}
                   </Typography>
@@ -356,14 +303,20 @@ export default function AdditionalDetailsPage() {
                   size="large"
                   onClick={handleSkip}
                   sx={{
-                    borderColor: "primary.dark",
-                    color: "primary.dark",
-                    py: 1.5,
+                    borderRadius: "0.75rem",
+                    border: "0.0625rem solid #214C65",
+                    borderColor: "#214C65",
+                    padding: "1.125rem 3.75rem",
+                    gap: "0.625rem",
                     textTransform: "none",
-                    fontSize: "1rem",
+                    fontWeight: 600,
+                    fontSize: "1.1875rem",
+                    lineHeight: "1.25rem",
+                    letterSpacing: "1%",
+                    color: "#214C65",
                     "&:hover": {
-                      borderColor: "#25608A",
-                      bgcolor: "rgba(47, 107, 142, 0.04)",
+                      borderColor: "#214C65",
+                      bgcolor: "transparent",
                     },
                   }}
                 >
@@ -375,13 +328,18 @@ export default function AdditionalDetailsPage() {
                   size="large"
                   onClick={handleContinue}
                   sx={{
-                    bgcolor: "primary.dark",
-                    color: "white",
-                    py: 1.5,
+                    borderRadius: "0.75rem",
+                    bgcolor: "#214C65",
+                    padding: "1.125rem 3.75rem",
+                    gap: "0.625rem",
                     textTransform: "none",
-                    fontSize: "1rem",
+                    fontWeight: 600,
+                    fontSize: "1.1875rem",
+                    lineHeight: "1.25rem",
+                    letterSpacing: "1%",
+                    color: "#FFFFFF",
                     "&:hover": {
-                      bgcolor: "#25608A",
+                      bgcolor: "#214C65",
                     },
                   }}
                 >

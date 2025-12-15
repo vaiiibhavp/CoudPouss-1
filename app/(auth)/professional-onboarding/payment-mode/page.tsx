@@ -7,8 +7,6 @@ import {
   Container,
   Typography,
   Paper,
-  Radio,
-  RadioGroup,
   FormControlLabel,
   Card,
   CardContent,
@@ -139,7 +137,7 @@ export default function PaymentModePage() {
             <Box>
               <Typography
                 sx={{
-                  fontWeight: `700`,
+                  fontWeight: 600,
                   fontSize: `1.5rem`,
                   color: `primary.normal`,
                   mb: "0.75rem",
@@ -155,8 +153,9 @@ export default function PaymentModePage() {
                   fontSize: "1rem",
                   textAlign: "left",
                   lineHeight: "140%",
+                  letterSpacing: "0%",
                   mb: "2.5rem",
-                  color: "secondary.neutralWhiteDark",
+                  color: "#939393",
                 }}
               >
                 Select a quick and secure way to complete your subscription
@@ -166,32 +165,69 @@ export default function PaymentModePage() {
               <Paper
                 elevation={0}
                 sx={{
-                  border: "1px solid #e0e0e0",
+                  border: "0.0625rem solid #e0e0e0",
                   borderRadius: 2,
                   p: 2,
                   mb: 3,
                   bgcolor: "#f9fafb",
                 }}
               >
-                <Typography variant="subtitle2" fontWeight="600" gutterBottom>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1.1875rem",
+                    lineHeight: "1.25rem",
+                    letterSpacing: "1%",
+                    color: "#214C65",
+                    marginBottom: "1.1875rem",
+                  }}
+                >
                   Professional (Certified)
                 </Typography>
-                <Typography variant="h6" color="#2F6B8E" fontWeight="bold">
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: "1.1875rem",
+                    lineHeight: "1.25rem",
+                    letterSpacing: "1%",
+                    color: "#214C65",
+                  }}
+                >
                   €15.99
-                  <Typography component="span" variant="body2" color="text.secondary">
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "1.125rem",
+                      lineHeight: "1.5rem",
+                      letterSpacing: "0%",
+                      color: "#214C65",
+                    }}
+                  >
                     /month
                   </Typography>
                 </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                  Billed on a recurring monthly basis
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: "0.75rem",
+                    lineHeight: "150%",
+                    letterSpacing: "0%",
+                    color: "#214C65",
+                    display: "block",
+                    mt: 0.5
+                  }}
+                >
+                  *Billed & recurring monthly cancel anytime
                 </Typography>
               </Paper>
 
               <Typography
                 sx={{
-                  fontWeight: 500,
+                  fontWeight: 400,
                   fontSize: "1.0625rem",
                   lineHeight: "1.25rem",
+                  letterSpacing: "0%",
                   color: "#424242",
                   mb: "1rem"
                 }}
@@ -205,48 +241,66 @@ export default function PaymentModePage() {
                   elevation={0}
                   sx={{
                     mb: 2,
-                    p: 2,
-                    border: selectedMethod === method.id ? "2px solid #2F6B8E" : "1px solid #e0e0e0",
-                    borderRadius: 2,
+                    paddingTop: "0.5rem",
+                    paddingRight: "0.75rem",
+                    paddingBottom: "0.5rem",
+                    paddingLeft: "0.75rem",
+                    border: selectedMethod === method.id ? "0.125rem solid #2F6B8E" : "0.03125rem solid #e0e0e0",
+                    borderRadius: "1rem",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    bgcolor: "#FFFFFF",
+                    gap: "0.9375rem",
                     "&:hover": {
-                      borderColor: "#2F6B8E",
+                      borderColor: "#DFE8ED",
                     },
                   }}
                   onClick={() => setSelectedMethod(method.id)}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
                     <Box
                       sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 1,
-                        bgcolor: "#f3f4f6",
+                        borderRadius: "1rem",
+                        border: "0.015625rem solid #EAF0F3",
+                        padding: "1rem",
+                        bgcolor: "#F2F2F2",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      <Typography variant="body2" fontWeight="600">
-                        {method.id === "google-pay" ? "G" : method.id === "apple-pay" ? "" : "💳"}
-                      </Typography>
+                      <Image
+                        src={
+                          method.id === "google-pay"
+                            ? "/icons/G_Pay_Lockup_1_.png"
+                            : method.id === "apple-pay"
+                            ? "/icons/appleLogo.png"
+                            : "/icons/creditcard.png"
+                        }
+                        alt={method.name}
+                        width={28}
+                        height={28}
+                      />
                     </Box>
-                    <Typography variant="body1" fontWeight="500">
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: "1.125rem",
+                        lineHeight: "1.25rem",
+                        letterSpacing: "0%",
+                        color: "#424242",
+                      }}
+                    >
                       {method.name}
                     </Typography>
                   </Box>
-                  <Radio
-                    checked={selectedMethod === method.id}
-                    value={method.id}
-                    sx={{
-                      color: "#2F6B8E",
-                      "&.Mui-checked": {
-                        color: "#2F6B8E",
-                      },
-                    }}
+                  <Image
+                    src="/icons/chevron-right.png"
+                    alt="chevron right"
+                    width={24}
+                    height={24}
                   />
                 </Paper>
               ))}
@@ -300,7 +354,7 @@ export default function PaymentModePage() {
       <SuccessModal
         open={showSuccessModal}
         onClose={handleSuccessClose}
-        title="Welcome aboard!"
+        title=""
         message="Your subscription is now active. You are now receiving all features immediately."
         buttonText="Complete Profile Now"
         showSubscriptionDetails={true}

@@ -162,6 +162,7 @@ export default function ChatPage() {
                 <Box
                   sx={{
                     display: "flex",
+                    minWidth:"19.125rem",
                     alignItems: "center",
                     bgcolor: "white",
                     borderRadius: "0.625rem",
@@ -309,7 +310,7 @@ export default function ChatPage() {
                 flex: 1,
                 overflowY: "auto",
                 p: 3,
-
+                justifyContent:"flex-end",
                 display: "flex",
                 flexDirection: "column",
                 gap: 2,

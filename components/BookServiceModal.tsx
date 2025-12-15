@@ -17,11 +17,12 @@ import {
   MenuItem,
   TextField,
   Card,
+  InputAdornment,
 } from "@mui/material";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import CloseIcon from "@mui/icons-material/Close";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -626,6 +627,9 @@ export default function BookServiceModal({
                     labelPlacement="start"
                     sx={{
                       m: 0,
+                      fontSize:"1.125rem",
+                      fontWeight:500,
+                      color:"#2C6587",
                       width: "100%",
                       justifyContent: "space-between",
                     }}
@@ -657,6 +661,9 @@ export default function BookServiceModal({
                     label="Non-professional"
                     labelPlacement="start"
                     sx={{
+                      fontSize:"1.125rem",
+                      fontWeight:500,
+                      color:"#2C6587",
                       m: 0,
                       width: "100%",
                       justifyContent: "space-between",
@@ -686,7 +693,7 @@ export default function BookServiceModal({
               with the right professional for your needs.
             </Typography>
             <Typography
-              fontWeight="600"
+              fontWeight="700"
               sx={{ mb: 1, lineHeight: "1.125rem", fontSize: "1rem" }}
             >
               Select a category
@@ -696,6 +703,7 @@ export default function BookServiceModal({
                 value={selectedCategory}
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 displayEmpty
+                IconComponent={KeyboardArrowDownIcon}
                 renderValue={(selected) => {
                   const cat = categories.find((c) => c.value === selected);
                   if (!cat)
@@ -717,7 +725,34 @@ export default function BookServiceModal({
                     </Box>
                   );
                 }}
-                sx={{ mb: 2 }}
+                MenuProps={{
+                  anchorOrigin: {
+                    vertical: "bottom",
+                    horizontal: "left",
+                  },
+                  transformOrigin: {
+                    vertical: "top",
+                    horizontal: "left",
+                  },
+                  PaperProps: {
+                    elevation: 3,
+                    sx: {
+                      maxHeight: 250,     // adjust as needed
+                      overflowY: "auto",
+                      mt: 1, // small gap if you want
+                    },
+                  },
+                }}
+                sx={{ 
+                  mb: 2,
+                  "& .MuiSelect-icon": {
+                    fontSize: "2rem",
+                    color:"#818285",
+                    right: "16px",
+                    width: "2.2rem",
+                    height: "2rem",
+                  },
+                }}
               >
                 {categories.map((cat) => {
                   const isSelected = selectedCategory === cat.value;
@@ -1690,44 +1725,53 @@ export default function BookServiceModal({
                   display: "flex",
                   alignItems: "center",
                   gap: 2,
-                  border: "0.0625rem solid",
-                  borderColor: "grey.300",
                   borderRadius: 2,
-                  p: 1,
-                  width: "fit-content",
+                  width: "100%",
                   mb: 3,
                 }}
               >
-                <IconButton
-                  size="small"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  sx={{
-                    border: "0.0625rem solid",
-                    borderColor: "grey.300",
-                    width: 32,
-                    height: 32,
+                 <TextField
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  fullWidth
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: "flex", flexDirection: "row" }}>
+                           <IconButton
+                              size="large"
+                              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                              sx={{
+                                width: 32,
+                                height: 32,
+                              }}
+                            >
+                              <Typography sx={{fontSize:"2rem", color:"#343330"}} variant="body1">-</Typography>
+                          </IconButton>
+                          <IconButton
+                            size="large"
+                            onClick={() => setQuantity(quantity + 1)}
+                            sx={{
+                              width: 32,
+                              marginLeft:"10px",
+                              height: 32,
+                            }}
+                          >
+                            <Typography  sx={{fontSize:"2rem",color:"#343330"}} variant="body1">+</Typography>
+                          </IconButton>
+                        </Box>
+                      </InputAdornment>
+                    ),
                   }}
-                >
-                  <Typography variant="body1">-</Typography>
-                </IconButton>
-                <Typography
-                  variant="h6"
-                  sx={{ minWidth: 40, textAlign: "center" }}
-                >
-                  {quantity}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => setQuantity(quantity + 1)}
                   sx={{
-                    border: "0.0625rem solid",
-                    borderColor: "grey.300",
-                    width: 32,
-                    height: 32,
+                    // Hide number input spinner for Webkit browsers (Chrome, Safari, Edge)
+                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                      WebkitAppearance: "none",
+                      margin: 0,
+                    },
                   }}
-                >
-                  <Typography variant="body1">+</Typography>
-                </IconButton>
+                />
               </Box>
 
               <Typography
@@ -1801,16 +1845,6 @@ export default function BookServiceModal({
   const renderPreviewStep = () => {
     return (
       <Box>
-        <Typography
-          sx={{
-            color: "primary.normal",
-            fontSize: "1.25rem",
-            lineHeight: "2rem",
-            fontWeight: 500,
-          }}
-        >
-          Preview
-        </Typography>
         <Typography sx={{ mb: 3, color: "#939393", lineHeight: "150%" }}>
           Well done! You&apos;ve completed all the steps. Please review the
           preview and edit any details if needed.
@@ -1819,47 +1853,69 @@ export default function BookServiceModal({
         <Typography
           sx={{
             mb: 2,
-            fontSize: "1.125rem",
+            fontSize: "1.5rem",
             lineHeight: "100%",
             letterSpacing: "0%",
-            color: "#555555",
-            fontWeight: 500,
+            color: "#2C6587",
+            fontWeight: 600,
           }}
         >
           {categories.find((c) => c.value === selectedCategory)?.label} Service
         </Typography>
         <Box
           sx={{
+            backgroundColor: "#EAF0F3",
             position: "relative",
             width: "100%",
-            height: 200,
+            height: 230,         // total height of the container
             borderRadius: 2,
             overflow: "hidden",
             mb: 3,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+        <Box
+          sx={{
+            flex: "1 1 0%",     // takes remaining space
+            position: "relative",
+            width: "100%",
+            height:"80%",
+            overflow: "hidden",
           }}
         >
           <Image
-            src={
-              services[selectedCategory as keyof typeof services]?.find(
-                (s) => s.id === selectedService
-              )?.image || "/image/service-image-1.png"
-            }
-            alt="Service Preview"
-            fill
-            style={{ objectFit: "cover" }}
-          />
+              src={
+                services[selectedCategory as keyof typeof services]?.find(
+                  (s) => s.id === selectedService
+                )?.image || "/image/service-image-5.png"
+              }
+              alt="Service Preview"
+              width={800}       // intrinsic width
+              height={600}      // intrinsic height
+              style={{
+                width: "100%",       // full width
+                height: "auto",      // maintain aspect ratio
+                borderRadius: "22px",
+                objectFit: "cover",  // crop to fill container
+                objectPosition: "top", // crop starting from top
+              }}
+            />
+          </Box>
           <Box
             sx={{
-              position: "absolute",
-              bottom: 16,
-              left: 16,
-              bgcolor: "rgba(255,255,255,0.9)",
               px: 2,
               py: 1,
               borderRadius: 1,
             }}
           >
-            <Typography variant="body1" fontWeight="600">
+            <Typography  
+              variant="body1"
+              color="#2C6587"
+              fontWeight="600"
+              fontSize="1.25rem"
+              noWrap
+            >
               {
                 services[selectedCategory as keyof typeof services]?.find(
                   (s) => s.id === selectedService
@@ -1876,7 +1932,7 @@ export default function BookServiceModal({
             lineHeight: "100%",
             letterSpacing: "0%",
             color: "#555555",
-            fontWeight: 500,
+            fontWeight: 600,
           }}
         >
           Job Details
@@ -1892,30 +1948,95 @@ export default function BookServiceModal({
           }}
         >
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Box sx={{ flex: 1, textAlign: "center" }}>
-              <Typography
-                sx={{
-                  fontSize: "1.125rem",
-                  lineHeight: "150%",
-                  letterSpacing: "0%",
-                  color: "#989898",
-                  mb: 0.5,
-                }}
-              >
-                Valuation
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: "1.125rem",
-                  lineHeight: "150%",
-                  letterSpacing: "0%",
-                  color: "primary.normal",
-                  fontWeight: 500,
-                }}
-              >
-                €{valuation}
-              </Typography>
-            </Box>
+             {
+                serviceProvider == "non-professional" && productName != "" ?
+                  <>
+                    <Box sx={{ flex: 1, textAlign: "center" }}>
+                      <Typography
+                        sx={{
+                          fontSize: "1.125rem",
+                          lineHeight: "150%",
+                          letterSpacing: "0%",
+                          color: "#989898",
+                          mb: 0.5,
+                        }}
+                      >
+                        Product
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "1.125rem",
+                          lineHeight: "150%",
+                          letterSpacing: "0%",
+                          color: "primary.normal",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {productName}
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        width: "0.0625rem",
+                        bgcolor: "grey.300",
+                        my: 0.5,
+                      }}
+                    />
+                    <Box sx={{ flex: 1, textAlign: "center" }}>
+                      <Typography
+                        sx={{
+                          fontSize: "1.125rem",
+                          lineHeight: "150%",
+                          letterSpacing: "0%",
+                          color: "#989898",
+                          mb: 0.5,
+                        }}
+                      >
+                        Quantity
+                      </Typography>
+                    
+                      <Typography
+                        sx={{
+                          fontSize: "1.125rem",
+                          lineHeight: "150%",
+                          letterSpacing: "0%",
+                          color: "primary.normal",
+                          fontWeight: 500,
+                        }}
+                      >
+                        {quantity}
+                      </Typography>
+                    </Box>
+                  </>
+                :
+                  <>
+                    <Box sx={{ flex: 1, textAlign: "center" }}>
+                      <Typography
+                        sx={{
+                          fontSize: "1.125rem",
+                          lineHeight: "150%",
+                          letterSpacing: "0%",
+                          color: "#989898",
+                          mb: 0.5,
+                        }}
+                      >
+                        Valuation
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "1.125rem",
+                          lineHeight: "150%",
+                          letterSpacing: "0%",
+                          color: "primary.normal",
+                          fontWeight: 500,
+                        }}
+                      >
+                        €{valuation}
+                      </Typography>
+                    </Box>
+                  
+                  </>
+            }
             <Box
               sx={{
                 width: "0.0625rem",
@@ -1988,7 +2109,7 @@ export default function BookServiceModal({
             lineHeight: "100%",
             letterSpacing: "0%",
             color: "#555555",
-            fontWeight: 500,
+            fontWeight: 600,
           }}
         >
           Service description
@@ -2006,110 +2127,119 @@ export default function BookServiceModal({
             color: "#939393",
           }}
         >
-          {serviceDescription || "Expert furniture assembly services..."}
+          { 
+            serviceProvider == "non-professional" ?
+              "Transform your space with our expert furniture assembly services. Our skilled team will handle everything from unpacking to setup, ensuring your new pieces are perfectly assembled and ready for use. We specialize in a wide range of furniture types, including flat-pack items, complex modular systems, and custom installations. Enjoy a hassle-free experience as we take care of the details, allowing you to focus on enjoying your newly furnished area. Schedule your assembly today and let us help you create the perfect environment!" 
+              :
+              serviceDescription || "Expert furniture assembly services..."
+          }
         </Typography>
 
-        <Typography
-          sx={{
-            mb: 2,
-            fontSize: "1.125rem",
-            lineHeight: "100%",
-            letterSpacing: "0%",
-            color: "#555555",
-            fontWeight: 500,
-          }}
-        >
-          Job photos
-        </Typography>
-        <Box sx={{ display: "flex", gap: 2 }}>
-          {[1, 2].map((index) => (
-            <Box
-              key={index}
-              sx={{
-                width: "100%",
-                height: "10.438rem",
-                borderRadius: 2,
-                overflow: "hidden",
-                position: "relative",
-                border: "0.0625rem solid",
-                borderColor: "grey.300",
-              }}
-            >
-              <Image
-                src={`/image/service-image-1.png`}
-                alt={`Job photo ${index}`}
-                fill
-                style={{ objectFit: "cover" }}
-              />
-            </Box>
-          ))}
-        </Box>
-
-        {serviceProvider === "non-professional" && productName && (
-          <>
-            <Typography
-              sx={{
-                mb: 2,
-                mt: 3,
-                fontSize: "1.125rem",
-                lineHeight: "100%",
-                letterSpacing: "0%",
-                color: "#555555",
-                fontWeight: 500,
-              }}
-            >
-              Barter Product Details
-            </Typography>
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              <Card
-                sx={{
-                  p: 2,
-                  flex: 1,
-                  border: "0.0625rem solid",
-                  borderColor: "grey.200",
-                }}
-              >
+        
+        
+        {
+          serviceProvider == "non-professional" ?
+            <div className="grid grid-cols-2 gap-4">
+              <div className="d-flex">
                 <Typography
                   sx={{
-                    fontSize: "0.875rem",
-                    lineHeight: "150%",
+                    mb: 2,
+                    fontSize: "1.125rem",
+                    lineHeight: "100%",
                     letterSpacing: "0%",
-                    color: "#939393",
-                    mb: 0.5,
+                    color: "#555555",
+                    fontWeight: 600,
                   }}
                 >
-                  Product Name
+                  Job photos
                 </Typography>
-                <Typography variant="body1" color="#2F6B8E" fontWeight="bold">
-                  {productName}
-                </Typography>
-              </Card>
-              <Card
-                sx={{
-                  p: 2,
-                  flex: 1,
-                  border: "0.0625rem solid",
-                  borderColor: "grey.200",
-                }}
-              >
+                <Box sx={{ display: "flex", gap: 2 }}>
+                  {[1, 2].map((index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        width: "100%",
+                        height: "10.438rem",
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        position: "relative",
+                        border: "0.0625rem solid",
+                        borderColor: "grey.300",
+                      }}
+                    >
+                      <Image
+                        src={`/image/service-image-1.png`}
+                        alt={`Job photo ${index}`}
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </div>
+              <div className="d-flex">
                 <Typography
                   sx={{
-                    fontSize: "0.875rem",
-                    lineHeight: "150%",
+                    mb: 2,
+                    fontSize: "1.125rem",
+                    lineHeight: "100%",
                     letterSpacing: "0%",
-                    color: "#939393",
-                    mb: 0.5,
+                    color: "#555555",
+                    fontWeight: 600,
                   }}
                 >
-                  Quantity
+                  Product Images
                 </Typography>
-                <Typography variant="body1" color="#2F6B8E" fontWeight="bold">
-                  {quantity}
-                </Typography>
-              </Card>
+                <Box sx={{ display: "flex", gap: 2 }}>
+                  {[1, 2].map((index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        width: "100%",
+                        height: "10.438rem",
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        position: "relative",
+                        border: "0.0625rem solid",
+                        borderColor: "grey.300",
+                      }}
+                    >
+                      <Image
+                        src={`/image/shoes.png`}
+                        alt={`Job photo ${index}`}
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              </div>
+            </div>
+          :
+            <Box sx={{ display: "flex", gap: 2 }}>
+                {[1, 2].map((index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      width: "100%",
+                      height: "10.438rem",
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      position: "relative",
+                      border: "0.0625rem solid",
+                      borderColor: "grey.300",
+                    }}
+                  >
+                    <Image
+                      src={`/image/service-image-1.png`}
+                      alt={`Job photo ${index}`}
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+                  </Box>
+                ))}
             </Box>
-          </>
-        )}
+        }
       </Box>
     );
   };
@@ -2129,30 +2259,66 @@ export default function BookServiceModal({
           },
         }}
       >
-        <DialogContent sx={{ p: "2.5rem", position: "relative" }}>
-          <IconButton
-            onClick={onClose}
-            sx={{
-              position: "absolute",
-              right: 16,
-              top: 16,
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
+        <DialogContent 
+          sx={{ 
+            p: "2.5rem", 
+            position: "relative",
+            overflow: currentStep == 1 ? "hidden" : "scroll"
+          }}
+        >
+          {
+            (serviceProvider == "non-professional" && currentStep != 6) || (serviceProvider != "non-professional" && currentStep != 5) ?
+              <Box sx={{ display:"flex",alignItems:"center",justifyContent:"space-between",mb:"2rem" }}>
+                <Typography
+                  sx={{
+                    // mb: "2rem",
+                    color: "primary.normal",
+                    lineHeight: "1.5rem",
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  Create A Service Request
+                </Typography>
+                <IconButton
+                  onClick={()=>{
+                    setCurrentStep(1)
+                    onClose()
+                  }}
+                  sx={{
+                    pr:0
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+              :
+              <Box sx={{ display:"flex",alignItems:"left",justifyContent:"space-between",mb:"2rem" }}>
+                <Typography
+                    sx={{
+                      color: "primary.normal",
+                      fontSize: "1.5rem",
+                      lineHeight: "2rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Preview
+                </Typography>
+                <IconButton
+                  onClick={()=>{
+                    setCurrentStep(1)
+                    onClose()
+                  }}
+                  sx={{
+                    pr:0
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Box>
 
-          <Typography
-            sx={{
-              mb: "2rem",
-              color: "primary.normal",
-              lineHeight: "1.75rem",
-              fontSize: "2rem",
-              fontWeight: 500,
-            }}
-          >
-            Create a Service Request
-          </Typography>
-
+          }
+       
           <Box sx={{ mb: 3 }}>
             <Box
               sx={{
@@ -2198,23 +2364,40 @@ export default function BookServiceModal({
               gap: 2,
             }}
           >
-            {currentStep > 1 && (
-              <Button
-                variant="outlined"
-                onClick={handleBack}
-                sx={{
-                  borderColor: "#2F6B8E",
-                  color: "#2F6B8E",
-                  textTransform: "none",
-                  pt: "0.625rem",
-                  pr: "3.75rem",
-                  pb: "0.625rem",
-                  pl: "3.75rem",
-                }}
-              >
-                Back
-              </Button>
-            )}
+            {
+              (serviceProvider == "non-professional" && currentStep != 6) || (serviceProvider != "non-professional" && currentStep != 5) ?
+                <Button
+                  variant="outlined"
+                  onClick={handleBack}
+                  sx={{
+                    borderColor: "#2F6B8E",
+                    color: "#2F6B8E",
+                    textTransform: "none",
+                    pt: "0.625rem",
+                    pr: "3.75rem",
+                    pb: "0.625rem",
+                    pl: "3.75rem",
+                  }}
+                >
+                  Back
+                </Button>
+              :
+                <Button
+                  variant="outlined"
+                  onClick={()=>setCurrentStep(1)}
+                  sx={{
+                    borderColor: "#2F6B8E",
+                    color: "#2F6B8E",
+                    textTransform: "none",
+                    pt: "0.625rem",
+                    pr: "3.75rem",
+                    pb: "0.625rem",
+                    pl: "3.75rem",
+                  }}
+                >
+                  Edit
+                </Button>
+            }
             <Button
               variant="contained"
               onClick={handleNext}

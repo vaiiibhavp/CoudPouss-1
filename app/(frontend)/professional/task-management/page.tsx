@@ -88,43 +88,62 @@ export default function TaskManagementPage() {
       
 
       {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Box
+        sx={{
+          px: { xs: "1rem", sm: "1.5rem", md: "5rem" },
+          py: { xs: "1.5rem", md: "2.5rem" },
+        }}
+      >
         {/* Page Title */}
         <Typography
           variant="h4"
-          fontWeight="600"
-          sx={{ mb: 3, color: "#1F2937" }}
+          sx={{
+            color: "#2C6587",
+            fontWeight: 700,
+            fontSize: "1.5rem", // 24px
+            lineHeight: "1.75rem", // 28px
+            letterSpacing: 0,
+            mb: "2.5rem",
+          }}
         >
           Task Management
         </Typography>
 
         {/* Divider below title */}
-        <Divider sx={{ mb: 4 }} />
+        <Divider sx={{  color:"#E7E7E7"}} />
 
         {/* Tabs - Vertical Sidebar */}
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "12.5rem auto 1fr" },
-            gap: 4,
+            gap: { xs: "1.5rem", md: "2.5rem" },
           }}
         >
           {/* Left Sidebar - Tabs */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.875rem",
+              mt: { xs: "1.5rem", md: "2.063rem" },
+            }}
+          >
             <Button
               variant={activeTab === "quote-sent" ? "contained" : "text"}
               onClick={() => setActiveTab("quote-sent")}
               sx={{
-                bgcolor: activeTab === "quote-sent" ? "#2F6B8E" : "transparent",
-                color: activeTab === "quote-sent" ? "white" : "#6B7280",
+                bgcolor: activeTab === "quote-sent" ? "#2C6587" : "transparent",
+                border: activeTab === "quote-sent" ? "none" : "0.0625rem solid #F1F1F1",
+                color: activeTab === "quote-sent" ? "#FFFFFF" : "#6D6D6D",
                 textTransform: "none",
                 justifyContent: "flex-start",
-                px: 3,
-                py: 1.5,
-                borderRadius: 2,
+                px: "1.25rem",  // 20px
+                py: "0.625rem", // 10px
+                borderRadius: "6.25rem", // 100px
                 fontWeight: 500,
                 "&:hover": {
-                  bgcolor: activeTab === "quote-sent" ? "#25608A" : "rgba(47, 107, 142, 0.04)",
+                  bgcolor: activeTab === "quote-sent" ? "#25608A" : "rgba(44, 101, 135, 0.08)",
                 },
               }}
             >
@@ -134,16 +153,17 @@ export default function TaskManagementPage() {
               variant={activeTab === "accepted" ? "contained" : "text"}
               onClick={() => setActiveTab("accepted")}
               sx={{
-                bgcolor: activeTab === "accepted" ? "#2F6B8E" : "transparent",
-                color: activeTab === "accepted" ? "white" : "#6B7280",
+                bgcolor: activeTab === "accepted" ? "#2C6587" : "transparent",
+                border: activeTab === "accepted" ? "none" : "0.0625rem solid #F1F1F1",
+                color: activeTab === "accepted" ? "#FFFFFF" : "#6D6D6D",
                 textTransform: "none",
                 justifyContent: "flex-start",
-                px: 3,
-                py: 1.5,
-                borderRadius: 2,
+                px: "1.25rem",
+                py: "0.625rem",
+                borderRadius: "6.25rem",
                 fontWeight: 500,
                 "&:hover": {
-                  bgcolor: activeTab === "accepted" ? "#25608A" : "rgba(47, 107, 142, 0.04)",
+                  bgcolor: activeTab === "accepted" ? "#25608A" : "rgba(44, 101, 135, 0.08)",
                 },
               }}
             >
@@ -153,16 +173,17 @@ export default function TaskManagementPage() {
               variant={activeTab === "completed" ? "contained" : "text"}
               onClick={() => setActiveTab("completed")}
               sx={{
-                bgcolor: activeTab === "completed" ? "#2F6B8E" : "transparent",
-                color: activeTab === "completed" ? "white" : "#6B7280",
+                bgcolor: activeTab === "completed" ? "#2C6587" : "transparent",
+                border: activeTab === "completed" ? "none" : "0.0625rem solid #F1F1F1",
+                color: activeTab === "completed" ? "#FFFFFF" : "#6D6D6D",
                 textTransform: "none",
                 justifyContent: "flex-start",
-                px: 3,
-                py: 1.5,
-                borderRadius: 2,
+                px: "1.25rem",
+                py: "0.625rem",
+                borderRadius: "6.25rem",
                 fontWeight: 500,
                 "&:hover": {
-                  bgcolor: activeTab === "completed" ? "#25608A" : "rgba(47, 107, 142, 0.04)",
+                  bgcolor: activeTab === "completed" ? "#25608A" : "rgba(44, 101, 135, 0.08)",
                 },
               }}
             >
@@ -174,7 +195,7 @@ export default function TaskManagementPage() {
           <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", md: "block" } }} />
 
           {/* Right Content Area */}
-          <Box sx={{ minHeight: "70vh" }}>
+          <Box sx={{ minHeight: "70vh", mt: { xs: "1.5rem", md: "2.063rem" } }}>
             {/* Quote Sent Content */}
             {activeTab === "quote-sent" && <QuoteSentSection data={quoteSentData} />}
 
@@ -185,7 +206,7 @@ export default function TaskManagementPage() {
             {activeTab === "completed" && <CompletedSection />}
           </Box>
         </Box>
-      </Container>
+      </Box>
 
 
     </Box>

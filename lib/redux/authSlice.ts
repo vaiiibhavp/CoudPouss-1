@@ -1,15 +1,41 @@
 // lib/redux/authSlice.ts
 "use client";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { apiGet, apiPost } from "../api";
+import { buildInputData } from "@/utils/validation";
+import { API_ENDPOINTS } from "@/constants/api";
+import { ApiResponse } from "@/types";
 
 export interface LoginPayload {
   emailOrMobile: string;
   password: string;
 }
 
+interface LoginResponse {
+  status: string;
+  message: string;
+  data?: {
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+    access_token_expire: string;
+    refresh_token_expire: string;
+    user_data?: {
+      user_id: string;
+      name: string;
+      email: string;
+      mobile: string;
+      role: string;
+      address: string;
+      [key: string]: any;
+    };
+  };
+}
+
 interface User {
   email: string;
   initial: string;
+  role:string
 }
 
 interface AuthState {
@@ -35,24 +61,44 @@ export const loginUser = createAsyncThunk<
   async ({ emailOrMobile, password }, { rejectWithValue }) => {
     try {
       // TODO: replace with real API call
-      console.log("Login attempt (thunk):", { emailOrMobile, password });
 
-      // Fake delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simple fake validation
-      if (!emailOrMobile || !password) {
-        return rejectWithValue("Invalid credentials. Please try again.");
+     if (!emailOrMobile || !password) {
+        return rejectWithValue("Email/Mobile and password are required");
       }
 
-      const email = emailOrMobile; // adjust if you support mobile separately
-      const user: User = {
-        email,
-        initial: email.charAt(0).toUpperCase(),
+      // Build payload here
+      let inputData;
+      try {
+        inputData = buildInputData(emailOrMobile);
+      } catch (err) {
+        return rejectWithValue("Invalid email or mobile number");
+      }
+
+      // Now add password
+      const apiPayload = {
+        ...inputData,
+        password,
       };
 
+      const response = await apiPost<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN,apiPayload);
+      console.log("Login attempt (thunk):", { emailOrMobile, password });
+      console.log(response)
+      let userData : {role?: string} = {}
+      if(response && response?.data?.data?.user_data){
+        userData = {...response.data.data.user_data}
+      }
+      console.log(userData)
+      const user: User = {
+        email : apiPayload["email"] || "",
+        initial: (apiPayload["email"] || "").charAt(0).toUpperCase(),
+        role: userData["role"] || "",
+      };
       return user;
-    } catch (err) {
+    } catch (err:unknown) {
+      if (err instanceof Error) {
+        return rejectWithValue(err.message);
+      }
+      
       return rejectWithValue("Something went wrong. Please try again.");
     }
   }
@@ -80,8 +126,9 @@ const authSlice = createSlice({
       if (typeof window !== "undefined") {
         const email = localStorage.getItem("userEmail");
         const initial = localStorage.getItem("userInitial");
-        if (email && initial) {
-          state.user = { email, initial };
+        const role = localStorage.getItem("role");
+        if (email && initial && role) {
+          state.user = { email, initial, role };
           state.isAuthenticated = true;
         }
       }
@@ -102,6 +149,8 @@ const authSlice = createSlice({
         if (typeof window !== "undefined") {
           localStorage.setItem("userEmail", action.payload.email);
           localStorage.setItem("userInitial", action.payload.initial);
+          localStorage.setItem("role", action.payload.role);
+
         }
       })
       .addCase(loginUser.rejected, (state, action) => {

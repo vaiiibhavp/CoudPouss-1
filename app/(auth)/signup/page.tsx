@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -12,13 +12,33 @@ import {
   IconButton,
   Paper,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Password, Visibility, VisibilityOff, VisibilityOffOutlined, VisibilityOutlined } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { apiPost } from "@/lib/api";
+import { buildInputData, emailRegex, isValidPassword, parseMobile } from "@/utils/validation";
+import ResponseCache from "next/dist/server/response-cache";
+import { API_ENDPOINTS } from "@/constants/api";
 
 type SignupStep = "select-profile" | "enter-contact" | "verify-otp" | "create-password" | "add-details";
-type UserType = "elder" | "professional" | null;
+type UserType = "elderly_user" | "professional" | null;
+
+interface SignUpApiError {
+  [key: string]: string;
+}
+
+interface ProfilePhotoApi {
+  data?: any;
+  error?: {
+    message?: string;
+  };
+}
+
+interface SignUpApiResponse {
+  data: any | null;
+  error: SignUpApiError | null;
+}
 
 export default function SignupPage() {
   const router = useRouter();
@@ -34,8 +54,10 @@ export default function SignupPage() {
     email: "",
     address: "",
     profilePicture: null as File | null,
+    profilePicturePreview: ""
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showReEnterPassword, setShowReEnterPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -43,7 +65,18 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    if(name == "password"){
+      const {valid, errors} = isValidPassword(value) 
+      if(!valid){
+        setPasswordErrors(errors)
+      }else{
+        setPasswordErrors([])
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -69,7 +102,7 @@ export default function SignupPage() {
     }
   };
 
-  const handleProfileSelect = (type: "elder" | "professional") => {
+  const handleProfileSelect = (type: "elderly_user" | "professional") => {
     setUserType(type);
     if (type === "professional") {
       // Redirect to professional signup flow
@@ -80,32 +113,226 @@ export default function SignupPage() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async() => {
+    setLoading(true);
     if (step === "enter-contact") {
       if (!formData.emailOrMobile) {
         setErrors({ emailOrMobile: "Please enter email or mobile number" });
+        setLoading(false)
         return;
       }
-      setStep("verify-otp");
+
+      let {data,error} = await apiCallToSignUpUser("");
+      if(data){
+        setStep("verify-otp");
+      }else{
+        if(error){
+          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+          if(errorMsg.includes("OTP already sent")){
+            setStep("verify-otp");
+          }else if(errorMsg.includes("OTP already verified")){
+            setStep("create-password");
+          }else if(errorMsg.includes("Password already set")){
+            setStep("add-details")
+          }else{
+            setErrors({ emailOrMobile: errorMsg });
+          }
+        }
+      }
+
     } else if (step === "verify-otp") {
       if (formData.otp.some((digit) => !digit)) {
         setErrors({ otp: "Please enter valid code" });
+        setLoading(false)
         return;
       }
-      setStep("create-password");
+
+      let {data,error} = await apiCallToSignUpUser("");
+      if(data){
+        setStep("create-password");
+      }else{
+         if(error){
+          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+          if(errorMsg.includes("OTP already sent")){
+            setStep("verify-otp");
+          }else if(errorMsg.includes("OTP already verified")){
+            setStep("create-password");
+          }else if(errorMsg.includes("Password already set")){
+            setStep("add-details")
+          }else{
+            setErrors({ otp: errorMsg });
+          }
+        }
+      }
     } else if (step === "create-password") {
-      setStep("add-details");
+      if(formData.password !== formData.confirmPassword){
+        setErrors({ confirmPassword : "Please make sure your passwords match." });
+        setLoading(false)
+        return
+      }
+      
+      let {data,error} = await apiCallToSignUpUser("");
+      if(data){
+        setStep("add-details");
+      }else{
+        if(error){
+          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+         if(errorMsg.includes("OTP already sent")){
+            setStep("verify-otp");
+          }else if(errorMsg.includes("OTP already verified")){
+            setStep("create-password");
+          }else if(errorMsg.includes("Password already set")){
+            setStep("add-details")
+          }else{
+            setErrors({ confirmPassword: errorMsg });
+          }
+        }
+      }
+      setLoading(false)
     }
   };
+
+  const apiCallToSignUpUser = async(submit:string) : Promise<SignUpApiResponse> =>{
+    try {
+      let payload = {}
+      let url = ""
+      let validData = buildInputData(formData.emailOrMobile)
+      let error = {}
+
+      if (step === "enter-contact") {
+        url = API_ENDPOINTS.AUTH.START
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "role": userType 
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "role": userType
+          }  
+        }
+
+      }else if (step === "verify-otp") {
+        url = API_ENDPOINTS.AUTH.VERIFY_OTP
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "otp": formData.otp.join("")
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "otp": formData.otp.join("")
+          }  
+        }
+      } else if (step === "create-password") {
+        url = API_ENDPOINTS.AUTH.CREATE_PASSWORD
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "password": formData.password,
+            "confirm_password" : formData.confirmPassword
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "password": formData.password,
+            "confirm_password" : formData.confirmPassword
+          }  
+        }
+      }
+
+      if(submit == "submit"){
+        const mobileData = parseMobile(formData.mobileNo)
+        url = API_ENDPOINTS.AUTH.CREATE_ACCOUNT
+        
+        payload = {
+          "email": formData.email || "",
+          "address": formData.address,
+          "name" : formData.name,
+          "role" : userType,
+          "mobile": (mobileData && mobileData.mobile) || "",
+          "phone_country_code": (mobileData && mobileData.countryCode) || "",
+        } 
+      }
+
+      if(submit == "resendOTP"){
+        url = API_ENDPOINTS.AUTH.RESEND_OTP;
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+          }  
+        }
+      }
+
+      let response  = await apiPost(url,payload)
+      if (response?.error) {
+        let error = {}
+         if (step === "enter-contact") {
+          error =  { submit: response.error.message || "Something went wrong." }
+        }else if (step === "verify-otp") {
+          error =  { otp: response.error.message || "Something went wrong." }
+        }else if (step === "create-password") {
+          error =  { password: response.error.message || "Something went wrong." }
+        }
+        setErrors(error)
+      }
+
+      return {
+        data: response.data,
+        error
+      };
+    } catch (error:any) {
+      console.error("Signup error:", error);
+      const errorObj: SignUpApiError = { general: error.message || "Something went wrong. Please try again." };
+      return {
+        data: null,
+        error: errorObj,
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // TODO: Implement actual signup API call
-      console.log("Signup data:", { userType, formData });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push(ROUTES.LOGIN);
+      // TODO: validate the form Data
+      let {data,error} = await apiCallToSignUpUser("submit");
+      if(data){
+        router.push(ROUTES.LOGIN);
+        setStep("add-details");
+      }else{
+        if(error){
+          const errorMsg =  error.general || error.msg || "Something Went Wrong";
+          if(errorMsg.includes("Name is required")){
+            setErrors({ name: errorMsg });
+          }else if(errorMsg.includes("Address")){
+            setErrors({ address: errorMsg });
+          }else if(errorMsg.includes("country code") || errorMsg.includes("Mobile")){
+            setErrors({ mobileNo: errorMsg });
+          }else if(errorMsg.includes("email")){
+            setErrors({ email: errorMsg });
+          }
+          else{
+
+          }
+        }
+      }
     } catch (error) {
       console.error("Signup error:", error);
       setErrors({ submit: "Something went wrong. Please try again." });
@@ -114,13 +341,47 @@ export default function SignupPage() {
     }
   };
 
+  const uploadProfileImage = async(file:File) : Promise<void> =>{
+    setLoading(true)
+     try {
+      let payload = {}
+      let url = API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC
+      let validData = buildInputData(formData.emailOrMobile)
+      let error = {}
+
+      if(validData.email){
+        payload = {
+          "email": validData.email || "",
+          "file": formData.profilePicture 
+        } 
+      }else{
+        payload = {
+          "mobile": validData.mobile || "",
+          "phone_country_code": validData.phone_country_code || "",
+          "file": formData.profilePicture 
+        }  
+      }
+
+      const response : ProfilePhotoApi  = await apiPost(url,payload)
+      if (response?.error?.message) {
+        setErrors({
+          profilePicture: response.error.message,
+        });
+        return;
+      }
+    } catch (error:any) {
+      console.error("Signup error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const renderStepContent = () => {
     switch (step) {
       case "select-profile":
         return (
           <Box>
             <Typography
-
               sx={{
                 fontWeight: `700`,
                 fontSize: `1.5rem`,
@@ -128,14 +389,11 @@ export default function SignupPage() {
                 mb: "0.75rem",
                 lineHeight: "1.75rem",
                 textAlign: "center"
-
-
               }}
             >
-              Welcome To CoudPouss
+              Welcome To CoudPouss!
             </Typography>
             <Typography
-
               sx={{
                 fontWeight: 400,
                 fontSize: "1rem",
@@ -152,14 +410,15 @@ export default function SignupPage() {
               fullWidth
               variant="contained"
               size="large"
-              onClick={() => handleProfileSelect("elder")}
+              onClick={() => handleProfileSelect("elderly_user")}
               sx={{
-                bgcolor: "primary.dark",
+                bgcolor: "#214C65",
                 color: "white",
                 py: 1.5,
                 mb: 2,
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -167,17 +426,18 @@ export default function SignupPage() {
             >
               Sign up as Elder
             </Button>
-            <Box sx={{ textAlign: "center", my: 2 }}>
+            <Box sx={{ textAlign: "center", my: 2,display:"flex",alignItems:"center" }}>
+              <Box sx={{ flex: 1, height: "1px", bgcolor: "rgba(0,0,0,0.3)", border: "1px solid #F2F3F3" }} />
               <Typography
-
                 sx={{
                   fontSize: "1.125rem",
                   color: "#818285",
-
+                  mx:4
                 }}
               >
                 OR
               </Typography>
+              <Box sx={{ flex: 1, height: "1px", bgcolor: "rgba(0,0,0,0.3)", border: "1px solid #F2F3F3" }} />
             </Box>
             <Button
               fullWidth
@@ -188,8 +448,9 @@ export default function SignupPage() {
                 borderColor: "primary.dark",
                 color: "primary.dark",
                 py: 1.5,
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 textTransform: "none",
-                fontSize: "1rem",
                 "&:hover": {
                   borderColor: "#25608A",
                   bgcolor: "rgba(47, 107, 142, 0.04)",
@@ -205,7 +466,6 @@ export default function SignupPage() {
         return (
           <Box>
             <Typography
-
               sx={{
                 fontWeight: `700`,
                 fontSize: `1.5rem`,
@@ -213,14 +473,11 @@ export default function SignupPage() {
                 mb: "0.75rem",
                 lineHeight: "1.75rem",
                 textAlign: "center"
-
-
               }}
             >
-              Welcome To CoudPouss
+              Welcome To CoudPouss!
             </Typography>
             <Typography
-
               sx={{
                 fontWeight: 400,
                 fontSize: "1rem",
@@ -240,12 +497,12 @@ export default function SignupPage() {
               color: "#424242",
               mb: "0.5rem"
             }}>
-              Enter Email / Mobile No
+              Email / Mobile No
             </Typography>
             <TextField
               sx={{
                 m: 0,
-                mb: 3
+                mb: 3,
               }}
               fullWidth
               name="emailOrMobile"
@@ -253,20 +510,26 @@ export default function SignupPage() {
               value={formData.emailOrMobile}
               onChange={handleChange}
               error={!!errors.emailOrMobile}
-              helperText={errors.emailOrMobile}
               margin="normal"
             />
+             {errors.emailOrMobile && (
+              <Typography color="error" variant="body2" sx={{ mb: 2, fontSize:"1.125rem", textAlign: "center",fontWeight:400 }}>
+                {errors.emailOrMobile}
+              </Typography>
+            )}
             <Button
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
                 bgcolor: "primary.dark",
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -281,7 +544,6 @@ export default function SignupPage() {
         return (
           <Box>
             <Typography
-
               sx={{
                 fontWeight: `700`,
                 fontSize: `1.5rem`,
@@ -289,14 +551,11 @@ export default function SignupPage() {
                 mb: "0.75rem",
                 lineHeight: "1.75rem",
                 textAlign: "center"
-
-
               }}
             >
-              Welcome To CoudPouss
+              Welcome To CoudPouss!
             </Typography>
             <Typography
-
               sx={{
                 fontWeight: 400,
                 fontSize: "1rem",
@@ -332,22 +591,25 @@ export default function SignupPage() {
             >
               Code
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, justifyContent: "space-between", mb: 2 }}>
+            <Box sx={{ display: "flex", gap: 1, justifyContent: "space-between", mb: 2 }}>
               {formData.otp.map((digit, index) => (
                 <TextField
                   key={index}
                   id={`otp-${index}`}
                   value={digit}
+                  error={!!errors.otp}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
                   inputProps={{
                     maxLength: 1,
-                    style: { textAlign: "center", fontSize: "1.5rem", fontWeight: "bold", width: "5rem" },
+                    style: { textAlign: "center", fontSize: "1.5rem", fontWeight: "bold", width: "5rem",borderColor:errors.otp ? "red" : "" },
                   }}
                   sx={{
+                    borderColor:errors.otp ? "red" : "",
                     width: 60,
                     "& .MuiOutlinedInput-root": {
                       height: 60,
+                      borderColor: errors.otp ? "red" : "",
                       width: "5.03125rem"
                     },
                   }}
@@ -355,18 +617,23 @@ export default function SignupPage() {
               ))}
             </Box>
             {errors.otp && (
-              <Typography color="error" variant="body2" sx={{ mb: 2, textAlign: "center" }}>
+              <Typography color="error" variant="body2" sx={{ mb: 2, fontSize:"1.125rem", textAlign: "center",fontWeight:400 }}>
                 {errors.otp}
               </Typography>
             )}
             <Link
               href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                apiCallToSignUpUser("resendOTP");   
+              }}
               sx={{
                 display: "block",
                 textAlign: "center",
                 mb: 3,
                 fontSize: "1.25rem",
-                lineHeight: "1.5rem", fontWeight: 600,
+                lineHeight: "1.5rem",
+                fontWeight: 600,
                 color: "primary.normal",
                 textDecoration: "none",
                 "&:hover": {
@@ -380,19 +647,21 @@ export default function SignupPage() {
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
                 bgcolor: "primary.dark",
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
               }}
             >
-              verify OTP
+              Verify OTP
             </Button>
           </Box>
         );
@@ -413,7 +682,7 @@ export default function SignupPage() {
 
               }}
             >
-              Welcome To CoudPouss
+              CoudPouss
             </Typography>
             <Typography
 
@@ -472,15 +741,24 @@ export default function SignupPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {showPassword ?   <VisibilityOutlined /> : <VisibilityOffOutlined />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
-
+            {
+              passwordErrors && passwordErrors.map((err)=>{
+                return(
+                  <Typography color="error" variant="body2" sx={{fontSize:"0.9rem", textAlign: "left",fontWeight:400 }}>
+                    {err}
+                  </Typography>
+                )
+              })
+            }
             <Typography
               sx={{
+                mt:"8px",
                 fontWeight: 500,
                 fontSize: "17px",
                 lineHeight: "20px",
@@ -493,37 +771,44 @@ export default function SignupPage() {
             <TextField
               sx={{
                 m: 0,
-                mb: "44px"
+                mb: "14px"
               }}
               fullWidth
               name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Re-enter Password"
               value={formData.confirmPassword}
+              error={!!errors.confirmPassword}
               onChange={handleChange}
               margin="normal"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      {showConfirmPassword ?  <VisibilityOutlined /> :  <VisibilityOffOutlined />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
-
+            {errors.confirmPassword && (
+              <Typography color="error" variant="body2" sx={{ mb: 6, fontSize:"1rem", textAlign: "center",fontWeight:400 }}>
+                {errors.confirmPassword}
+              </Typography>
+            )}
             <Button
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
                 bgcolor: "primary.dark",
                 color: "white",
                 py: 1.5,
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -537,36 +822,39 @@ export default function SignupPage() {
       case "add-details":
         return (
           <Box component="form" onSubmit={handleSubmit}>
-            <Typography
-
+            <Box
               sx={{
-                fontWeight: `700`,
-                fontSize: `1.5rem`,
-                color: `primary.normal`,
-                mb: "0.75rem",
-                lineHeight: "1.75rem",
-                textAlign: "center"
-
-
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                // bgcolor: 'primary.main',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'left',
               }}
             >
-              Welcome To CoudPouss
-            </Typography>
-            <Typography
-
-              sx={{
-                fontWeight: 400,
-                fontSize: "1rem",
-                textAlign: "center",
-                lineHeight: "140%",
-                mb: "2.5rem",
-                color: "secondary.neutralWhiteDark",
-              }}
-            >
-              Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
-            </Typography>
-
-            <Typography gutterBottom sx={{ mb: 1, fontSize: "24px", fontWeight: 700, color: "#424242", lineHeight: "28px" }}>
+              <Image
+                alt='appLogo'
+                width={140}
+                height={140}
+                src={"/icons/appLogo.png"}
+              />
+              <Typography
+                sx={{
+                  fontWeight: `700`,
+                  fontSize: `1.5rem`,
+                  marginLeft:"6px",
+                  color: `primary.normal`,
+                  mb: "0.75rem",
+                  lineHeight: "1.75rem",
+                  textAlign: "center"
+                }}
+              >
+                CoudPouss
+              </Typography>
+            </Box>
+            
+            <Typography gutterBottom sx={{ mb: 1, mt:2, fontSize: "24px", fontWeight: 700, color: "#424242", lineHeight: "28px" }}>
               Add Personal Details
             </Typography>
             <Typography sx={{ mb: 3, color: "#6D6D6D", lineHeight: "20px", fontSize: "18px" }}>
@@ -583,19 +871,28 @@ export default function SignupPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   mb: 1,
-                  border: "3px solid primary.dark",
+                  overflow: "hidden",
+                  // border: "3px solid",
+                  borderColor: "primary.dark",
                 }}
               >
-                {formData.profilePicture ? (
-                  <Typography variant="h4" sx={{ color: "primary.dark" }}>
-                    {formData.name.charAt(0).toUpperCase()}
-                    {formData.name.split(" ")[1]?.charAt(0).toUpperCase() || ""}
-                  </Typography>
-                ) : (
-                  <Typography variant="h4" sx={{ color: "primary.dark" }}>
-                    BC
-                  </Typography>
-                )}
+                {
+                  formData.profilePicturePreview ? (
+                    <img
+                      src={formData.profilePicturePreview}
+                      alt="Profile"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <Typography variant="h4" sx={{ color: "primary.dark",fontSize:"1.125rem", fontWeight:400 }}>
+                      {formData.name
+                        ? formData.name
+                            .split(" ")
+                            .map((n) => n.charAt(0).toUpperCase())
+                            .join("")
+                        : "BC"}
+                    </Typography>
+                  )}
               </Box>
               <Typography
                 onClick={(e) => {
@@ -603,6 +900,7 @@ export default function SignupPage() {
                   document.getElementById("profile-upload")?.click();
                 }}
                 sx={{
+                  cursor:"pointer",
                   color: "primary.normal",
                   textDecoration: "none",
                   lineHeight: "140%",
@@ -619,10 +917,21 @@ export default function SignupPage() {
                 type="file"
                 accept="image/*"
                 style={{ display: "none" }}
-                onChange={(e) => {
+                onChange={async(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    setFormData((prev) => ({ ...prev, profilePicture: file }));
+                    // Create preview URL so you can display the image visually
+                    const previewURL = URL.createObjectURL(file);
+
+                    // Update UI instantly
+                    setFormData((prev) => ({
+                      ...prev,
+                      profilePicture: file,
+                      profilePicturePreview: previewURL,
+                    }));
+
+                    // Call API to upload image
+                    await uploadProfileImage(file);
                   }
                 }}
               />
@@ -631,12 +940,9 @@ export default function SignupPage() {
               display: "flex",
               flexDirection: "column",
               gap: 2
-            }}  >
-
-
+            }}>
               <Box>
                 <Typography
-
                   sx={{
                     fontWeight: 500,
                     fontSize: "17px",
@@ -649,7 +955,6 @@ export default function SignupPage() {
                 </Typography>
                 <TextField
                   fullWidth
-
                   name="name"
                   placeholder="Enter Name"
                   value={formData.name}
@@ -663,9 +968,7 @@ export default function SignupPage() {
                 />
               </Box>
               <Box>
-
                 <Typography
-
                   sx={{
                     fontWeight: 500,
                     fontSize: "17px",
@@ -678,7 +981,6 @@ export default function SignupPage() {
                 </Typography>
                 <TextField
                   fullWidth
-
                   name="mobileNo"
                   placeholder="Enter Mobile No."
                   value={formData.mobileNo}
@@ -690,10 +992,8 @@ export default function SignupPage() {
                   }}
                 />
               </Box>
-
               <Box>
                 <Typography
-
                   sx={{
                     fontWeight: 500,
                     fontSize: "17px",
@@ -706,7 +1006,6 @@ export default function SignupPage() {
                 </Typography>
                 <TextField
                   fullWidth
-
                   name="email"
                   type="email"
                   placeholder="Enter Email"
@@ -720,10 +1019,8 @@ export default function SignupPage() {
                   }}
                 />
               </Box>
-
               <Box>
                 <Typography
-
                   sx={{
                     fontWeight: 500,
                     fontSize: "17px",
@@ -736,7 +1033,6 @@ export default function SignupPage() {
                 </Typography>
                 <TextField
                   fullWidth
-
                   name="address"
                   placeholder="Enter Address"
                   value={formData.address}
@@ -769,7 +1065,8 @@ export default function SignupPage() {
                 py: 1.5,
                 mt:"40px",
                 textTransform: "none",
-                fontSize: "1rem",
+                fontWeight:700,
+                fontSize: "1.1875rem",
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -794,7 +1091,7 @@ export default function SignupPage() {
       }}
     >
       {/* Header Bar */}
-      {step !== "select-profile" && (
+      {/* {step !== "select-profile" && (
         <Box
           sx={{
             position: "absolute",
@@ -816,7 +1113,7 @@ export default function SignupPage() {
             {step === "add-details" && "04_Create Password"}
           </Typography>
         </Box>
-      )}
+      )} */}
 
       {/* Left side - Image Section */}
       <Box
@@ -870,56 +1167,67 @@ export default function SignupPage() {
             }}
           >
             {/* Logo Section */}
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <Box
-                sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.main',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px',
-                }}
-              >
-                <Image
-                  alt='appLogo'
-                  width={140}
-                  height={140}
-                  src={"/icons/appLogo.png"}
-                />
-              </Box>
+            {
+              step != "add-details" && 
+                <Box sx={{ textAlign: 'center', mb: 3 }}>
+                  <Box
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      // bgcolor: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 16px',
+                    }}
+                  >
+                    <Image
+                      alt='appLogo'
+                      width={140}
+                      height={140}
+                      src={"/icons/appLogo.png"}
+                    />
+                  </Box>
 
-            </Box>
+                </Box>
+            }
 
             {/* Step Content */}
             {renderStepContent()}
 
             {/* Login Link */}
-            <Box sx={{ textAlign: "center", mt: 3 }}>
-              <Typography sx={{
-                color: 'secondary.naturalGray',
-                fontSize: "18px",
-                lineHeight: "20px"
-              }}>
-                Already have an account?{" "}
-                <Link
-                  href={ROUTES.SIGNUP}
-                  sx={{
-                    color: 'primary.normal',
-                    textDecoration: 'none',
-                    offset: "3%",
-                    fontWeight: 600,
-                    fontSize: "20px",
-                    lineHeight: "24px"
-
-                  }}
-                >
-                  Log In
-                </Link>
-              </Typography>
-            </Box>
+            {
+              (step == "select-profile" || step == "enter-contact") && 
+                <Box sx={{ textAlign: "center", mt: 3 }}>
+                  <Typography sx={{
+                    color: 'secondary.naturalGray',
+                    fontSize: "18px",
+                    lineHeight: "20px"
+                  }}>
+                    Already have an account?{" "}
+                    <Link
+                      href={ROUTES.LOGIN}
+                      sx={{
+                        fontFamily: "Lato, sans-serif",
+                        fontWeight: 600,
+                        fontSize: "1.25rem", // 20px -> 20 / 16 = 1.25rem
+                        lineHeight: "1.5rem", // 24px -> 24 / 16 = 1.5rem
+                        letterSpacing: "0em",
+                        textAlign: "center",
+                        color: "#2C6587", // or primary.normal if defined in theme
+                        textDecorationLine: "underline",
+                        textDecorationThickness: "0.08em", // 8% of font-size
+                        textUnderlineOffset: "0.03em", // 3% of font-size
+                        textDecorationSkipInk: "auto", // skip-ink effect
+                        display: "inline-block", // ensures text-align works if needed
+                      }}
+                    >
+                      Log In
+                    </Link>
+                  </Typography>
+                </Box>
+            }
           </Paper>
         </Container>
       </Box>

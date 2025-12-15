@@ -12,12 +12,32 @@ import {
   InputAdornment,
   IconButton,
 } from '@mui/material';
-import { Visibility, VisibilityOff, ArrowBack } from '@mui/icons-material';
+import { ArrowBack } from '@mui/icons-material';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
 import Image from 'next/image';
+import { buildInputData, isValidPassword } from '@/utils/validation';
+import { apiPost } from '@/lib/api';
+import { API_ENDPOINTS } from '@/constants/api';
+import { ApiResponse } from '@/types';
 
 type ResetStep = 'enter-email' | 'verify-otp' | 'set-password';
+
+interface SignUpApiError {
+  [key: string]: string;
+}
+
+interface OtpData {
+  message: string;
+}
+
+interface SignUpApiResponse {
+  data?: any | null;
+  message?:string;
+  error: SignUpApiError | null;
+}
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -29,12 +49,23 @@ export default function ResetPasswordPage() {
     reEnterPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [showReEnterPassword, setShowReEnterPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    if(name == "newPassword"){
+      const {valid, errors} = isValidPassword(value) 
+      if(!valid){
+        setPasswordErrors(errors)
+      }else{
+        setPasswordErrors([])
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
@@ -61,21 +92,145 @@ export default function ResetPasswordPage() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async() => {
+    setLoading(true)
     if (step === 'enter-email') {
       if (!formData.emailOrMobile) {
         setErrors({ emailOrMobile: 'Please enter email or mobile number' });
+        setLoading(false)
         return;
       }
-      setStep('verify-otp');
+
+      let {data,error} = await apiCallToSignUpUser("");
+
+      if(data){
+        setStep('verify-otp');
+      }else{
+        if(error){
+          setErrors({ emailOrMobile: error.message || "Something Went Wrong!" });
+        }
+      }
     } else if (step === 'verify-otp') {
       if (formData.otp.some((digit) => !digit)) {
         setErrors({ otp: 'Please enter valid code' });
+        setLoading(false)
         return;
       }
-      setStep('set-password');
+
+      let {data,error} = await apiCallToSignUpUser("");
+
+      if(data){
+        setStep('set-password');
+      }else{
+         if(error){
+          setErrors({ otp: error.message || "Something Went Wrong!" });
+        }
+      }
     }
   };
+
+  
+  const apiCallToSignUpUser = async(submit:string) : Promise<SignUpApiResponse> =>{
+    try {
+      let payload = {}
+      let url = ""
+      let validData = buildInputData(formData.emailOrMobile)
+      let error = {}
+      setErrors({})
+
+      if (step === "enter-email") {
+        url = API_ENDPOINTS.AUTH.RESET_PASSWORD_START
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+          }  
+        }
+      }else if (step === "verify-otp") {
+        url = API_ENDPOINTS.AUTH.VERIFY_RESET_PASSWORD_OTP
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "otp": formData.otp.join("")
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "otp": formData.otp.join("")
+          }  
+        }
+      }
+
+      if(submit == "submit"){
+        url = API_ENDPOINTS.AUTH.RESET_PASSWORD
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+            "password": formData.newPassword,
+            "confirm_password" : formData.reEnterPassword,
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+            "password": formData.newPassword,
+            "confirm_password" : formData.reEnterPassword,
+          }  
+        }
+      }
+
+      if(submit == "resendOTP"){
+        url = API_ENDPOINTS.AUTH.RESEND_OTP;
+
+        if(validData.email){
+          payload = {
+            "email": validData.email || "",
+          } 
+        }else{
+          payload = {
+            "mobile": validData.mobile || "",
+            "phone_country_code": validData.phone_country_code || "",
+          }  
+        }
+      }
+
+      const response = await apiPost<OtpData>(url,payload)
+
+      if(response){
+        if(response.data?.message?.includes("OTP sent successfully")){
+          setErrors({otp : "OTP sent successfully"})
+        }
+      }
+      
+      if (response?.error?.message) {
+        error =  { submit: response.error.message || "Something went wrong." }
+        setErrors({
+          profilePicture: response.error.message,
+        });
+      }
+
+      return {
+        data: response.data,
+        error:null
+      };
+    } catch (error:any) {
+      console.error("Signup error:", error);
+      return {
+          data: null,
+          error:  error || "Something went wrong. Please try again."
+      };
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,9 +248,12 @@ export default function ResetPasswordPage() {
     setLoading(true);
     try {
       // TODO: Implement actual reset password API call
-      console.log('Reset password:', formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push(ROUTES.LOGIN);
+      let {data,error} = await apiCallToSignUpUser("submit");
+      if(data){
+        router.push(ROUTES.LOGIN);
+      }else{
+        // setErrors({ emailOrMobile: "Something Went Wrong!" });
+      }
     } catch (error) {
       console.error('Reset password error:', error);
       setErrors({ submit: 'Something went wrong. Please try again.' });
@@ -118,7 +276,6 @@ export default function ResetPasswordPage() {
 
             <Box>
               <Typography
-
                 sx={{
                   fontSize: "1.125rem",
                   lineHeight: "100%",
@@ -130,7 +287,6 @@ export default function ResetPasswordPage() {
               </Typography>
               <TextField
                 fullWidth
-
                 name="emailOrMobile"
                 placeholder="Enter Email/ Mobile No"
                 value={formData.emailOrMobile}
@@ -141,20 +297,20 @@ export default function ResetPasswordPage() {
                 sx={{ m: 0, mb: "3.6875rem" }}
               />
             </Box>
-
-
             <Button
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
-                bgcolor: '#2F6B8E',
+                bgcolor: '#214C65',
                 color: 'white',
                 py: 1.5,
                 mb: 2,
                 textTransform: 'none',
-                fontSize: '1rem',
+                fontWeight:700,
+                fontSize: '1.1875rem',
                 '&:hover': {
                   bgcolor: '#25608A',
                 },
@@ -168,7 +324,7 @@ export default function ResetPasswordPage() {
                 display: 'flex',
                 alignItems: 'center',
                 lineHeight: "140%",
-
+                fontWeight:400,
                 justifyContent: 'center',
                 color: '#424242',
                 textDecoration: 'none',
@@ -222,8 +378,11 @@ export default function ResetPasswordPage() {
             )}
             <Link
               href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                apiCallToSignUpUser("resendOTP");   
+              }}
               sx={{
-
                 display: 'block',
                 textAlign: 'center',
                 mb: "2.4375rem",
@@ -243,10 +402,12 @@ export default function ResetPasswordPage() {
               fullWidth
               variant="contained"
               size="large"
+              disabled={loading}
               onClick={handleContinue}
               sx={{
                 bgcolor: '#2F6B8E',
                 color: 'white',
+                
                 py: 1.5,
                 mb: 2,
                 textTransform: 'none',
@@ -304,12 +465,21 @@ export default function ResetPasswordPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {showPassword ?  <VisibilityOutlinedIcon/> : <VisibilityOffOutlinedIcon />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
+            {
+              passwordErrors && passwordErrors.map((err)=>{
+                return(
+                  <Typography color="error" variant="body2" sx={{fontSize:"0.9rem", textAlign: "left",fontWeight:400 }}>
+                    {err}
+                  </Typography>
+                )
+              })
+            }
             <TextField
               fullWidth
               label="Re-enter New Password"
@@ -324,7 +494,7 @@ export default function ResetPasswordPage() {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowReEnterPassword(!showReEnterPassword)} edge="end">
-                      {showReEnterPassword ? <VisibilityOff /> : <Visibility />}
+                      {showReEnterPassword ?  <VisibilityOutlinedIcon/> : <VisibilityOffOutlinedIcon /> }
                     </IconButton>
                   </InputAdornment>
                 ),

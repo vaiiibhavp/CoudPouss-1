@@ -1,27 +1,33 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, Button, Divider } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import Image from "next/image";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 export default function ManageSubscription() {
   return (
     <Box
       sx={{
-        p: 4,
-        bgcolor: "white",
-        borderRadius: 2,
-        border: "0.0625rem solid #E5E7EB",
-        boxShadow: "0 0.0625rem 0.1875rem rgba(0,0,0,0.1)",
+        p: { xs: "1.25rem 1rem", sm: "1.25rem 1.5rem", md: "1.25rem 1.5rem" }, // 20px top/bottom, 24px left/right
+        bgcolor: "#FFFFFF",
+        borderRadius: "0.75rem", // 12px
+        border: "1px solid #DBE0E5",
         width: "100%",
-        minHeight: "calc(100vh - 18.75rem)",
+        minHeight: { xs: "auto", md: "calc(100vh - 18.75rem)" },
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.375rem", // 22px
       }}
     >
       <Typography
-        variant="h6"
-        fontWeight="600"
-        sx={{ color: "#2F6B8E", mb: 3 }}
+        sx={{
+          fontWeight: 700,
+          fontSize: { xs: "1.0625rem", sm: "1.125rem", md: "1.1875rem" }, // 17px mobile, 18px tablet, 19px desktop
+          lineHeight: "1.25rem", // 20px
+          letterSpacing: "1%",
+          verticalAlign: "middle",
+          color: "#323232",
+        }}
       >
         Active Plan
       </Typography>
@@ -30,18 +36,21 @@ export default function ManageSubscription() {
       <Box
         sx={{
           display: "flex",
-          gap: 2,
-          p: 2.5,
-          mb: 4,
-          bgcolor: "#FEF3C7",
-          border: "0.0625rem solid #FCD34D",
-          borderRadius: 2,
+          gap: { xs: "1rem", sm: "1.5rem", md: "2rem" }, // 16px mobile, 24px tablet, 32px desktop
+          p: {
+            xs: "1.5rem 1.25rem",
+            sm: "1.875rem 2rem",
+            md: "1.875rem 2.5rem",
+          }, // 30px top/bottom, 40px left/right
+          bgcolor: "rgba(247, 159, 27, 0.18)", // #F79F1B with 18% opacity
+          border: "1px solid #F79F1B",
+          borderRadius: "0.625rem", // 10px
         }}
       >
         <Box
           sx={{
-            width: 48,
-            height: 48,
+            width: { xs: 40, sm: 48 },
+            height: { xs: 40, sm: 48 },
             flexShrink: 0,
             position: "relative",
           }}
@@ -51,7 +60,7 @@ export default function ManageSubscription() {
             alt="Important"
             width={48}
             height={48}
-            style={{ objectFit: "contain" }}
+            style={{ objectFit: "contain", width: "100%", height: "100%" }}
           />
         </Box>
         <Box>
@@ -76,206 +85,313 @@ export default function ManageSubscription() {
           </Typography>
         </Box>
       </Box>
-
-      {/* Summary Section */}
-      <Typography
-        variant="h6"
-        fontWeight="600"
-        sx={{ color: "#1F2937", mb: 3 }}
-      >
-        Summary
-      </Typography>
-
-      {/* Plan Details */}
       <Box
         sx={{
+          borderRadius: "0.75rem", // 12px
+          border: "1px solid rgba(219, 224, 229, 0.4)", // #DBE0E5 with 40% opacity
+          padding: { xs: "1rem", sm: "1.25rem", md: "1.5rem" }, // 16px mobile, 20px tablet, 24px desktop
+          gap: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" }, // 20px mobile, 24px tablet, 28px desktop
+          bgcolor: "#FFFFFF",
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          mb: 3,
+          flexDirection: "column",
         }}
       >
-        <Box>
-          <Typography
-            variant="h6"
-            fontWeight="600"
-            sx={{ color: "#1F2937", mb: 1 }}
+        {/* Summary Section */}
+        <Typography
+          sx={{
+            fontWeight: 700,
+            fontSize: { xs: "1.0625rem", sm: "1.125rem", md: "1.1875rem" }, // 17px mobile, 18px tablet, 19px desktop
+            lineHeight: "1.25rem", // 20px
+            letterSpacing: "1%",
+            verticalAlign: "middle",
+            color: "#323232",
+          }}
+        >
+          Summary
+        </Typography>
+
+        {/* Plan Details */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            justifyContent: "space-between",
+            alignItems: { xs: "flex-start", md: "flex-start" },
+            mb: 3,
+            gap: { xs: 2, md: "20px" },
+          }}
+        >
+          <Box
+            sx={{
+              borderRadius: "0.75rem", // 12px
+              border: "1px solid rgba(219, 224, 229, 0.4)", // #DBE0E5 with 40% opacity
+              padding: { xs: "1rem 1.25rem", sm: "1.125rem 1.375rem", md: "1.188rem 1.5rem" },
+              gap: "1.188rem", // 28px
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              width: { xs: "100%", md: "100%" },
+            }}
           >
-            Professional (Certified)
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
             <Typography
-              variant="h4"
-              fontWeight="700"
-              sx={{ color: "#2F6B8E" }}
+              sx={{
+                fontWeight: 700,
+                fontSize: { xs: "1.0625rem", sm: "1.125rem", md: "1.1875rem" }, // 17px mobile, 18px tablet, 19px desktop
+                lineHeight: "1.25rem", // 20px
+                letterSpacing: "1%",
+                verticalAlign: "middle",
+                color: "#323232",
+              }}
             >
-              €15.99
+              Professional (Certified)
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: "#6B7280" }}
-            >
-              Monthly
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box sx={{ display: "flex", gap: 4, alignItems: "flex-start" }}>
-          <Box>
-            <Typography
-              variant="body2"
-              sx={{ color: "#6B7280", mb: 0.5, fontSize: "0.875rem" }}
-            >
-              Next Payment
-            </Typography>
-            <Typography
-              variant="body1"
-              fontWeight="500"
-              sx={{ color: "#1F2937" }}
-            >
-              September 1, 2024
-            </Typography>
-          </Box>
-
-          <Box>
-            <Typography
-              variant="body2"
-              sx={{ color: "#6B7280", mb: 0.5, fontSize: "0.875rem" }}
-            >
-              Payment Method
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Box
+            <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
+              <Typography
                 sx={{
-                  width: 32,
-                  height: 20,
-                  bgcolor: "#FF5F00",
-                  borderRadius: 0.5,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
+                  color: "#214C65",
+                  fontWeight: 800,
+                  fontSize: { xs: "1.5rem", sm: "1.625rem", md: "1.688rem" }, // 24px mobile, 26px tablet, 27px desktop
+                  lineHeight: "2rem",
                 }}
               >
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
-                    bgcolor: "#EB001B",
-                    position: "absolute",
-                    left: 4,
-                  }}
-                />
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
-                    bgcolor: "#F79E1B",
-                    position: "absolute",
-                    right: 4,
-                  }}
-                />
-              </Box>
+                €15.99
+              </Typography>
               <Typography
-                variant="body1"
-                fontWeight="500"
-                sx={{ color: "#1F2937" }}
+                sx={{
+                  fontWeight: 500,
+                  fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" }, // 14px mobile, 15px tablet, 16px desktop
+                  lineHeight: "1.125rem", // 18px
+                  letterSpacing: "0%",
+                  verticalAlign: "middle",
+                  color: "#214C65",
+                }}
               >
-                Credit Card
+                Monthly
               </Typography>
             </Box>
           </Box>
 
-          <Box>
-            <Typography
-              variant="body2"
-              sx={{ color: "#6B7280", mb: 0.5, fontSize: "0.875rem" }}
-            >
-              Total
-            </Typography>
-            <Typography
-              variant="body1"
-              fontWeight="600"
-              sx={{ color: "#1F2937" }}
-            >
-              €15.99
-            </Typography>
+          <Box
+            sx={{
+              borderRadius: "0.75rem", // 12px
+              border: "1px solid rgba(219, 224, 229, 0.4)", // #DBE0E5 with 40% opacity
+              px: { xs: "1rem", sm: "1.25rem", md: "1.5rem" }, // 16px mobile, 20px tablet, 24px desktop
+              py: { xs: "1.25rem", sm: "1.5rem", md: "1.625rem" }, // 20px mobile, 24px tablet, 26px desktop
+              gap: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" }, // 20px mobile, 24px tablet, 28px desktop
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: { xs: "flex-start", sm: "flex-start" },
+              width: { xs: "100%", md: "auto" },
+            }}
+          >
+            <Box>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "0.875rem", // 14px
+                  lineHeight: "1.125rem", // 18px
+                  letterSpacing: "0%",
+                  color: "#555555",
+                  mb: { xs: "0.75rem", sm: "1rem" },
+                  textWrap: { xs: "wrap", sm: "nowrap" },
+                }}
+              >
+                Next Payment
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: "0.875rem", // 14px
+                  lineHeight: "1rem", // 16px
+                  letterSpacing: "0%",
+                  color: "#0F232F",
+                  textWrap: { xs: "wrap", sm: "nowrap" },
+                }}
+              >
+                September 1, 2024
+              </Typography>
+            </Box>
+
+            <Box>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "0.875rem", // 14px
+                  lineHeight: "1.125rem", // 18px
+                  letterSpacing: "0%",
+                  color: "#555555",
+                  mb: { xs: "0.75rem", sm: "1rem" },
+                  textWrap: { xs: "wrap", sm: "nowrap" },
+                }}
+              >
+                Payment Method
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 20,
+                    borderRadius: 0.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                  }}
+                >
+                  <Image
+                  
+                  alt="masterCard"
+                  width={36}
+                  height={22}
+                  src="/icons/masterCard.png"
+                  />
+                </Box>
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "0.875rem", // 14px
+                    lineHeight: "1rem", // 16px
+                    letterSpacing: "0%",
+                    color: "#0F232F",
+                    textWrap: { xs: "wrap", sm: "nowrap" },
+                  }}
+                >
+                  Credit Card
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: "0.875rem", // 14px
+                  lineHeight: "1.125rem", // 18px
+                  letterSpacing: "0%",
+                  color: "#555555",
+                  mb: { xs: "0.75rem", sm: "1rem" },
+                  textWrap: { xs: "wrap", sm: "nowrap" },
+                }}
+              >
+                Total
+              </Typography>
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: "0.875rem", // 14px
+                  lineHeight: "1rem", // 16px
+                  letterSpacing: "0%",
+                  color: "#0F232F",
+                  textWrap: { xs: "wrap", sm: "nowrap" },
+                }}
+              >
+                €15.99
+              </Typography>
+            </Box>
           </Box>
         </Box>
-      </Box>
 
-      {/* Renew Plan Button */}
-      <Button
-        variant="contained"
-        sx={{
-          bgcolor: "#2F6B8E",
-          color: "white",
-          textTransform: "none",
-          px: 4,
-          py: 1.5,
-          fontSize: "1rem",
-          fontWeight: "500",
-          borderRadius: 2,
-          mb: 3,
-          "&:hover": {
-            bgcolor: "#1e4a5f",
-          },
-        }}
-      >
-        Renew Plan
-      </Button>
+        {/* Renew Plan Button */}
+        <Button
+          variant="contained"
+          sx={{
+            bgcolor: "#214C65",
+            color: "white",
+            textTransform: "none",
+            paddingTop: "10px",
+            paddingRight: { xs: "2rem", sm: "3rem", md: "60px" }, // 32px mobile, 48px tablet, 60px desktop
+            paddingBottom: "10px",
+            paddingLeft: { xs: "2rem", sm: "3rem", md: "60px" }, // 32px mobile, 48px tablet, 60px desktop
+            fontSize: { xs: "0.9rem", sm: "1rem" },
+            fontWeight: "500",
+            borderRadius: "12px",
+            width: { xs: "100%", sm: "fit-content" },
+            gap: "10px",
+            "&:hover": {
+              bgcolor: "#1a3d52",
+            },
+          }}
+        >
+          Renew Plan
+        </Button>
 
-      {/* Description */}
-      <Typography
-        variant="body2"
-        sx={{ color: "#6B7280", mb: 4, lineHeight: 1.6 }}
-      >
-        Enjoy exclusive benefits with your Premium Membership. From enhanced
-        features to priority support, this plan unlocks the full experience
-        tailored just for you.
-      </Typography>
+        {/* Description */}
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 400,
+            fontSize: { xs: "14px", sm: "16px" },
+            lineHeight: "140%",
+            letterSpacing: "0%",
+            color: "#555555",
+            mb: { xs: 3, sm: 4 },
+          }}
+        >
+          Enjoy exclusive benefits with your Premium Membership. From enhanced
+          features to priority support, this plan unlocks the full experience
+          tailored just for you.
+        </Typography>
 
-      <Divider sx={{ mb: 3 }} />
+       
 
-      {/* Benefits Section */}
-      <Typography
-        variant="h6"
-        fontWeight="600"
-        sx={{ color: "#1F2937", mb: 3 }}
-      >
-        Benefits
-      </Typography>
+        {/* Benefits Section */}
+        <Typography
+          sx={{
+            fontWeight: 700,
+            fontSize: { xs: "17px", sm: "19px" },
+            lineHeight: "20px",
+            letterSpacing: "1%",
+            verticalAlign: "middle",
+            color: "#323232",
+          }}
+        >
+          Benefits
+        </Typography>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {[
-          "Earn money through CoudPouss (secure escrow payments)",
-          "Certified Badge visible to all clients",
-          "Includes 1 service category, +€1 per extra category",
-          "Subscription billed via Bank Card, Google Pay, or Apple Pay",
-          "Profile reviewed within 72 hours by an administrator",
-        ].map((benefit, index) => (
-          <Box
-            key={index}
-            sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}
-          >
-            <CheckCircleIcon
-              sx={{
-                color: "#2F6B8E",
-                fontSize: "1.25rem",
-                mt: 0.2,
-                flexShrink: 0,
-              }}
-            />
-            <Typography
-              variant="body1"
-              sx={{ color: "#374151", lineHeight: 1.6 }}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 1.5, sm: 2 } }}>
+          {[
+            "Earn money through CoudPouss (secure escrow payments)",
+            "Certified Badge visible to all clients",
+            "Includes 1 service category, +€1 per extra category",
+            "Subscription billed via Bank Card, Google Pay, or Apple Pay",
+            "Profile reviewed within 72 hours by an administrator",
+          ].map((benefit, index) => (
+            <Box
+              key={index}
+              sx={{ display: "flex", alignItems: "flex-start", gap: { xs: 1, sm: 1.5 } }}
             >
-              {benefit}
-            </Typography>
-          </Box>
-        ))}
+              <Box
+                sx={{
+                  width: 18,
+                  height: 18,
+                  flexShrink: 0,
+                  position: "relative",
+                  mt: 0.125,
+                }}
+              >
+                <Image
+                  src="/icons/verify.png"
+                  alt="Benefit"
+                  width={18}
+                  height={18}
+                  style={{ objectFit: "contain" }}
+                />
+              </Box>
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: { xs: "14px", sm: "16px" },
+                  lineHeight: "150%",
+                  letterSpacing: "0%",
+                  color: "#323232",
+                }}
+              >
+                {benefit}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
       </Box>
     </Box>
   );

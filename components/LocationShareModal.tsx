@@ -30,7 +30,7 @@ export default function LocationShareModal({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          p: 2,
+          py: "2.5rem",
         },
       }}
     >
@@ -41,15 +41,15 @@ export default function LocationShareModal({
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            py: 2,
+            
           }}
         >
           {/* Location Icon */}
           <Box
             sx={{
               mb: 3,
-              width: 80,
-              height: 80,
+              width: 60,
+              height: 60,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -66,11 +66,14 @@ export default function LocationShareModal({
 
           {/* Message */}
           <Typography
-            variant="body1"
             sx={{
-              color: "#374151",
+              color: "#0F232F",
+              fontWeight: 400,
+              fontSize: "1.25rem",
+              lineHeight: "100%",
+              letterSpacing: 0,
+              textAlign: "center",
               mb: 4,
-              lineHeight: 1.6,
               px: 2,
             }}
           >
@@ -82,7 +85,7 @@ export default function LocationShareModal({
           <Box
             sx={{
               display: "flex",
-              gap: 2,
+              gap: "1rem",
               width: "100%",
               px: 2,
             }}
@@ -92,14 +95,18 @@ export default function LocationShareModal({
               fullWidth
               onClick={onClose}
               sx={{
-                borderColor: "#D1D5DB",
-                color: "#6B7280",
+              borderColor: "#214C65",
+              color: "#214C65",
                 textTransform: "none",
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
+              py: "0.625rem",
+              px: "1rem",
+              borderRadius: "0.75rem",
+              fontWeight: 400,
+              fontSize: "1rem",
+              lineHeight: "140%",
+              letterSpacing: 0,
                 "&:hover": {
-                  borderColor: "#9CA3AF",
+                borderColor: "#214C65",
                   bgcolor: "transparent",
                 },
               }}
@@ -107,18 +114,22 @@ export default function LocationShareModal({
               No
             </Button>
             <Button
-              variant="contained"
+              variant="contained" 
               fullWidth
               onClick={onConfirm}
               sx={{
-                bgcolor: "#2F6B8E",
-                color: "white",
+                bgcolor: "#214C65",
+                color: "#FFFFFF",
                 textTransform: "none",
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
+                py: "0.625rem",
+                px: "1rem",
+                borderRadius: "0.75rem",
+                fontWeight: 700,
+                fontSize: "1.1875rem",
+                lineHeight: "1.25rem",
+                letterSpacing: "0.01em",
                 "&:hover": {
-                  bgcolor: "#25608A",
+                  bgcolor: "#1b3f55",
                 },
               }}
             >

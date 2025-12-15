@@ -61,6 +61,50 @@ export function validateLoginForm(emailOrMobile: string, password: string): {
   };
 }
 
+export const parseMobile = (value: string) => {
+  const validCountryCodes = ["1", "44", "91", "61", "81"]; // add all you want
+
+  const cleaned = value.replace(/\s|-/g, "");
+
+  if (cleaned.startsWith("+")) {
+    for (let code of validCountryCodes.sort((a, b) => b.length - a.length)) {
+      // try longest codes first
+      if (cleaned.startsWith(`+${code}`)) {
+        return {
+          countryCode: `+${code}`,
+          mobile: cleaned.slice(code.length + 1), // remove + and code
+        };
+      }
+    }
+  }
+
+  // Case 2: plain 10-digit mobile → default country (India)
+  if (/^\d{10}$/.test(cleaned)) {
+    return {
+      countryCode: "+91",
+      mobile: cleaned,
+    };
+  }
+
+  return null;
+};
+
+export const buildInputData = (emailOrMobile: string) => {
+  if (isValidEmail(emailOrMobile)) {
+    return { email: emailOrMobile };
+  }
+
+  const mobileData = parseMobile(emailOrMobile);
+  if (mobileData) {
+    return {
+      mobile: mobileData.mobile,
+      phone_country_code: mobileData.countryCode,
+    };
+  }
+
+  throw new Error("Invalid email or mobile input");
+};
+
 export function validateSignupForm(data: {
   email: string;
   password: string;
