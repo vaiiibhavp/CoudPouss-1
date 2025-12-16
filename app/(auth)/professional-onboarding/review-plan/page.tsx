@@ -16,31 +16,41 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
 
+interface Plan {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  duration: string;
+  description: string;
+  features: string[];
+}
+
 export default function ReviewPlanPage() {
   const router = useRouter();
-  const [plan, setPlan] = useState({
-    name: "Professional (Certified)",
-    price: "€15.99",
-    period: "/month",
-  });
+  const [plan, setPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const planDetailsStr = sessionStorage.getItem("selected_plan_details");
       if (planDetailsStr) {
-        setPlan(JSON.parse(planDetailsStr));
+        try {
+          const parsedPlan = JSON.parse(planDetailsStr);
+          setPlan(parsedPlan);
+        } catch (error) {
+          console.error("Error parsing plan details:", error);
+        }
       }
     }
   }, []);
 
-  const features = [
-    "Can charge through CoudPouss (even after 30 days)",
-    "Unlimited leads",
-    "Unlimited 1-on-1 contact, 24/7 service support",
-    "Includes 5 service categories, +€3 per extra category",
-    "Subscription billed on a 30-day cycle, Pay on Completion",
-    "Profile Unlimited within 72 hours for all Assistances",
-  ];
+  const formatPrice = (price: number) => {
+    return `€${price.toFixed(2)}`;
+  };
+
+  const formatDuration = (duration: string) => {
+    return duration.charAt(0).toUpperCase() + duration.slice(1);
+  };
 
   const handleBack = () => {
     router.back();
@@ -161,84 +171,111 @@ export default function ReviewPlanPage() {
               </Typography>
 
               {/* Plan Details */}
-              <Paper
-                elevation={0}
-                sx={{
-                  border: "0.0625rem solid rgba(204, 204, 204, 0.4)",
-                  borderRadius: "0.75rem",
-                  paddingTop: "1.5rem",
-                  paddingRight: "1.25rem",
-                  paddingBottom: "1.5rem",
-                  paddingLeft: "1.25rem",
-                  gap: "0.75rem",
-                  mb: 3,
-                }}
-              >
-                <Typography
+              {plan ? (
+                <Paper
+                  elevation={0}
                   sx={{
-                    fontWeight: 600,
-                    fontSize: "1.1875rem",
-                    lineHeight: "1.25rem",
-                    letterSpacing: "1%",
-                    color: "#214C65",
+                    border: "0.0625rem solid rgba(204, 204, 204, 0.4)",
+                    borderRadius: "0.75rem",
+                    paddingTop: "1.5rem",
+                    paddingRight: "1.25rem",
+                    paddingBottom: "1.5rem",
+                    paddingLeft: "1.25rem",
+                    gap: "0.75rem",
+                    mb: 3,
                   }}
-                  gutterBottom
                 >
-                  {plan.name}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: "1.6875rem",
-                    lineHeight: "2rem",
-                    letterSpacing: "3%",
-                    color: "#214C65",
-                  }}
-                  gutterBottom
-                >
-                  {plan.price}
                   <Typography
-                    component="span"
                     sx={{
-                      fontWeight: 400,
-                      fontSize: "1rem",
-                      lineHeight: "1.125rem",
-                      letterSpacing: "0%",
+                      fontWeight: 600,
+                      fontSize: "1.1875rem",
+                      lineHeight: "1.25rem",
+                      letterSpacing: "1%",
                       color: "#214C65",
                     }}
+                    gutterBottom
                   >
-                    {plan.period}
+                    {plan.name}
                   </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "1.6875rem",
+                      lineHeight: "2rem",
+                      letterSpacing: "3%",
+                      color: "#214C65",
+                    }}
+                    gutterBottom
+                  >
+                    {formatPrice(plan.price)}
+                    <Typography
+                      component="span"
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: "1rem",
+                        lineHeight: "1.125rem",
+                        letterSpacing: "0%",
+                        color: "#214C65",
+                      }}
+                    >
+                      /month
+                    </Typography>
+                  </Typography>
+
+                  {plan.description && (
+                    <Typography
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: "0.875rem",
+                        lineHeight: "140%",
+                        color: "#939393",
+                        mt: 1,
+                        mb: 2,
+                      }}
+                    >
+                      {plan.description}
+                    </Typography>
+                  )}
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <List dense disablePadding>
+                    {plan.features && plan.features.length > 0 ? (
+                      plan.features.map((feature, index) => (
+                        <ListItem key={index} sx={{ px: 0, py: 0.5 }}>
+                          <Image
+                            src="/icons/verify.png"
+                            alt="verify"
+                            width={18}
+                            height={18}
+                            style={{ marginRight: "0.5rem" }}
+                          />
+                          <ListItemText
+                            primary={feature}
+                            primaryTypographyProps={{
+                              sx: {
+                                fontWeight: 500,
+                                fontSize: "1rem",
+                                lineHeight: "150%",
+                                letterSpacing: "0%",
+                                color: "#424242",
+                              },
+                            }}
+                          />
+                        </ListItem>
+                      ))
+                    ) : (
+                      <Typography sx={{ color: "text.secondary", fontStyle: "italic" }}>
+                        No features listed
+                      </Typography>
+                    )}
+                  </List>
+                </Paper>
+              ) : (
+                <Typography sx={{ mb: 3, color: "text.secondary" }}>
+                  No plan selected. Please go back and select a plan.
                 </Typography>
-
-                <Divider sx={{ my: 2 }} />
-
-                <List dense disablePadding>
-                  {features.map((feature, index) => (
-                    <ListItem key={index} sx={{ px: 0, py: 0.5 }}>
-                      <Image
-                        src="/icons/verify.png"
-                        alt="verify"
-                        width={18}
-                        height={18}
-                        style={{ marginRight: "0.5rem" }}
-                      />
-                      <ListItemText
-                        primary={feature}
-                        primaryTypographyProps={{
-                          sx: {
-                            fontWeight: 500,
-                            fontSize: "1rem",
-                            lineHeight: "150%",
-                            letterSpacing: "0%",
-                            color: "#424242",
-                          },
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
+              )}
 
               {/* Buttons */}
               <Box sx={{ display: "flex", gap: 2 }}>
@@ -266,14 +303,19 @@ export default function ReviewPlanPage() {
                   variant="contained"
                   size="large"
                   onClick={handleSubscribe}
+                  disabled={!plan}
                   sx={{
-                    bgcolor: "primary.dark",
+                    bgcolor: "#214C65",
                     color: "white",
                     py: 1.5,
                     textTransform: "none",
                     fontSize: "1rem",
                     "&:hover": {
                       bgcolor: "#25608A",
+                    },
+                    "&:disabled": {
+                      bgcolor: "#ccc",
+                      color: "#666",
                     },
                   }}
                 >

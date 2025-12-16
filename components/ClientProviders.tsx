@@ -3,10 +3,10 @@
 import React from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ThemeProvider from '@/components/providers/ThemeProvider';
-import AuthProvider from './AuthProvider';
+import AuthProvider from '@/components/providers/AuthProvider';
 import ReduxProvider from '@/lib/redux/ReduxProvider';
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <ReduxProvider>
       <ErrorBoundary>

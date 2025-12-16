@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -13,6 +13,18 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { apiPost } from "@/lib/api";
+import { parseMobile, buildInputData } from "@/utils/validation";
+import { API_ENDPOINTS } from "@/constants/api";
+
+interface SignUpApiError {
+  [key: string]: string;
+}
+
+interface SignUpApiResponse {
+  data: any | null;
+  error: SignUpApiError | null;
+}
 
 export default function ProfessionalAddDetailsPage() {
   const router = useRouter();
@@ -22,9 +34,23 @@ export default function ProfessionalAddDetailsPage() {
     email: "",
     address: "",
     profilePicture: null as File | null,
+    emailOrMobile: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get emailOrMobile from sessionStorage
+    const contact = sessionStorage.getItem("professional_contact");
+    if (contact) {
+      setFormData((prev) => ({ ...prev, emailOrMobile: contact }));
+    } else {
+      // If no contact found, redirect back to enter-contact
+      router.push(ROUTES.SIGNUP_PROFESSIONAL_ENTER_CONTACT);
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,33 +60,169 @@ export default function ProfessionalAddDetailsPage() {
     }
   };
 
+  const handleProfilePictureChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setProfilePicturePreview(previewUrl);
+      setFormData((prev) => ({ ...prev, profilePicture: file }));
+
+      // Clear any previous errors
+      if (errors.profilePicture) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.profilePicture;
+          return newErrors;
+        });
+      }
+
+      // Note: Upload will happen on form submit when email is available
+      // This allows user to select photo first, then enter email
+    }
+  };
+
+  const uploadProfileImage = async (file: File, email: string): Promise<boolean> => {
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("email", email);
+
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+      const url = `${API_BASE_URL}${API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC}`;
+
+      // Get access token from Redux (lazy import to avoid circular dependency)
+      let storeInstance: any = null;
+      function getStore() {
+        if (!storeInstance) {
+          const storeModule = require('@/lib/redux/store');
+          storeInstance = storeModule.store;
+        }
+        return storeInstance;
+      }
+      const store = getStore();
+      const { accessToken } = store.getState().auth;
+      const token = accessToken;
+
+      const headers: HeadersInit = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const errorMsg = data?.message || `HTTP error! status: ${response.status}`;
+        setErrors({ profilePicture: errorMsg });
+        return false;
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error("Profile photo upload error:", error);
+      setErrors({ profilePicture: error.message || "Failed to upload profile picture" });
+      return false;
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const apiCallToCreateAccount = async (): Promise<SignUpApiResponse> => {
+    try {
+      let payload = {};
+      let url = API_ENDPOINTS.AUTH.CREATE_ACCOUNT;
+      const mobileData = parseMobile(formData.mobileNo);
+
+      payload = {
+        email: formData.email || "",
+        address: formData.address,
+        name: formData.name,
+        role: "service_provider",
+        mobile: (mobileData && mobileData.mobile) || "",
+        phone_country_code: (mobileData && mobileData.countryCode) || "",
+      };
+
+      const response = await apiPost(url, payload);
+
+      if (response.success && response.data) {
+        return { data: response.data, error: null };
+      } else {
+        let error: SignUpApiError = {};
+        if (response.error) {
+          error = { submit: response.error.message || "Something went wrong." };
+        }
+        return {
+          data: null,
+          error: Object.keys(error).length > 0 ? error : { general: "Something went wrong" },
+        };
+      }
+    } catch (error: any) {
+      return {
+        data: null,
+        error: { general: error.message || "Something went wrong" },
+      };
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Get data from sessionStorage
-      const contact = sessionStorage.getItem("professional_contact");
-      const otp = sessionStorage.getItem("professional_otp");
-      const password = sessionStorage.getItem("professional_password");
+      // Get email from form or emailOrMobile
+      let email = formData.email;
+      if (!email && formData.emailOrMobile) {
+        const validData = buildInputData(formData.emailOrMobile);
+        if (validData.email) {
+          email = validData.email;
+        }
+      }
 
-      // TODO: Implement actual signup API call
-      console.log("Professional Signup data:", {
-        userType: "professional",
-        contact,
-        otp,
-        password,
-        ...formData,
-      });
+      // Upload profile picture if it exists and email is available
+      if (formData.profilePicture && email) {
+        const uploadSuccess = await uploadProfileImage(formData.profilePicture, email);
+        if (!uploadSuccess) {
+          setLoading(false);
+          return;
+        }
+      }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      let { data, error } = await apiCallToCreateAccount();
 
-      // Clear signup sessionStorage
-      sessionStorage.removeItem("professional_contact");
-      sessionStorage.removeItem("professional_otp");
-      sessionStorage.removeItem("professional_password");
+      if (data) {
+        // Clear signup sessionStorage
+        sessionStorage.removeItem("professional_contact");
+        sessionStorage.removeItem("professional_otp");
+        sessionStorage.removeItem("professional_password");
 
-      // Redirect to professional onboarding
-      router.push(ROUTES.PROFESSIONAL_ONBOARDING_SELECT_PLAN);
+        // Clean up preview URL
+        if (profilePicturePreview) {
+          URL.revokeObjectURL(profilePicturePreview);
+        }
+
+        // Redirect to professional onboarding
+        router.push(ROUTES.PROFESSIONAL_ONBOARDING_SELECT_PLAN);
+      } else {
+        if (error) {
+          const errorMsg = error.general || error.msg || "Something Went Wrong";
+          if (errorMsg.includes("Name is required")) {
+            setErrors({ name: errorMsg });
+          } else if (errorMsg.includes("Address")) {
+            setErrors({ address: errorMsg });
+          } else if (errorMsg.includes("country code") || errorMsg.includes("Mobile")) {
+            setErrors({ mobileNo: errorMsg });
+          } else if (errorMsg.includes("email")) {
+            setErrors({ email: errorMsg });
+          } else {
+            setErrors({ submit: errorMsg });
+          }
+        }
+      }
     } catch (error) {
       console.error("Signup error:", error);
       setErrors({ submit: "Something went wrong. Please try again." });
@@ -78,7 +240,7 @@ export default function ProfessionalAddDetailsPage() {
       }}
     >
       {/* Header Bar */}
-      <Box
+      {/* <Box
         sx={{
           position: "absolute",
           top: 0,
@@ -95,7 +257,7 @@ export default function ProfessionalAddDetailsPage() {
         <Typography variant="body1" fontWeight="500">
           04_Add Details
         </Typography>
-      </Box>
+      </Box> */}
 
       {/* Left side - Image Section */}
       <Box
@@ -216,9 +378,18 @@ export default function ProfessionalAddDetailsPage() {
                     justifyContent: "center",
                     mb: 1,
                     border: "3px solid primary.dark",
+                    overflow: "hidden",
+                    position: "relative",
                   }}
                 >
-                  {formData.profilePicture ? (
+                  {profilePicturePreview ? (
+                    <Image
+                      src={profilePicturePreview}
+                      alt="Profile preview"
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+                  ) : formData.profilePicture ? (
                     <Typography variant="h4" sx={{ color: "primary.dark" }}>
                       {formData.name.charAt(0).toUpperCase()}
                       {formData.name.split(" ")[1]?.charAt(0).toUpperCase() || ""}
@@ -229,6 +400,16 @@ export default function ProfessionalAddDetailsPage() {
                     </Typography>
                   )}
                 </Box>
+                {errors.profilePicture && (
+                  <Typography color="error" variant="body2" sx={{ mt: 1, textAlign: "center" }}>
+                    {errors.profilePicture}
+                  </Typography>
+                )}
+                {uploadingPhoto && (
+                  <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
+                    Uploading...
+                  </Typography>
+                )}
                 <Typography
                   onClick={(e) => {
                     e.preventDefault();
@@ -252,12 +433,8 @@ export default function ProfessionalAddDetailsPage() {
                   type="file"
                   accept="image/*"
                   style={{ display: "none" }}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFormData((prev) => ({ ...prev, profilePicture: file }));
-                    }
-                  }}
+                  onChange={handleProfilePictureChange}
+                  disabled={uploadingPhoto}
                 />
               </Box>
               <Box sx={{

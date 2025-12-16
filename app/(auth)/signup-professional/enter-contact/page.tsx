@@ -13,6 +13,18 @@ import {
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { apiPost } from "@/lib/api";
+import { buildInputData } from "@/utils/validation";
+import { API_ENDPOINTS } from "@/constants/api";
+
+interface SignUpApiError {
+  [key: string]: string;
+}
+
+interface SignUpApiResponse {
+  data: any | null;
+  error: SignUpApiError | null;
+}
 
 export default function ProfessionalEnterContactPage() {
   const router = useRouter();
@@ -20,6 +32,7 @@ export default function ProfessionalEnterContactPage() {
     emailOrMobile: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,14 +42,84 @@ export default function ProfessionalEnterContactPage() {
     }
   };
 
-  const handleContinue = () => {
+  const apiCallToSignUpUser = async (): Promise<SignUpApiResponse> => {
+    try {
+      let payload = {};
+      let url = API_ENDPOINTS.AUTH.START;
+      let validData = buildInputData(formData.emailOrMobile);
+
+      if (validData.email) {
+        payload = {
+          email: validData.email || "",
+          role: "service_provider",
+        };
+      } else {
+        payload = {
+          mobile: validData.mobile || "",
+          phone_country_code: validData.phone_country_code || "",
+          role: "service_provider",
+        };
+      }
+
+      const response = await apiPost(url, payload);
+
+      if (response.success && response.data) {
+        return { data: response.data, error: null };
+      } else {
+        let error: SignUpApiError = {};
+        if (response.error) {
+          error = { submit: response.error.message || "Something went wrong." };
+        }
+        return {
+          data: null,
+          error: Object.keys(error).length > 0 ? error : { general: "Something went wrong" },
+        };
+      }
+    } catch (error: any) {
+      return {
+        data: null,
+        error: { general: error.message || "Something went wrong" },
+      };
+    }
+  };
+
+  const handleContinue = async () => {
     if (!formData.emailOrMobile) {
       setErrors({ emailOrMobile: "Please enter email or mobile number" });
       return;
     }
-    // Store in sessionStorage to pass to next step
-    sessionStorage.setItem("professional_contact", formData.emailOrMobile);
-    router.push(ROUTES.SIGNUP_PROFESSIONAL_VERIFY_OTP);
+
+    setLoading(true);
+    let { data, error } = await apiCallToSignUpUser();
+
+    if (data) {
+      // Store in sessionStorage to pass to next step
+      sessionStorage.setItem("professional_contact", formData.emailOrMobile);
+      router.push(ROUTES.SIGNUP_PROFESSIONAL_VERIFY_OTP);
+    } else {
+      if (error) {
+        const errorMsg =
+          error.submit ||
+          error.otp ||
+          error.password ||
+          error.general ||
+          error.msg ||
+          "Something Went Wrong";
+        if (errorMsg.includes("OTP already sent")) {
+          sessionStorage.setItem("professional_contact", formData.emailOrMobile);
+          router.push(ROUTES.SIGNUP_PROFESSIONAL_VERIFY_OTP);
+        } else if (errorMsg.includes("OTP already verified")) {
+          sessionStorage.setItem("professional_contact", formData.emailOrMobile);
+          router.push(ROUTES.SIGNUP_PROFESSIONAL_CREATE_PASSWORD);
+        } else if (errorMsg.includes("Password already set")) {
+          sessionStorage.setItem("professional_contact", formData.emailOrMobile);
+          router.push(ROUTES.SIGNUP_PROFESSIONAL_ADD_DETAILS);
+        } else {
+          setErrors({ emailOrMobile: errorMsg });
+        }
+      }
+    }
+    setLoading(false);
   };
 
   return (
@@ -48,7 +131,7 @@ export default function ProfessionalEnterContactPage() {
       }}
     >
       {/* Header Bar */}
-      <Box
+      {/* <Box
         sx={{
           position: "absolute",
           top: 0,
@@ -65,7 +148,7 @@ export default function ProfessionalEnterContactPage() {
         <Typography variant="body1" fontWeight="500">
           01_Enter Contact
         </Typography>
-      </Box>
+      </Box> */}
 
       {/* Left side - Image Section */}
       <Box
@@ -196,6 +279,7 @@ export default function ProfessionalEnterContactPage() {
                 variant="contained"
                 size="large"
                 onClick={handleContinue}
+                disabled={loading}
                 sx={{
                   bgcolor: "primary.dark",
                   color: "white",
@@ -207,7 +291,7 @@ export default function ProfessionalEnterContactPage() {
                   },
                 }}
               >
-                Continue
+                {loading ? "Loading..." : "Continue"}
               </Button>
             </Box>
 

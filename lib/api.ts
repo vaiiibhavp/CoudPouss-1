@@ -3,12 +3,23 @@
  */
 
 import { ApiResponse } from '@/types';
-import { store } from '@/lib/redux/store';
 import { setTokens, logout } from '../lib/redux/authSlice';
 import { handleError, NetworkError } from '@/lib/errors';
 import { API_ENDPOINTS } from '@/constants/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+
+// Lazy import store to avoid circular dependency
+let storeInstance: any = null;
+function getStore() {
+  if (!storeInstance) {
+    // Use dynamic import to break circular dependency
+    const storeModule = require('@/lib/redux/store');
+    storeInstance = storeModule.store;
+  }
+  return storeInstance;
+}
+
 /**
  * Custom fetch wrapper with error handling
  */
@@ -19,7 +30,8 @@ async function apiRequest<T>(
   try {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
     
-     // Get access token from Redux
+     // Get access token from Redux (lazy import to avoid circular dependency)
+    const store = getStore();
     const { accessToken } = store.getState().auth;
     let token = accessToken;
 
