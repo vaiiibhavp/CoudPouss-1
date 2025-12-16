@@ -164,6 +164,8 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.accessTokenExpire = null;
       state.refreshTokenExpire = null;
+
+      document.cookie = "refreshToken=; path=/; max-age=0";
         
       // Clear localStorage on logout (mirroring login persistence)
       if (typeof window !== "undefined") {

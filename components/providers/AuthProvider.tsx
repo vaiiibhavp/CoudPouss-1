@@ -24,7 +24,7 @@ function AuthProvider({ children }: Props) {
   }, [dispatch]);
 
   if (!authInitialized) {
-      return <div>Checking authentication...</div>;
+      return <div></div>;
   }
 
   return <>{children}</>;

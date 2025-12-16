@@ -3,6 +3,7 @@
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+const API_HOME_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -22,7 +23,7 @@ export const API_ENDPOINTS = {
     VERIFY_EMAIL: `${API_BASE_URL}userService/auth/verify-email`,
   },
   HOME:{
-    HOME:`${API_BASE_URL}home`,
+    HOME:`http://localhost:3000/home`,
   },
   USER: {
     PROFILE: `${API_BASE_URL}/user/profile`,
