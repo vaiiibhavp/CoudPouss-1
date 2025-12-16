@@ -5,7 +5,6 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 
 export const API_ENDPOINTS = {
-
   AUTH: {
     LOGIN: `${API_BASE_URL}userService/auth/login`,
     START: `${API_BASE_URL}userService/auth/start`,
@@ -16,11 +15,14 @@ export const API_ENDPOINTS = {
     UPLOAD_PROFILE_PIC: `${API_BASE_URL}userService/auth/upload-profile-photo`,
     SIGNUP: `${API_BASE_URL}userService/auth/signup`,
     LOGOUT: `${API_BASE_URL}userService/auth/logout`,
-    REFRESH: `${API_BASE_URL}userService/auth/refresh`,
+    REFRESH: `${API_BASE_URL}userService/auth/refresh-token`,
     RESET_PASSWORD_START: `${API_BASE_URL}userService/auth/reset/start`,
     VERIFY_RESET_PASSWORD_OTP: `${API_BASE_URL}userService/auth/reset/verify`,
     RESET_PASSWORD: `${API_BASE_URL}userService/auth/reset/confirm`,
     VERIFY_EMAIL: `${API_BASE_URL}userService/auth/verify-email`,
+  },
+  HOME:{
+    HOME:`${API_BASE_URL}home`,
   },
   USER: {
     PROFILE: `${API_BASE_URL}/user/profile`,

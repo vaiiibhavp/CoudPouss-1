@@ -3,10 +3,12 @@
  */
 
 import { ApiResponse } from '@/types';
+import { store } from '@/lib/redux/store';
+import { setTokens, logout } from '../lib/redux/authSlice';
 import { handleError, NetworkError } from '@/lib/errors';
+import { API_ENDPOINTS } from '@/constants/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-
 /**
  * Custom fetch wrapper with error handling
  */
@@ -17,24 +19,36 @@ async function apiRequest<T>(
   try {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
     
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+     // Get access token from Redux
+    const { accessToken } = store.getState().auth;
+    let token = accessToken;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    let headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
     }
 
-    const data = await response.json();
-    return {
-      success: true,
-      data,
-    };
+        // Make the API request
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: {
+          message: data?.message || `HTTP error! status: ${response.status}`,
+          code: data?.code,
+          fields: data?.fields,
+        },
+      };
+    }
+    
+    return { success: true, data };
   } catch (error) {
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new NetworkError('Network request failed. Please check your connection.');

@@ -205,7 +205,7 @@ export default function HomePage() {
     },
     {
       id: 2,
-      image: "/icons/testimonilas-2.png",
+      image: "/icons/testimonilas-3.png",
       text: "Yourself required no at thoughts delicate landlord it be. Branched dashwood do is whatever it. Farther be chapter at visited married in it pressed. By distrusts procuring be oh frankness existence believing instantly if. Doubtful on an juvenile as of servants insisted.",
     },
     {
@@ -703,6 +703,8 @@ export default function HomePage() {
                     flexDirection: "row",
                     borderRadius: "1.25rem",
                     flexShrink: 0,
+                    width: { xs: "85%", md: "450px" },
+                    minWidth: { xs: "85%", md: "450px" },
                     scrollSnapAlign: "start",
                     userSelect: "none",
                     pointerEvents: isDragging ? "none" : "auto",
@@ -1301,8 +1303,9 @@ export default function HomePage() {
                   <Box
                     key={testimonial.id}
                     sx={{
-                      minWidth: { xs: "85%", md: "calc(33.333% - 2rem)" },
                       flexShrink: 0,
+                      minWidth: { xs: "85%", md: 600 },
+                      width: { xs: "85%", md: 600 },
                       scrollSnapAlign: "center",
                       display: "flex",
                       justifyContent: "center",
@@ -1318,7 +1321,6 @@ export default function HomePage() {
                         p: 4,
                         pt: 8,
                         position: "relative",
-                        maxWidth: 600,
                         width: "100%",
                         minHeight: 300,
                         display: "flex",
@@ -1336,8 +1338,8 @@ export default function HomePage() {
                           position: "absolute",
                           top: -50,
                           left: 20,
-                          width: 100,
-                          height: 100,
+                          width:100,
+                          height: 120,
                           borderRadius: "50%",
                           border: "0.25rem solid white",
                           overflow: "hidden",

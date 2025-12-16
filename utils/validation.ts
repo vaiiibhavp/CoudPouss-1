@@ -89,6 +89,12 @@ export const parseMobile = (value: string) => {
   return null;
 };
 
+export function getCookie(name: string): string | null {
+  if (typeof window === "undefined") return null;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
 export const buildInputData = (emailOrMobile: string) => {
   if (isValidEmail(emailOrMobile)) {
     return { email: emailOrMobile };

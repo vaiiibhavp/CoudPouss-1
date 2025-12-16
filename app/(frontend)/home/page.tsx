@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export default function AuthenticatedHomePage() {
   const router = useRouter();
@@ -30,11 +32,13 @@ export default function AuthenticatedHomePage() {
   useEffect(() => {
     const storedInitial = localStorage.getItem('userInitial');
     const storedEmail = localStorage.getItem('userEmail');
-
+    
     // If user details are not present, redirect to login
     if (!storedInitial || !storedEmail) {
       router.push(ROUTES.LOGIN);
     }
+
+    apiCallToGetHomeScreenDetails()
   }, [router]);
 
   // Service cards data
@@ -70,6 +74,11 @@ export default function AuthenticatedHomePage() {
       alt: "Kitchen Cleaning",
     },
   ];
+
+  const apiCallToGetHomeScreenDetails = async() => {
+    const response = await apiGet(API_ENDPOINTS.HOME.HOME)
+    console.log(response)
+  }
 
   // Touch handlers for carousel
   const handleTouchStart = (e: React.TouchEvent) => {

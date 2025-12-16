@@ -30,11 +30,11 @@ export default function RootLayout({
       <body
         className={`${lato.variable} antialiased`}
       >
-        <Providers>
-          <ReduxProvider>
-            {children}
-          </ReduxProvider>
-        </Providers>
+        <ReduxProvider>
+          <Providers>
+              {children}
+          </Providers>
+        </ReduxProvider>
       </body>
     </html>
   );
