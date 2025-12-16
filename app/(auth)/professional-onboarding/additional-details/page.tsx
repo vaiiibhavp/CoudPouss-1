@@ -12,6 +12,8 @@ import {
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { apiPatch } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export default function AdditionalDetailsPage() {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function AdditionalDetailsPage() {
     kbisExtract: null as File | null,
     proofOfResidence: null as File | null,
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,10 +42,47 @@ export default function AdditionalDetailsPage() {
     router.push(ROUTES.LOGIN);
   };
 
-  const handleContinue = () => {
-    // Save additional details
-    sessionStorage.setItem("additional_details", JSON.stringify(formData));
-    router.push(ROUTES.PROFESSIONAL_ONBOARDING_SELECT_CATEGORY);
+  const handleContinue = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // If experience is provided, call the API
+      if (formData.experience) {
+        const experienceValue = parseInt(formData.experience, 10);
+        if (isNaN(experienceValue) || experienceValue < 0) {
+          setError("Please enter a valid number of years");
+          setLoading(false);
+          return;
+        }
+
+        const response = await apiPatch(API_ENDPOINTS.AUTH.EXPERIENCE, {
+          years_of_experience: experienceValue,
+        });
+
+        if (!response.success) {
+          setError(response.error?.message || "Failed to save experience");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Save additional details (for file uploads, if needed later)
+      sessionStorage.setItem("additional_details", JSON.stringify({
+        ...formData,
+        // Don't store File objects in sessionStorage, just metadata
+        idCopy: formData.idCopy ? { name: formData.idCopy.name, size: formData.idCopy.size } : null,
+        kbisExtract: formData.kbisExtract ? { name: formData.kbisExtract.name, size: formData.kbisExtract.size } : null,
+        proofOfResidence: formData.proofOfResidence ? { name: formData.proofOfResidence.name, size: formData.proofOfResidence.size } : null,
+      }));
+
+      router.push(ROUTES.PROFESSIONAL_ONBOARDING_SELECT_CATEGORY);
+    } catch (err: any) {
+      console.error("Error saving experience:", err);
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -169,11 +210,20 @@ export default function AdditionalDetailsPage() {
               <TextField
                 fullWidth
                 name="experience"
-                placeholder="Experience"
+                type="number"
+                placeholder="Enter years of experience"
                 value={formData.experience}
                 onChange={handleChange}
+                error={!!error && error.includes("valid number")}
+                helperText={error && error.includes("valid number") ? error : ""}
+                inputProps={{ min: 0 }}
                 sx={{ mb: 3 }}
               />
+              {error && !error.includes("valid number") && (
+                <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+                  {error}
+                </Typography>
+              )}
 
               {/* A copy of ID */}
               <Typography
@@ -327,6 +377,7 @@ export default function AdditionalDetailsPage() {
                   variant="contained"
                   size="large"
                   onClick={handleContinue}
+                  disabled={loading}
                   sx={{
                     borderRadius: "0.75rem",
                     bgcolor: "#214C65",
@@ -341,9 +392,13 @@ export default function AdditionalDetailsPage() {
                     "&:hover": {
                       bgcolor: "#214C65",
                     },
+                    "&:disabled": {
+                      bgcolor: "#ccc",
+                      color: "#666",
+                    },
                   }}
                 >
-                  Next
+                  {loading ? "Saving..." : "Next"}
                 </Button>
               </Box>
             </Box>
