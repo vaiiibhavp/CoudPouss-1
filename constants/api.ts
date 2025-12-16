@@ -25,7 +25,6 @@ export const API_ENDPOINTS = {
   },
   HOME:{
     HOME:`http://localhost:3000/home`,
-    ALL_CATEGORIES: `${API_BASE_URL}home_module/all_categories`,
   },
   USER: {
     PROFILE: `${API_BASE_URL}/user/profile`,
