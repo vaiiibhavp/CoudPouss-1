@@ -1,20 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
   Container,
   Typography,
   Paper,
-  FormControlLabel,
-  Card,
-  CardContent,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
 import SuccessModal from "@/components/SuccessModal";
+
+interface Plan {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  duration: string;
+  description: string;
+  features: string[];
+}
 
 const paymentMethods = [
   {
@@ -33,16 +40,43 @@ const paymentMethods = [
 
 export default function PaymentModePage() {
   const router = useRouter();
-  const [selectedMethod, setSelectedMethod] = useState("google-pay");
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const planDetailsStr = sessionStorage.getItem("selected_plan_details");
+      if (planDetailsStr) {
+        try {
+          const parsedPlan = JSON.parse(planDetailsStr);
+          setPlan(parsedPlan);
+        } catch (error) {
+          console.error("Error parsing plan details:", error);
+        }
+      }
+    }
+  }, []);
+
+  const formatPrice = (price: number) => {
+    return `€${price.toFixed(2)}`;
+  };
+
+  const formatDuration = (duration: string) => {
+    return duration.charAt(0).toUpperCase() + duration.slice(1);
+  };
 
   const handleBack = () => {
     router.back();
   };
 
   const handleSubscribe = () => {
-    // Show success modal after payment
-    setShowSuccessModal(true);
+    // Skip payment method flow for now - directly proceed to next step
+    // Payment method implementation will be added later
+    router.push(ROUTES.PROFESSIONAL_ONBOARDING_ADDITIONAL_DETAILS);
+    
+    // Uncomment below when payment method flow is implemented
+    // setShowSuccessModal(true);
   };
 
   const handleSuccessClose = () => {
@@ -162,66 +196,84 @@ export default function PaymentModePage() {
               </Typography>
 
               {/* Plan Summary */}
-              <Paper
-                elevation={0}
-                sx={{
-                  border: "0.0625rem solid #e0e0e0",
-                  borderRadius: 2,
-                  p: 2,
-                  mb: 3,
-                  bgcolor: "#f9fafb",
-                }}
-              >
-                <Typography
+              {plan ? (
+                <Paper
+                  elevation={0}
                   sx={{
-                    fontWeight: 600,
-                    fontSize: "1.1875rem",
-                    lineHeight: "1.25rem",
-                    letterSpacing: "1%",
-                    color: "#214C65",
-                    marginBottom: "1.1875rem",
+                    border: "0.0625rem solid #e0e0e0",
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 3,
+                    bgcolor: "#f9fafb",
                   }}
                 >
-                  Professional (Certified)
-                </Typography>
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: "1.1875rem",
-                    lineHeight: "1.25rem",
-                    letterSpacing: "1%",
-                    color: "#214C65",
-                  }}
-                >
-                  €15.99
                   <Typography
-                    component="span"
                     sx={{
-                      fontWeight: 400,
-                      fontSize: "1.125rem",
-                      lineHeight: "1.5rem",
-                      letterSpacing: "0%",
+                      fontWeight: 600,
+                      fontSize: "1.1875rem",
+                      lineHeight: "1.25rem",
+                      letterSpacing: "1%",
+                      color: "#214C65",
+                      marginBottom: "1.1875rem",
+                    }}
+                  >
+                    {plan.name}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "1.1875rem",
+                      lineHeight: "1.25rem",
+                      letterSpacing: "1%",
                       color: "#214C65",
                     }}
                   >
-                    /month
+                    {formatPrice(plan.price)}
+                    <Typography
+                      component="span"
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: "1.125rem",
+                        lineHeight: "1.5rem",
+                        letterSpacing: "0%",
+                        color: "#214C65",
+                      }}
+                    >
+                      /month
+                    </Typography>
                   </Typography>
-                </Typography>
-                <Typography
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "0.75rem",
+                      lineHeight: "150%",
+                      letterSpacing: "0%",
+                      color: "#214C65",
+                      display: "block",
+                      mt: 0.5
+                    }}
+                  >
+                    *Billed & recurring {formatDuration(plan.duration).toLowerCase()} cancel anytime
+                  </Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  elevation={0}
                   sx={{
-                    fontWeight: 400,
-                    fontSize: "0.75rem",
-                    lineHeight: "150%",
-                    letterSpacing: "0%",
-                    color: "#214C65",
-                    display: "block",
-                    mt: 0.5
+                    border: "0.0625rem solid #e0e0e0",
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 3,
+                    bgcolor: "#f9fafb",
                   }}
                 >
-                  *Billed & recurring monthly cancel anytime
-                </Typography>
-              </Paper>
+                  <Typography sx={{ color: "text.secondary" }}>
+                    No plan selected. Please go back and select a plan.
+                  </Typography>
+                </Paper>
+              )}
 
+              {/* Payment Method Selection - Disabled for now */}
               <Typography
                 sx={{
                   fontWeight: 400,
@@ -235,7 +287,31 @@ export default function PaymentModePage() {
                 Choose payment method
               </Typography>
 
-              {paymentMethods.map((method) => (
+              <Box
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  border: "1px dashed #ccc",
+                  borderRadius: 2,
+                  bgcolor: "#f9fafb",
+                  textAlign: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: "0.875rem",
+                    lineHeight: "1.25rem",
+                    color: "#939393",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Payment method selection will be implemented later
+                </Typography>
+              </Box>
+
+              {/* Payment methods UI - Hidden for now, will be enabled later */}
+              {false && paymentMethods.map((method) => (
                 <Paper
                   key={method.id}
                   elevation={0}
@@ -331,6 +407,7 @@ export default function PaymentModePage() {
                   variant="contained"
                   size="large"
                   onClick={handleSubscribe}
+                  disabled={!plan}
                   sx={{
                     bgcolor: "primary.dark",
                     color: "white",
@@ -340,9 +417,13 @@ export default function PaymentModePage() {
                     "&:hover": {
                       bgcolor: "#25608A",
                     },
+                    "&:disabled": {
+                      bgcolor: "#ccc",
+                      color: "#666",
+                    },
                   }}
                 >
-                  Subscribe
+                  Continue
                 </Button>
               </Box>
             </Box>
@@ -359,11 +440,11 @@ export default function PaymentModePage() {
         buttonText="Complete Profile Now"
         showSubscriptionDetails={true}
         subscriptionDetails={{
-          plan: "Professional/Monthly",
-          modeOfPayment: selectedMethod === "google-pay" ? "Google Pay" : selectedMethod === "apple-pay" ? "Apple Pay" : "Credit Card",
+          plan: plan ? `${plan.name}/${formatDuration(plan.duration)}` : "N/A",
+          modeOfPayment: selectedMethod === "google-pay" ? "Google Pay" : selectedMethod === "apple-pay" ? "Apple Pay" : selectedMethod === "credit-card" ? "Credit Card" : "Not selected",
           subscriptionDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
           startDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-          billingDate: "Monthly",
+          billingDate: plan ? formatDuration(plan.duration) : "Monthly",
         }}
       />
     </Box>
