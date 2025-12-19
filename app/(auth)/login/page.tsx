@@ -142,8 +142,8 @@ export default function LoginPage() {
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: 140,
+                  height: 140,
                   borderRadius: '50%',
                   // bgcolor: 'primary.main',
                   display: 'flex',

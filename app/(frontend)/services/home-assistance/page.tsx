@@ -16,74 +16,71 @@ import {
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { API_ENDPOINTS } from "@/constants/api";
+import { apiGet } from "@/lib/api";
 
 
 export default function HomeAssistancePage() {
   const router = useRouter();
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    const storedInitial = localStorage.getItem('userInitial');
+    const storedEmail = localStorage.getItem('userEmail');
 
+    // If user details are not present, redirect to login
+    if (!storedInitial || !storedEmail) {
+      router.push(ROUTES.LOGIN);
+    }
+  }, [router]);
 
-    
-    const [isDragging, setIsDragging] = useState(false);
-    const [startX, setStartX] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
-    const carouselRef = useRef<HTMLDivElement>(null);
+  // Service cards data
   
-    // Check if user is authenticated on mount
-    useEffect(() => {
-      const storedInitial = localStorage.getItem('userInitial');
-      const storedEmail = localStorage.getItem('userEmail');
-  
-      // If user details are not present, redirect to login
-      if (!storedInitial || !storedEmail) {
-        router.push(ROUTES.LOGIN);
-      }
-    }, [router]);
-  
-    // Service cards data
-    
-  
-    // Touch handlers for carousel
-    const handleTouchStart = (e: React.TouchEvent) => {
-      setIsDragging(true);
-      setStartX(e.touches[0].pageX - (carouselRef.current?.offsetLeft || 0));
-      setScrollLeft(carouselRef.current?.scrollLeft || 0);
-    };
-  
-    const handleTouchMove = (e: React.TouchEvent) => {
-      if (!isDragging || !carouselRef.current) return;
-      e.preventDefault();
-      const x = e.touches[0].pageX - (carouselRef.current.offsetLeft || 0);
-      const walk = (x - startX) * 2;
-      carouselRef.current.scrollLeft = scrollLeft - walk;
-    };
-  
-    const handleTouchEnd = () => {
-      setIsDragging(false);
-    };
-  
-    // Mouse handlers for carousel
-    const handleMouseDown = (e: React.MouseEvent) => {
-      setIsDragging(true);
-      setStartX(e.pageX - (carouselRef.current?.offsetLeft || 0));
-      setScrollLeft(carouselRef.current?.scrollLeft || 0);
-    };
-  
-    const handleMouseMove = (e: React.MouseEvent) => {
-      if (!isDragging || !carouselRef.current) return;
-      e.preventDefault();
-      const x = e.pageX - (carouselRef.current.offsetLeft || 0);
-      const walk = (x - startX) * 2;
-      carouselRef.current.scrollLeft = scrollLeft - walk;
-    };
-  
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-  
-    const handleMouseLeave = () => {
-      setIsDragging(false);
-    };
+  // Touch handlers for carousel
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - (carouselRef.current?.offsetLeft || 0));
+    setScrollLeft(carouselRef.current?.scrollLeft || 0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !carouselRef.current) return;
+    e.preventDefault();
+    const x = e.touches[0].pageX - (carouselRef.current.offsetLeft || 0);
+    const walk = (x - startX) * 2;
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Mouse handlers for carousel
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX - (carouselRef.current?.offsetLeft || 0));
+    setScrollLeft(carouselRef.current?.scrollLeft || 0);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !carouselRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - (carouselRef.current.offsetLeft || 0);
+    const walk = (x - startX) * 2;
+    carouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -94,7 +91,24 @@ export default function HomeAssistancePage() {
     if (!storedInitial || !storedEmail) {
       router.push(ROUTES.LOGIN);
     }
+
+    apiCallToAllCategoriesList()
   }, [router]);
+
+
+  const apiCallToAllCategoriesList = async() => {
+    let serviceName = "home assistance"
+    try{
+      const response = await apiGet(API_ENDPOINTS.HOME.SERVICENAME(serviceName))
+
+      if(response){
+        console.log("API call successful")
+      }
+      console.log(response)
+    }catch(err){  
+      console.log(err)
+    } 
+  }
 
   // Service categories
   const serviceCategories = [

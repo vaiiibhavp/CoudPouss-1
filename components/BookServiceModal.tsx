@@ -27,10 +27,25 @@ import CloseIcon from "@mui/icons-material/Close";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import Image from "next/image";
+import { apiGet, apiPost } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 interface BookServiceModalProps {
   open: boolean;
   onClose: () => void;
+}
+
+interface CreateRequestPayload {
+  is_professional: boolean;
+  category_id: string;
+  sub_category_id: number | null;
+  description: string;
+  description_files: [];
+  validation_amount:  number;
+  platform_fees: number;
+  tax: number;
+  chosen_datetime: string;
+  task_status: string;
 }
 
 // Helper function to clone SVG and modify fill colors
@@ -503,26 +518,49 @@ export default function BookServiceModal({
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async() => {
     setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
+    try{
+      let payload:CreateRequestPayload = {
+        is_professional: serviceProvider === "professional" ? true : false,
+        category_id : selectedCategory,
+        sub_category_id : selectedService,
+        description : serviceDescription,
+        description_files : [],
+        validation_amount : parseFloat(valuation),
+        platform_fees : 0,
+        tax : 0,
+        chosen_datetime : `${selectedDate} ${selectedTime.hour}`,
+        task_status : "open",
+      }
+
+      let response = await apiPost(API_ENDPOINTS.SERVICE_REQUESTS.CREATE_REQUEST, payload);
+  
+      console.log("Service Request Creation Response: ", response);
+    }catch(err){
+      console.error("Error creating service request: ", err);
+    }finally{
       onClose();
-      // Reset form
-      setCurrentStep(1);
-      setServiceProvider("professional");
-      setSelectedCategory("");
-      setSelectedService(null);
-      setServiceDescription("");
-      setValuation("449.00");
-      setSelectedDate("16");
-      setCurrentMonth(new Date().getMonth());
-      setCurrentYear(new Date().getFullYear());
-      setSelectedTime({ hour: "10", minute: "00", period: "AM" });
-      setProductName("");
-      setQuantity(1);
-    }, 3000);
+      resetForm()
+      setShowSuccess(false);
+    }
   };
+  
+  // Reset form
+  const resetForm = () => {
+    setCurrentStep(1);
+    setServiceProvider("professional");
+    setSelectedCategory("");
+    setSelectedService(null);
+    setServiceDescription("");
+    setValuation("449.00");
+    setSelectedDate("16");
+    setCurrentMonth(new Date().getMonth());
+    setCurrentYear(new Date().getFullYear());
+    setSelectedTime({ hour: "10", minute: "00", period: "AM" });
+    setProductName("");
+    setQuantity(1);
+  }
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);

@@ -621,9 +621,8 @@ export default function ResetPasswordPage() {
               }} >
                 <Image
                   alt='logo'
-                  width={80}
-
-                  height={80}
+                  width={140}
+                  height={140}
                   src={"/icons/appLogo.png"}
                 />
                 <Typography sx={{

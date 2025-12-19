@@ -11,6 +11,8 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export default function TechSupportPage() {
   const router = useRouter();
@@ -24,8 +26,17 @@ export default function TechSupportPage() {
     if (!storedInitial || !storedEmail) {
       router.push(ROUTES.LOGIN);
     }
+
+    apiCallToAllCategoriesList()
+
   }, [router]);
 
+  const apiCallToAllCategoriesList = async() => {
+    let serviceName = "transport"
+    const response = await apiGet(API_ENDPOINTS.HOME.SERVICENAME(serviceName))
+    console.log(response)
+  }
+  
   // Transport service cards data
   const transportServices = [
     {
