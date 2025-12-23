@@ -30,7 +30,7 @@ export default function SecurityCodeSuccessModal({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          p: 2,
+          
         },
       }}
     >
@@ -41,15 +41,15 @@ export default function SecurityCodeSuccessModal({
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            py: 2,
+
           }}
         >
           {/* Success Icon */}
           <Box
             sx={{
-              mb: 3,
-              width: 80,
-              height: 80,
+              mb: "2.124rem",
+              width: 60,
+              height: 60,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -66,12 +66,13 @@ export default function SecurityCodeSuccessModal({
 
           {/* Message */}
           <Typography
-            variant="body1"
             fontWeight="600"
             sx={{
-              color: "#1F2937",
+              color: "#565656",
+              fontSize: "1.125rem",
+              lineHeight: "1.25rem",
+              letterSpacing: "0",
               mb: 4,
-              lineHeight: 1.6,
               px: 2,
             }}
           >
@@ -84,14 +85,19 @@ export default function SecurityCodeSuccessModal({
             fullWidth
             onClick={onProceed}
             sx={{
-              bgcolor: "#2F6B8E",
+              bgcolor: "#2C6587",
               color: "white",
               textTransform: "none",
-              py: 1.5,
-              borderRadius: 2,
-              fontWeight: 600,
+              py: "1.125rem",
+              borderRadius: "0.75rem",
+              fontWeight: 700,
+              fontSize: "1.188rem",
+              lineHeight: "1.25rem",
+              letterSpacing: "1%",
+              boxShadow: "none",
               "&:hover": {
-                bgcolor: "#25608A",
+                bgcolor: "#2C6587",
+                boxShadow: "none",
               },
             }}
           >

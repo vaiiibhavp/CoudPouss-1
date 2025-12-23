@@ -12,7 +12,9 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { Visibility, VisibilityOff, ArrowBack } from "@mui/icons-material";
+import { ArrowBack } from "@mui/icons-material";
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
@@ -144,7 +146,7 @@ export default function ProfessionalResetPasswordSetPasswordPage() {
                   width: 80,
                   height: 80,
                   borderRadius: "50%",
-                  bgcolor: "primary.main",
+                  // bgcolor: "primary.main",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -187,7 +189,7 @@ export default function ProfessionalResetPasswordSetPasswordPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                        {showPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon />}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -207,7 +209,7 @@ export default function ProfessionalResetPasswordSetPasswordPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={() => setShowReEnterPassword(!showReEnterPassword)} edge="end">
-                        {showReEnterPassword ? <VisibilityOff /> : <Visibility />}
+                        {showReEnterPassword ? <VisibilityOffOutlinedIcon /> : <VisibilityOutlinedIcon />}
                       </IconButton>
                     </InputAdornment>
                   ),

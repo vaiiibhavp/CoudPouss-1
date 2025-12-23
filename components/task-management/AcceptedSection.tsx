@@ -5,6 +5,7 @@ import { Box, Typography, Button, Card, Avatar, Divider } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CheckIcon from "@mui/icons-material/Check";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -117,15 +118,22 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
     <Box>
       {/* Back Button */}
       <Button
-        startIcon={<ArrowBackIcon />}
+        startIcon={<ArrowBackIcon sx={{ color: "#424242" }} />}
         onClick={() => router.push(ROUTES.PROFESSIONAL_EXPLORE_REQUESTS)}
         sx={{
-          color: "text.secondary",
+          color: "#214C65",
+          fontWeight: 500,
+          fontSize: "1rem",
+          lineHeight: "140%",
+          letterSpacing: 0,
           textTransform: "none",
-          mb: 3,
+          mb: "1.25rem",
+          px: 0,
+          minWidth: 0,
+          "& .MuiButton-startIcon": { mr: "0.5rem" },
           "&:hover": {
             bgcolor: "transparent",
-            color: "primary.main",
+            color: "#2C6587",
           },
         }}
       >
@@ -137,7 +145,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
         sx={{
           display: "grid",
           gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-          gap: 4,
+          gap: { xs: "1.5rem", md: "2.5rem" },
         }}
       >
         {/* Left Column */}
@@ -153,42 +161,88 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
           />
 
           {/* Service Description */}
-          <Box sx={{ mb: 3 }}>
+          <Box
+            sx={{
+              mb: "1.5rem",
+              bgcolor: "#FFFFFF",
+              border: "0.0625rem solid #E6E6E6",
+              borderRadius: "0.75rem",
+              px: "1rem",
+              py: "0.8125rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+            }}
+          >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", fontSize: "1.125rem" }}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                fontWeight: 600,
+              }}
             >
               Service description
             </Typography>
             <Typography
-              variant="body2"
-              sx={{ color: "#6B7280", lineHeight: 1.8 }}
+              sx={{
+                color: "#555555",
+                fontWeight: 400,
+                fontSize: "1.125rem",
+                lineHeight: "1.575rem",
+                letterSpacing: 0,
+                textAlign: "justify",
+              }}
             >
               {data.description}
             </Typography>
           </Box>
 
           {/* Job Photos */}
-          <Box sx={{ mb: 3 }}>
+          <Box
+            sx={{
+              mb: "1.5rem",
+              bgcolor: "#FFFFFF",
+              border: "0.0625rem solid #E6E6E6",
+              borderRadius: "0.75rem",
+              px: "1rem",
+              py: "0.8125rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+            }}
+          >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", fontSize: "1.125rem", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1rem",
+              }}
             >
               Job photos
             </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                },
+                gap: "1rem",
+              }}
+            >
               {data.jobPhotos.map((photo, index) => (
                 <Box
                   key={index}
                   sx={{
                     position: "relative",
-                    width: 140,
-                    height: 140,
-                    borderRadius: 2,
+                    width: "100%",
+                    height: "9rem",
+                    borderRadius: "0.5rem",
                     overflow: "hidden",
                     border: "0.0625rem solid #E5E7EB",
                   }}
@@ -205,79 +259,109 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
           </Box>
 
           {/* Payment Breakdown */}
-          <Box>
+          <Box
+            sx={{
+              mb: "1.5rem",
+              bgcolor: "#FFFFFF",
+              border: "0.0625rem solid #E6E6E6",
+              borderRadius: "0.75rem",
+              px: "1rem",
+              py: "0.8125rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+            }}
+          >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", fontSize: "1.125rem", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Payment Breakdown
             </Typography>
-            <Box sx={{ bgcolor: "#F9FAFB", p: 2, borderRadius: 2 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1.5,
-                }}
-              >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#6B7280" }}>
                   Finalized Quote Amount
                 </Typography>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  sx={{ color: "#1F2937" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#595959",
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: 0,
+                  }}
                 >
                   {data.paymentBreakdown.finalizedQuoteAmount}
                 </Typography>
               </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1.5,
-                }}
-              >
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#6B7280" }}>
                   Platform Fee (15%)
                 </Typography>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  sx={{ color: "#1F2937" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#595959",
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: 0,
+                  }}
                 >
                   {data.paymentBreakdown.platformFee}
                 </Typography>
               </Box>
-              <Box
-                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
-              >
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#6B7280" }}>
                   Taxes
                 </Typography>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  sx={{ color: "#1F2937" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#595959",
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: 0,
+                  }}
                 >
                   {data.paymentBreakdown.taxes}
                 </Typography>
               </Box>
-              <Divider sx={{ mb: 2 }} />
+              <Divider
+                sx={{
+                  mb: "0.25rem",
+                  mt: "-0.25rem",
+                  borderColor: "#2C6587",
+                  borderStyle: "dashed",
+                  borderWidth: "0.0625rem",
+                  borderRadius: "0.0625rem",
+                }}
+              />
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography
-                  variant="body1"
-                  fontWeight="600"
-                  sx={{ color: "#1F2937" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#0F232F",
+                    fontSize: "1.25rem",
+                    lineHeight: "1.5rem",
+                    letterSpacing: 0,
+                  }}
                 >
                   Total
                 </Typography>
                 <Typography
-                  variant="h6"
-                  fontWeight="700"
-                  sx={{ color: "#2F6B8E" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#2C6587",
+                    fontSize: "1.25rem",
+                    lineHeight: "1",
+                    letterSpacing: 0,
+                  }}
                 >
                   {data.paymentBreakdown.total}
                 </Typography>
@@ -291,25 +375,40 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
           {/* Finalized Quote Amount Card */}
           <Card
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #E6E6E6",
+              bgcolor: "#FFFFFF",
+              padding: "0.8125rem 1rem 0.8125rem 1rem",
+              mb: "1rem",
               boxShadow: "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.25rem",
+              "&:hover": {
+                border: "0.0625rem solid #E6E6E6",
+              },
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight="500"
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Finalized Quote Amount
             </Typography>
             <Typography
-              variant="h4"
               fontWeight="700"
-              sx={{ color: "#2F6B8E", mb: 3 }}
+              sx={{
+                color: "#0F232F",
+                fontSize: "1.6875rem",
+                lineHeight: "2rem",
+                letterSpacing: "3%",
+                textAlign: "left",
+              }}
             >
               {data.finalizedQuoteAmount}
             </Typography>
@@ -318,66 +417,99 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
           {/* Security Code */}
           <Card
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #E6E6E6",
+              bgcolor: "#FFFFFF",
+              padding: "0.8125rem 1rem 0.8125rem 1rem",
+              mb: "1rem",
               boxShadow: "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.25rem",
+              "&:hover": {
+                border: "0.0625rem solid #E6E6E6",
+              },
             }}
           >
             <Typography
-              variant="body2"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Security Code
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                gap: "0.625rem",
+                justifyContent: "space-between",
+              }}
+            >
               {data.securityCode.map((digit, index) => (
                 <Box
                   key={index}
                   sx={{
-                    width: 56,
-                    height: 56,
+                    py: "1.438rem",
+                    px: "2.089rem",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    border: "none",
-                    borderRadius: 2,
-                    bgcolor: "#F3F4F6",
+                    borderRadius: "1.25rem",
+                    bgcolor: "#EAF0F34D",
                   }}
                 >
                   <Typography
-                    variant="h5"
-                    fontWeight="500"
-                    sx={{ color: "#1F2937" }}
+                    fontWeight={400}
+                    sx={{
+                      color: "#0F232F",
+                      fontSize: "1.25rem",
+                      lineHeight: "100%",
+                      letterSpacing: 0,
+                      verticalAlign: "middle",
+                    }}
                   >
                     {digit}
                   </Typography>
                 </Box>
               ))}
             </Box>
-            <Typography variant="caption" sx={{ color: "#6B7280" }}>
+            <Typography
+              fontWeight={400}
+              sx={{
+                color: "#424242",
+                fontSize: "0.6875rem",
+                lineHeight: "1rem",
+                letterSpacing: 0,
+              }}
+            >
               Note: First 3 digits will be given to you on service date
             </Typography>
           </Card>
 
           {/* About Client Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
+              px: "1.375rem",
+              py: "1rem",
+              borderRadius: "0.75rem",
               mb: 3,
               border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1rem",
+              }}
             >
               About client
             </Typography>
@@ -386,17 +518,25 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                gap: 2,
+                gap: "1.5rem",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Avatar
                   src={data.clientAvatar}
                   alt={data.clientName}
-                  sx={{ width: 56, height: 56 }}
+                  sx={{ width: 48, height: 48 }}
                 />
                 <Box>
-                  <Typography variant="body1" fontWeight="600" sx={{ mb: 0.5 }}>
+                  <Typography
+                    fontWeight={600}
+                    sx={{
+                      color: "#0F232F",
+                      fontSize: "1.25rem",
+                      lineHeight: "1.5rem",
+                      letterSpacing: 0,
+                    }}
+                  >
                     {data.clientName}
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -423,99 +563,127 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
               <Button
                 variant="contained"
                 sx={{
-                  bgcolor: "#2F6B8E",
-                  color: "white",
+                  bgcolor: "#214C65",
+                  color: "#FFFFFF",
                   textTransform: "none",
-                  py: 1.25,
-                  px: 3,
-                  borderRadius: 2,
-                  fontWeight: 600,
+                  px: "1.75rem",
+                  py: "0.625rem",
+                  width: "fit-content",
+                  borderRadius: "0.5rem",
+                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                  lineHeight: "1.125rem",
+                  letterSpacing: 0,
                   "&:hover": {
-                    bgcolor: "#25608A",
+                    bgcolor: "#1b3f55",
                   },
                 }}
               >
                 Chat
               </Button>
             </Box>
-          </Card>
+          </Box>
 
           {/* Address Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
+              px: "1rem",
+              py: "0.8125rem",
+              borderRadius: "0.75rem",
+              mb: "1.5rem",
+              border: "0.0625rem solid #E6E6E6",
               boxShadow: "none",
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
             }}
           >
             <Typography
               variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Address
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <LocationOnIcon
-                sx={{ fontSize: "1.2rem", color: "#6B7280", mt: 0.2 }}
+                sx={{
+                  fontSize: "1.5rem",
+                  width: "1.5rem",
+                  height: "1.5rem",
+                  color: "#6B7280",
+                }}
               />
               <Typography
                 variant="body2"
-                sx={{ color: "#374151", lineHeight: 1.6 }}
+                sx={{
+                  color: "#595959",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: 0,
+                }}
               >
                 4517 Washington Ave. Manchester, Kentucky 39495
               </Typography>
             </Box>
-          </Card>
+          </Box>
 
           {/* Service Status Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              border: "0.0625rem solid #E5E7EB",
+              p: "1.5rem",
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #E6E6E6",
               boxShadow: "none",
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 3 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1.25rem",
+              }}
             >
               Service Status
             </Typography>
 
-            {/* Timeline */}
             {data.serviceTimeline.map((item, index) => {
-              // Mark steps as completed based on workflow progress
               let isCompleted = item.completed;
-              if (locationShared && index === 2) isCompleted = true; // Out for Service
-              if (serviceStarted && index === 3) isCompleted = true; // Started Service
-              if (renegotiated && index === 4) isCompleted = true; // Renegotiated (if applicable)
-              if (serviceCompleted && index <= 4) isCompleted = true; // Service Completed
-
-              // Show current step with different icon
-              const isCurrentStep =
-                (!locationShared && index === 2) ||
-                (locationShared && !serviceStarted && index === 3) ||
-                (serviceStarted && !serviceCompleted && index === 4) ||
-                (serviceCompleted && index === 5);
+              if (locationShared && index === 2) isCompleted = true;
+              if (serviceStarted && index === 3) isCompleted = true;
+              if (renegotiated && index === 4) isCompleted = true;
+              if (serviceCompleted && index <= 4) isCompleted = true;
 
               return (
-                <Box key={index} sx={{ mb: 3, position: "relative" }}>
+                <Box
+                  key={index}
+                  sx={{
+                    mb: index === data.serviceTimeline.length - 1 ? 0 : 3,
+                    position: "relative",
+                  }}
+                >
                   <Box
                     sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}
                   >
                     <Box
                       sx={{
-                        width: 32,
-                        height: 32,
+                        width: "1.5rem",
+                        height: "1.5rem",
                         borderRadius: "50%",
-                        bgcolor: isCompleted ? "#10B981" : "#4B5563",
+                        bgcolor: isCompleted ? "#2E7D32" : "#424242",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -523,14 +691,13 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                       }}
                     >
                       {isCompleted ? (
-                        <CheckCircleIcon
-                          sx={{ fontSize: "1.1rem", color: "white" }}
+                        <CheckIcon
+                          sx={{ fontSize: "0.6rem", color: "white" }}
                         />
                       ) : (
                         <Typography
-                          variant="body2"
                           fontWeight="600"
-                          sx={{ color: "white" }}
+                          sx={{ color: "white", fontSize: "0.875rem" }}
                         >
                           {index + 1}
                         </Typography>
@@ -539,15 +706,27 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                     <Box sx={{ flex: 1 }}>
                       <Typography
                         variant="body1"
-                        fontWeight="600"
+                        fontWeight={400}
                         sx={{
-                          color: "#1F2937",
-                          mb: 0.5,
+                          color: "#2B2B2B",
+                          fontSize: "1rem",
+                          lineHeight: "1.4rem",
+                          letterSpacing: 0,
+                          mb: "0.188rem",
                         }}
                       >
                         {item.status}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: "#9CA3AF" }}>
+                      <Typography
+                        fontWeight={400}
+                        sx={{
+                          color: "#737373",
+                          fontSize: "0.75rem",
+                          lineHeight: "1.125rem",
+                          letterSpacing: 0,
+                          textAlign: "left",
+                        }}
+                      >
                         {item.date}
                       </Typography>
                     </Box>
@@ -556,10 +735,10 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                     <Box
                       sx={{
                         position: "absolute",
-                        left: 13.5,
-                        top: 36,
-                        width: "0.5%",
-                        height: 40,
+                        left: "0.75rem",
+                        top: "1.5rem",
+                        width: "0.125rem",
+                        bottom: "-1.5rem",
                         bgcolor: "#E5E7EB",
                       }}
                     />
@@ -576,16 +755,19 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                   <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
                     <Button
                       variant="outlined"
-                      fullWidth
                       sx={{
-                        borderColor: "#EF4444",
-                        color: "#EF4444",
+                        borderColor: "#EF5350",
+                        color: "#EF5350",
                         textTransform: "none",
-                        py: 1.5,
-                        borderRadius: 3,
+                        py: "0.625rem",
+                        px: "1rem",
+                        borderRadius: "0.75rem",
                         fontWeight: 600,
+                        fontSize: "0.875rem",
+                        lineHeight: "1rem",
+                        width: "9.188rem",
                         "&:hover": {
-                          borderColor: "#DC2626",
+                          borderColor: "#EF5350",
                           bgcolor: "transparent",
                         },
                       }}
@@ -597,14 +779,18 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                       fullWidth
                       onClick={handleOutForService}
                       sx={{
-                        bgcolor: "#2F6B8E",
-                        color: "white",
+                        bgcolor: "#214C65",
+                        color: "#FFFFFF",
                         textTransform: "none",
-                        py: 1.5,
-                        borderRadius: 3,
-                        fontWeight: 600,
+                        py: "0.625rem",
+                        px: "1rem",
+                        borderRadius: "0.75rem",
+                        fontWeight: 400,
+                        fontSize: "1rem",
+                        lineHeight: "140%",
+                        letterSpacing: 0,
                         "&:hover": {
-                          bgcolor: "#25608A",
+                          bgcolor: "#1b3f55",
                         },
                       }}
                     >
@@ -616,17 +802,22 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                   <Box sx={{ mt: 4 }}>
                     <Button
                       variant="contained"
-                      fullWidth
                       onClick={handleStartService}
                       sx={{
-                        bgcolor: "#2F6B8E",
-                        color: "white",
+                        bgcolor: "#214C65",
+                        color: "#FFFFFF",
                         textTransform: "none",
-                        py: 1.5,
-                        borderRadius: 3,
-                        fontWeight: 600,
+                        width: "12.3125rem", // 197px
+                        height: "3rem", // 48px
+                        px: "0.625rem",
+                        py: "0.625rem",
+                        borderRadius: "0.75rem",
+                        fontWeight: 400,
+                        fontSize: "1rem",
+                        lineHeight: "140%",
+                        letterSpacing: 0,
                         "&:hover": {
-                          bgcolor: "#25608A",
+                          bgcolor: "#1b3f55",
                         },
                       }}
                     >
@@ -635,20 +826,32 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                   </Box>
                 ) : !renegotiated ? (
                   // Step 2: Show Renegotiate and Mark as Complete buttons after service started
-                  <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: "1rem",
+                      mt: 4,
+                      justifyContent: "space-between",
+                    }}
+                  >
                     <Button
-                      variant="outlined"
                       fullWidth
+                      variant="outlined"
                       onClick={handleRenegotiate}
                       sx={{
-                        borderColor: "#D1D5DB",
-                        color: "#6B7280",
+                        borderColor: "#214C65",
+                        color: "#214C65",
                         textTransform: "none",
-                        py: 1.5,
-                        borderRadius: 3,
-                        fontWeight: 600,
+                        height: "3rem",
+                        px: "0.625rem",
+                        py: "0.625rem",
+                        borderRadius: "0.75rem",
+                        fontWeight: 700,
+                        fontSize: "1.1875rem", // 19px
+                        lineHeight: "1.25rem", // 20px
+                        letterSpacing: "0.01em",
                         "&:hover": {
-                          borderColor: "#9CA3AF",
+                          borderColor: "#214C65",
                           bgcolor: "transparent",
                         },
                       }}
@@ -656,18 +859,23 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                       Renegotiate
                     </Button>
                     <Button
-                      variant="contained"
                       fullWidth
+                      variant="contained"
                       onClick={handleMarkAsComplete}
                       sx={{
-                        bgcolor: "#2F6B8E",
-                        color: "white",
+                        bgcolor: "#214C65",
+                        color: "#FFFFFF",
                         textTransform: "none",
-                        py: 1.5,
-                        borderRadius: 3,
-                        fontWeight: 600,
+                        height: "3rem",
+                        px: "0.625rem",
+                        py: "0.625rem",
+                        borderRadius: "0.75rem",
+                        fontWeight: 400,
+                        fontSize: "1rem",
+                        lineHeight: "140%",
+                        letterSpacing: 0,
                         "&:hover": {
-                          bgcolor: "#25608A",
+                          bgcolor: "#1b3f55",
                         },
                       }}
                     >
@@ -676,7 +884,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                   </Box>
                 ) : (
                   // Step 3: Show Cancel and Mark as Complete buttons after renegotiation
-                  <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
+                  <Box sx={{ display: "flex", gap: 2, mt: 4, justifyContent:"space-between" }}>
                     <Button
                       variant="outlined"
                       fullWidth
@@ -684,9 +892,12 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                         borderColor: "#EF4444",
                         color: "#EF4444",
                         textTransform: "none",
-                        py: 1.5,
-                        borderRadius: 3,
-                        fontWeight: 600,
+                        py: "1.125rem",
+                        fontSize: "1.188rem",
+                        px: "1rem",
+                        borderRadius: "0.75rem",
+                        fontWeight: 700,
+                        lineHeight: "1rem",
                         "&:hover": {
                           borderColor: "#DC2626",
                           bgcolor: "transparent",
@@ -700,14 +911,18 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                       fullWidth
                       onClick={handleMarkAsComplete}
                       sx={{
-                        bgcolor: "#2F6B8E",
-                        color: "white",
+                        bgcolor: "#214C65",
+                        color: "#FFFFFF",
                         textTransform: "none",
-                        py: 1.5,
-                        borderRadius: 3,
-                        fontWeight: 600,
+                        px: "1rem",
+                        py: "1.125rem",
+                        fontSize: "1.188rem",
+                        borderRadius: "0.75rem",
+                        fontWeight: 700,
+                        lineHeight: "1.25rem",
+                        letterSpacing: 0,
                         "&:hover": {
-                          bgcolor: "#25608A",
+                          bgcolor: "#1b3f55",
                         },
                       }}
                     >
@@ -717,7 +932,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                 )}
               </>
             )}
-          </Card>
+          </Box>
           {/* Information Message - Show after service completed */}
           {serviceCompleted && (
             <Box
@@ -753,11 +968,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                   </svg>
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography
-                    variant="body2"
-                    fontWeight="600"
-                    sx={{ mb: 1 }}
-                  >
+                  <Typography variant="body2" fontWeight="600" sx={{ mb: 1 }}>
                     Information message:
                   </Typography>
                   <Typography

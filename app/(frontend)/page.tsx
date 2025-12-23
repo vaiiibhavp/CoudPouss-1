@@ -40,7 +40,7 @@ export default function HomePage() {
       alt: "Furniture Fixing",
     },
     {
-      id: 2,
+      id: 3,
       title: "Pet care with experts",
       description: "Lorem Ipsum dit.",
       bgColor: "#4A4A4A",
@@ -50,7 +50,7 @@ export default function HomePage() {
       alt: "Pet Care",
     },
     {
-      id: 3,
+      id: 2,
       title: "Clean your kitchen by experts",
       description: "Lorem Ipsum dit.",
       bgColor: "#A38B7D",
@@ -205,7 +205,7 @@ export default function HomePage() {
     },
     {
       id: 2,
-      image: "/icons/testimonilas-2.png",
+      image: "/icons/testimonilas-3.png",
       text: "Yourself required no at thoughts delicate landlord it be. Branched dashwood do is whatever it. Farther be chapter at visited married in it pressed. By distrusts procuring be oh frankness existence believing instantly if. Doubtful on an juvenile as of servants insisted.",
     },
     {
@@ -433,7 +433,7 @@ export default function HomePage() {
             {[
               { number: "150+", label: "Verified Professionals" },
               { number: "2,300+", label: "Services Completed" },
-              { number: "24+", label: "Years of Valuable Experience" },
+              { number: "24+", label: "Years of Combined Experience" },
               { number: "100%", label: "Satisfaction Guarantee" },
             ].map((stat, index) => (
               <Box key={index} sx={{ textAlign: "center" }}>
@@ -499,7 +499,7 @@ export default function HomePage() {
               icon: "/icons/why-choose-section-1.png",
             },
             {
-              title: "Trained Experts",
+              title: "Trusted Experts",
               description:
                 "All professionals are thoroughly vetted and background-checked. Your safety and peace of mind are our top priorities.",
               icon: "/icons/why-choose-section-2.png",
@@ -691,7 +691,6 @@ export default function HomePage() {
                 },
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
-
               }}
             >
               {serviceCards.map((card) => (
@@ -704,6 +703,8 @@ export default function HomePage() {
                     flexDirection: "row",
                     borderRadius: "1.25rem",
                     flexShrink: 0,
+                    width: { xs: "85%", md: "450px" },
+                    minWidth: { xs: "85%", md: "450px" },
                     scrollSnapAlign: "start",
                     userSelect: "none",
                     pointerEvents: isDragging ? "none" : "auto",
@@ -832,343 +833,306 @@ export default function HomePage() {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" },
+              gridTemplateColumns: { xs: "1fr", md: "repeat(12, 1fr)" },
               gap: "2.5rem",
             }}
           >
-            {/* Step 1: Book Your Service */}
-            <Box
-              sx={{
-                bgcolor: "white",
-                borderRadius: 2,
-                pl: "1.875rem",
-                display: "flex",
-                flexDirection: "row",
-                position: "relative",
-                overflow: "visible",
-                height: { xs: "auto", md: 280 },
-                gap: 2,
-              }}
-            >
-              {/* Blue Number Circle */}
-
-
-              {/* Text Content */}
+            <Box className="col-span-12 md:col-span-7">
               <Box
                 sx={{
-                  flex: "0 0 55%",
+                  bgcolor: "white",
+                  borderRadius: 2,
+                  pl: "1.875rem",
+                  marginRight: "1.875rem",
                   display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  pr: 2,
-                  pt: 2,
-                  pl: 3,
+                  flexDirection: "row",
+                  position: "relative",
+                  overflow: "visible",
+                  width: { xs: "100%", md: "100%" }, // FIXED
+                  height: { xs: "auto", md: 280,  lg: 320,xl: 360,xxl: 400 },
+                  gap: 2,
                 }}
               >
                 <Box
                   sx={{
-                    px: "0.375rem",
-                    py: "1.063rem",
-                    height: "2.625rem",
-                    width: "2.625rem",
-                    borderRadius: "50%",
-                    bgcolor: "primary.normal",
+                    flex: "0 0 55%",
                     display: "flex",
-                    alignItems: "center",
+                    flexDirection: "column",
                     justifyContent: "center",
-                    mb: "0.75rem"
+                    pr: 2,
+                    pt: 2,
+                    pl: 3,
                   }}
                 >
-                  <Typography
-                    sx={{ color: "#FEFEFE", fontSize: "2rem" }}
+                  <Box
+                    sx={{
+                      px: "0.375rem",
+                      py: "1.063rem",
+                      height: "2.625rem",
+                      width: "2.625rem",
+                      borderRadius: "50%",
+                      bgcolor: "primary.normal",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: "0.75rem"
+                    }}
                   >
-                    1
+                    <Typography sx={{ color: "#FEFEFE", fontSize: "2rem" }}>1</Typography>
+                  </Box>
+
+                  <Typography
+                    sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
+                  >
+                    Book Your Service
+                  </Typography>
+
+                  <Typography sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}>
+                    Browse our services and select what you need. Easy online booking or call us directly.
                   </Typography>
                 </Box>
-                <Typography
-                  sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
-                >
-                  Book Your Service
-                </Typography>
-                <Typography
-                  sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}
-                >
-                  Browse our services and select what you need. Easy online
-                  booking or call us directly.
-                </Typography>
-              </Box>
 
-              {/* Image */}
+                <Box
+                  sx={{
+                    flex: "0 0 45%",
+                    position: "relative",
+                    minHeight: { xs: 200, md: "100%" },
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Image
+                    src="/image/how-work-img-1.png"
+                    alt="Book Your Service"
+                    fill
+                    style={{ objectFit: "contain" }}
+                    sizes="(max-width: 768px) 100vw, 45vw"
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            <Box className="col-span-12 md:col-span-5">
               <Box
                 sx={{
-                  flex: "0 0 45%",
-                  position: "relative",
-                  minHeight: { xs: 200, md: "100%" },
+                  bgcolor: "white",
                   borderRadius: 2,
+                  pl: "1.875rem",
+                  display: "flex",
+                  justifySelf: "right",
+                  flexDirection: "row",
+                  position: "relative",
+                  overflow: "visible",
+                  height: { xs: "auto", md: 280,  lg: 320,xl: 360,xxl: 400 },
+                  width: { xs: "100%", md: "100%" },
+                  gap: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    flex: "0 0 55%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    pr: 2,
+                    pt: 2,
+                    pl: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      px: "0.375rem",
+                      py: "1.063rem",
+                      height: "2.625rem",
+                      width: "2.625rem",
+                      borderRadius: "50%",
+                      bgcolor: "primary.normal",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: "0.75rem"
+                    }}
+                  >
+                    <Typography sx={{ color: "#FEFEFE", fontSize: "2rem" }}>2</Typography>
+                  </Box>
+
+                  <Typography
+                    sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
+                  >
+                    Get a Free Estimate
+                  </Typography>
+
+                  <Typography sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}>
+                    Receive a transparent quote with no hidden costs. Know exactly what to expect.
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    flex: "0 0 45%",
+                    position: "relative",
+                    minHeight: { xs: 200, md: "100%" },
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Image
+                    src="/image/how-work-img-2.png"
+                    alt="Get a Free Estimate"
+                    fill
+                    style={{ objectFit: "contain" }}
+                    sizes="(max-width: 768px) 100vw, 45vw"
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            <Box className="col-span-12 md:col-span-5">
+              <Box
+                sx={{
+                  bgcolor: "white",
+                  borderRadius: 2,
+                  pl: "1.875rem",
+                  display: "flex",
+                  flexDirection: "row",
+                  position: "relative",
+                  overflow: "visible",
+                  height: { xs: "auto", md: 280,  lg: 320,xl: 360,xxl: 400 },
+                  gap: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    flex: "0 0 55%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    pr: 2,
+                    pt: 2,
+                    pl: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      px: "0.375rem",
+                      py: "1.063rem",
+                      height: "2.625rem",
+                      width: "2.625rem",
+                      borderRadius: "50%",
+                      bgcolor: "primary.normal",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: "0.75rem"
+                    }}
+                  >
+                    <Typography sx={{ color: "#FEFEFE", fontSize: "2rem" }}>3</Typography>
+                  </Box>
+
+                  <Typography
+                    sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
+                  >
+                    Get Professional Help
+                  </Typography>
+
+                  <Typography sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}>
+                    Our verified expert arrives on time and completes the job with care and expertise.
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    flex: "0 0 45%",
+                    position: "relative",
+                    minHeight: { xs: 200, md: "100%" },
+                    borderRadius: 2,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Image
+                    src="/image/how-work-img-3.png"
+                    alt="Get a Free Estimate"
+                    fill
+                    style={{ objectFit: "contain" }}
+                    sizes="(max-width: 768px) 100vw, 45vw"
+                  />
+                </Box>
+              </Box>
+            </Box>
+
+            <Box className="col-span-12 md:col-span-7">
+              <Box
+                sx={{
+                  bgcolor: "white",
+                  borderRadius: 2,
+                  pl: "1.875rem",
+                  display: "flex",
+                  flexDirection: "row",
+                  position: "relative",
+                  height: { xs: "auto", md: 280,  lg: 320,xl: 360,xxl: 400 },
+                  width: { xs: "100%", md: "100%" }, // FIXED
+                  gap: 2,
                   overflow: "hidden",
                 }}
               >
-                <Image
-                  src="/image/how-work-img-1.png"
-                  alt="Book Your Service"
-                  fill
-                  style={{ objectFit: "contain" }}
-                  sizes="(max-width: 768px) 100vw, 45vw"
-                />
-              </Box>
-            </Box>
+                {/* content unchanged */}
+                <Box
+                  sx={{
+                    flex: "0 0 55%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    pr: 2,
+                    pt: 2,
+                    pl: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      px: "0.375rem",
+                      py: "1.063rem",
+                      height: "2.625rem",
+                      width: "2.625rem",
+                      borderRadius: "50%",
+                      bgcolor: "primary.normal",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: "0.75rem"
+                    }}
+                  >
+                    <Typography sx={{ color: "#FEFEFE", fontSize: "2rem" }}>4</Typography>
+                  </Box>
 
-            {/* Step 2: Get a Free Estimate */}
-            <Box
-              sx={{
-                bgcolor: "white",
-                borderRadius: 2,
-                pl: "1.875rem",
-                display: "flex",
-                flexDirection: "row",
-                position: "relative",
-                overflow: "visible",
-                height: { xs: "auto", md: 280 },
-                gap: 2,
-              }}
-            >
-              {/* Blue Number Circle */}
+                  <Typography
+                    sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
+                  >
+                    Enjoy Hassle-Free Living
+                  </Typography>
 
-
-              {/* Text Content */}
-              <Box
-                sx={{
-                  flex: "0 0 55%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  pr: 2,
-                  pt: 2,
-                  pl: 3,
-                }}
-              >
-
+                  <Typography sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}>
+                    Relax knowing your home is in good hands. We ensure quality and your complete satisfaction.
+                  </Typography>
+                </Box>
 
                 <Box
                   sx={{
-                    px: "0.375rem",
-                    py: "1.063rem",
-                    height: "2.625rem",
-                    width: "2.625rem",
-                    borderRadius: "50%",
-                    bgcolor: "primary.normal",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    mb: "0.75rem"
+                    flex: "0 0 45%",
+                    position: "relative",
+                    minHeight: { xs: 200, md: "100%" },
+                    borderRadius: 2,
                   }}
                 >
-                  <Typography
-                    sx={{ color: "#FEFEFE", fontSize: "2rem" }}
-                  >
-                    2
-                  </Typography>
+                  <Image
+                    src="/image/how-work-img-4.png"
+                    alt="Get a Free Estimate"
+                    fill
+                    style={{ objectFit: "contain" }}
+                    sizes="(max-width: 768px) 100vw, 45vw"
+                  />
                 </Box>
-                <Typography
-                  sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
-                >
-                  Get a Free Estimate
-                </Typography>
-                <Typography
-                  sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}
-                >
-                  Receive a transparent quote with no hidden costs. Know exactly
-                  what to expect.
-                </Typography>
-              </Box>
-
-              {/* Image */}
-              <Box
-                sx={{
-                  flex: "0 0 45%",
-                  position: "relative",
-                  minHeight: { xs: 200, md: "100%" },
-                  borderRadius: 2,
-                  overflow: "hidden",
-                }}
-              >
-                <Image
-                  src="/image/how-work-img-2.png"
-                  alt="Get a Free Estimate"
-                  fill
-                  style={{ objectFit: "contain" }}
-                  sizes="(max-width: 768px) 100vw, 45vw"
-                />
               </Box>
             </Box>
-            <Box
-              sx={{
-                bgcolor: "white",
-                borderRadius: 2,
-                pl: "1.875rem",
-                display: "flex",
-                flexDirection: "row",
-                position: "relative",
-                overflow: "visible",
-                height: { xs: "auto", md: 280 },
-                gap: 2,
-              }}
-            >
-              {/* Blue Number Circle */}
-
-
-              {/* Text Content */}
-              <Box
-                sx={{
-                  flex: "0 0 55%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  pr: 2,
-                  pt: 2,
-                  pl: 3,
-                }}
-              >
-
-
-                <Box
-                  sx={{
-                    px: "0.375rem",
-                    py: "1.063rem",
-                    height: "2.625rem",
-                    width: "2.625rem",
-                    borderRadius: "50%",
-                    bgcolor: "primary.normal",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    mb: "0.75rem"
-                  }}
-                >
-                  <Typography
-                    sx={{ color: "#FEFEFE", fontSize: "2rem" }}
-                  >
-                    3
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
-                >
-                  Get Professional Help
-                </Typography>
-                <Typography
-                  sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}
-                >
-                  Our verified expert arrives on time and
-                  completes the job with care and expertise.
-
-                </Typography>
-              </Box>
-
-              {/* Image */}
-              <Box
-                sx={{
-                  flex: "0 0 45%",
-                  position: "relative",
-                  minHeight: { xs: 200, md: "100%" },
-                  borderRadius: 2,
-                  overflow: "hidden",
-                }}
-              >
-                <Image
-                  src="/image/how-work-img-3.png"
-                  alt="Get a Free Estimate"
-                  fill
-                  style={{ objectFit: "contain" }}
-                  sizes="(max-width: 768px) 100vw, 45vw"
-                />
-              </Box>
-            </Box>
-            <Box
-              sx={{
-                bgcolor: "white",
-                borderRadius: 2,
-                pl: "1.875rem",
-                display: "flex",
-                flexDirection: "row",
-                position: "relative",
-                height: { xs: "auto", md: 280 },
-                gap: 2,
-                overflow: "hidden",
-              }}
-            >
-              {/* Blue Number Circle */}
-
-
-              {/* Text Content */}
-              <Box
-                sx={{
-                  flex: "0 0 55%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  pr: 2,
-                  pt: 2,
-                  pl: 3,
-                }}
-              >
-
-
-                <Box
-                  sx={{
-                    px: "0.375rem",
-                    py: "1.063rem",
-                    height: "2.625rem",
-                    width: "2.625rem",
-                    borderRadius: "50%",
-                    bgcolor: "primary.normal",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    mb: "0.75rem"
-                  }}
-                >
-                  <Typography
-                    sx={{ color: "#FEFEFE", fontSize: "2rem" }}
-                  >
-                    4
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{ mb: "0.75rem", color: "#5A5A5A", fontSize: "2rem", fontWeight: 600, lineHeight: "1.75rem" }}
-                >
-                  Enjoy Hassle-Free Living
-                </Typography>
-                <Typography
-                  sx={{ color: "#989898", lineHeight: '140%', fontSize: "1rem" }}
-                >
-                  Relax knowing your home is in good hands. We ensure quality and your complete satisfaction.
-                </Typography>
-              </Box>
-
-              {/* Image */}
-              <Box
-                sx={{
-                  flex: "0 0 45%",
-                  position: "relative",
-                  minHeight: { xs: 200, md: "100%" },
-                  borderRadius: 2,
-
-
-                }}
-              >
-                <Image
-                  src="/image/how-work-img-4.png"
-                  alt="Get a Free Estimate"
-                  fill
-                  style={{ objectFit: "contain" }}
-                  sizes="(max-width: 768px) 100vw, 45vw"
-                />
-              </Box>
-            </Box>
-
-
-
           </Box>
         </Box>
       </Box>
@@ -1339,8 +1303,9 @@ export default function HomePage() {
                   <Box
                     key={testimonial.id}
                     sx={{
-                      minWidth: { xs: "85%", md: "calc(33.333% - 2rem)" },
                       flexShrink: 0,
+                      minWidth: { xs: "85%", md: 600 },
+                      width: { xs: "85%", md: 600 },
                       scrollSnapAlign: "center",
                       display: "flex",
                       justifyContent: "center",
@@ -1356,7 +1321,6 @@ export default function HomePage() {
                         p: 4,
                         pt: 8,
                         position: "relative",
-                        maxWidth: 500,
                         width: "100%",
                         minHeight: 300,
                         display: "flex",
@@ -1374,8 +1338,8 @@ export default function HomePage() {
                           position: "absolute",
                           top: -50,
                           left: 20,
-                          width: 100,
-                          height: 100,
+                          width:100,
+                          height: 120,
                           borderRadius: "50%",
                           border: "0.25rem solid white",
                           overflow: "hidden",
@@ -1404,6 +1368,7 @@ export default function HomePage() {
                       <Typography
                         variant="body1"
                         sx={{
+                          pl:13,
                           color: "text.primary",
                           lineHeight: 1.8,
                           fontSize: { xs: "0.9rem", md: "1rem" },

@@ -118,14 +118,14 @@ export default function TransactionHistoryPage() {
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-      <Header
+      {/* <Header
         showExploreServices={false}
         showBookServiceButton={false}
         showAuthButtons={false}
         showUserIcons={true}
         showMyRequests={false}
         homeRoute="/professional/dashboard"
-      />
+      /> */}
 
       <Container maxWidth="lg" sx={{ py: 6 }}>
         <Typography
@@ -275,7 +275,7 @@ export default function TransactionHistoryPage() {
         </Box>
       </Container>
 
-      <Footer />
+      {/* <Footer /> */}
     </Box>
   );
 }

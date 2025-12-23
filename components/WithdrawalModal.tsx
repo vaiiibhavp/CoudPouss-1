@@ -65,7 +65,7 @@ export default function WithdrawalModal({
         PaperProps={{
           sx: {
             borderRadius: 3,
-            p: 2,
+            
           },
         }}
       >
@@ -93,9 +93,13 @@ export default function WithdrawalModal({
                 Available Balance
               </Typography>
               <Typography
-                variant="h3"
-                fontWeight="700"
-                sx={{ color: "#1F2937" }}
+                sx={{
+                  fontWeight: 800,
+                  fontSize: "2.29rem", // 36.64px
+                  lineHeight: "2.714rem", // 43.43px
+                  letterSpacing: "3%",
+                  color: "#0E1B27",
+                }}
               >
                 {availableBalance}
               </Typography>
@@ -104,8 +108,14 @@ export default function WithdrawalModal({
             {/* Funds Transfer */}
             <Box sx={{ mb: 3 }}>
               <Typography
-                variant="body2"
-                sx={{ color: "#374151", mb: 1, fontWeight: "500" }}
+                sx={{
+                  color: "#424242",
+                  fontWeight: 500,
+                  fontSize: "1.0625rem", // 17px
+                  lineHeight: "1.25rem", // 20px
+                  letterSpacing: "0%",
+                  mb: 1,
+                }}
               >
                 Funds Transfer
               </Typography>
@@ -115,7 +125,19 @@ export default function WithdrawalModal({
                 onChange={(e) => setAmount(e.target.value)}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
+                    borderRadius: "0.75rem", // 12px
+                    border: "1px solid #D5D5D5",
+                    backgroundColor: "#FFFFFF",
+                    padding: "1rem", // 16px
+                    "& fieldset": {
+                      border: "none",
+                    },
+                    "& input": {
+                      padding: 0,
+                      fontSize: "1rem",
+                      fontWeight: 500,
+                      color: "#131313",
+                    },
                   },
                 }}
               />
@@ -124,8 +146,14 @@ export default function WithdrawalModal({
             {/* Transfer to */}
             <Box sx={{ mb: 4 }}>
               <Typography
-                variant="body2"
-                sx={{ color: "#374151", mb: 1, fontWeight: "500" }}
+                sx={{
+                  color: "#424242",
+                  fontWeight: 500,
+                  fontSize: "1.0625rem", // 17px
+                  lineHeight: "1.25rem", // 20px
+                  letterSpacing: "0%",
+                  mb: 1,
+                }}
               >
                 Transfer to
               </Typography>
@@ -134,7 +162,19 @@ export default function WithdrawalModal({
                   value={transferTo}
                   onChange={(e) => setTransferTo(e.target.value)}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: "0.75rem", // 12px
+                    border: "1px solid #D5D5D5",
+                    backgroundColor: "#FFFFFF",
+                    padding: "1rem", // 16px
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      border: "none",
+                    },
+                    "& .MuiSelect-select": {
+                      padding: 0,
+                      fontSize: "1rem",
+                      fontWeight: 500,
+                      color: "#131313",
+                    },
                   }}
                 >
                   <MenuItem value="Savings Account">Savings Account</MenuItem>
@@ -150,16 +190,13 @@ export default function WithdrawalModal({
               variant="contained"
               onClick={handleRequestWithdrawal}
               sx={{
-                bgcolor: "#2F6B8E",
+                bgcolor: "#214C65",
                 color: "white",
                 textTransform: "none",
                 py: 1.5,
                 fontSize: "1rem",
-                fontWeight: "600",
+                fontWeight: "700",
                 borderRadius: 2,
-                "&:hover": {
-                  bgcolor: "#1e4a5f",
-                },
               }}
             >
               Request Withdrawal

@@ -13,6 +13,7 @@ import {
   Card,
   IconButton,
 } from "@mui/material";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 
@@ -442,6 +443,7 @@ export default function HomeAssistancePage() {
                           fontSize: "0.85rem",
                           py: 0.75,
                         }}
+                        endIcon={<ArrowOutwardIcon sx={{ fontSize: "1rem" }} />}
                       >
                         Create Request
                       </Button>

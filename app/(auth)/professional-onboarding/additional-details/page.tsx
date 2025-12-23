@@ -12,6 +12,8 @@ import {
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { apiPatch } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export default function AdditionalDetailsPage() {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function AdditionalDetailsPage() {
     kbisExtract: null as File | null,
     proofOfResidence: null as File | null,
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,10 +42,47 @@ export default function AdditionalDetailsPage() {
     router.push(ROUTES.LOGIN);
   };
 
-  const handleContinue = () => {
-    // Save additional details
-    sessionStorage.setItem("additional_details", JSON.stringify(formData));
-    router.push(ROUTES.PROFESSIONAL_ONBOARDING_SELECT_CATEGORY);
+  const handleContinue = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // If experience is provided, call the API
+      if (formData.experience) {
+        const experienceValue = parseInt(formData.experience, 10);
+        if (isNaN(experienceValue) || experienceValue < 0) {
+          setError("Please enter a valid number of years");
+          setLoading(false);
+          return;
+        }
+
+        const response = await apiPatch(API_ENDPOINTS.AUTH.EXPERIENCE, {
+          years_of_experience: experienceValue,
+        });
+
+        if (!response.success) {
+          setError(response.error?.message || "Failed to save experience");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Save additional details (for file uploads, if needed later)
+      sessionStorage.setItem("additional_details", JSON.stringify({
+        ...formData,
+        // Don't store File objects in sessionStorage, just metadata
+        idCopy: formData.idCopy ? { name: formData.idCopy.name, size: formData.idCopy.size } : null,
+        kbisExtract: formData.kbisExtract ? { name: formData.kbisExtract.name, size: formData.kbisExtract.size } : null,
+        proofOfResidence: formData.proofOfResidence ? { name: formData.proofOfResidence.name, size: formData.proofOfResidence.size } : null,
+      }));
+
+      router.push(ROUTES.PROFESSIONAL_ONBOARDING_SELECT_CATEGORY);
+    } catch (err: any) {
+      console.error("Error saving experience:", err);
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -130,7 +171,7 @@ export default function AdditionalDetailsPage() {
             <Box>
               <Typography
                 sx={{
-                  fontWeight: `700`,
+                  fontWeight: 500,
                   fontSize: `1.5rem`,
                   color: `primary.normal`,
                   mb: "0.75rem",
@@ -142,12 +183,13 @@ export default function AdditionalDetailsPage() {
               </Typography>
               <Typography
                 sx={{
-                  fontWeight: 400,
+                  fontWeight: 500,
                   fontSize: "1rem",
                   textAlign: "left",
-                  lineHeight: "140%",
+                  lineHeight: "150%",
+                  letterSpacing: "0%",
                   mb: "2.5rem",
-                  color: "secondary.neutralWhiteDark",
+                  color: "#939393",
                 }}
               >
                 Upload the required documents to complete your profile and gain the Certified badge.
@@ -168,11 +210,20 @@ export default function AdditionalDetailsPage() {
               <TextField
                 fullWidth
                 name="experience"
-                placeholder="Experience"
+                type="number"
+                placeholder="Enter years of experience"
                 value={formData.experience}
                 onChange={handleChange}
+                error={!!error && error.includes("valid number")}
+                helperText={error && error.includes("valid number") ? error : ""}
+                inputProps={{ min: 0 }}
                 sx={{ mb: 3 }}
               />
+              {error && !error.includes("valid number") && (
+                <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+                  {error}
+                </Typography>
+              )}
 
               {/* A copy of ID */}
               <Typography
@@ -195,29 +246,11 @@ export default function AdditionalDetailsPage() {
                   textAlign: "center",
                   cursor: "pointer",
                   mb: 3,
-                  bgcolor: "#fafafa",
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
                 }}
                 onClick={() => document.getElementById("id-upload")?.click()}
               >
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1,
-                      bgcolor: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      mb: 1,
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <Typography variant="h6">📄</Typography>
-                  </Box>
+                  <Image src="/icons/folder-upload-line.png" width={24} height={24} alt="Upload" style={{ marginBottom: "0.5rem" }} />
                   <Typography variant="body2" color="text.secondary">
                     {formData.idCopy ? formData.idCopy.name : "Upload from device"}
                   </Typography>
@@ -252,29 +285,11 @@ export default function AdditionalDetailsPage() {
                   textAlign: "center",
                   cursor: "pointer",
                   mb: 3,
-                  bgcolor: "#fafafa",
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
                 }}
                 onClick={() => document.getElementById("kbis-upload")?.click()}
               >
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1,
-                      bgcolor: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      mb: 1,
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <Typography variant="h6">📄</Typography>
-                  </Box>
+                  <Image src="/icons/folder-upload-line.png" width={24} height={24} alt="Upload" style={{ marginBottom: "0.5rem" }} />
                   <Typography variant="body2" color="text.secondary">
                     {formData.kbisExtract ? formData.kbisExtract.name : "Upload from device"}
                   </Typography>
@@ -312,29 +327,11 @@ export default function AdditionalDetailsPage() {
                   textAlign: "center",
                   cursor: "pointer",
                   mb: 3,
-                  bgcolor: "#fafafa",
-                  "&:hover": {
-                    bgcolor: "#f5f5f5",
-                  },
                 }}
                 onClick={() => document.getElementById("residence-upload")?.click()}
               >
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 1,
-                      bgcolor: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      mb: 1,
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <Typography variant="h6">📄</Typography>
-                  </Box>
+                  <Image src="/icons/folder-upload-line.png" width={24} height={24} alt="Upload" style={{ marginBottom: "0.5rem" }} />
                   <Typography variant="body2" color="text.secondary">
                     {formData.proofOfResidence ? formData.proofOfResidence.name : "Upload from device"}
                   </Typography>
@@ -356,14 +353,20 @@ export default function AdditionalDetailsPage() {
                   size="large"
                   onClick={handleSkip}
                   sx={{
-                    borderColor: "primary.dark",
-                    color: "primary.dark",
-                    py: 1.5,
+                    borderRadius: "0.75rem",
+                    border: "0.0625rem solid #214C65",
+                    borderColor: "#214C65",
+                    padding: "1.125rem 3.75rem",
+                    gap: "0.625rem",
                     textTransform: "none",
-                    fontSize: "1rem",
+                    fontWeight: 600,
+                    fontSize: "1.1875rem",
+                    lineHeight: "1.25rem",
+                    letterSpacing: "1%",
+                    color: "#214C65",
                     "&:hover": {
-                      borderColor: "#25608A",
-                      bgcolor: "rgba(47, 107, 142, 0.04)",
+                      borderColor: "#214C65",
+                      bgcolor: "transparent",
                     },
                   }}
                 >
@@ -374,18 +377,28 @@ export default function AdditionalDetailsPage() {
                   variant="contained"
                   size="large"
                   onClick={handleContinue}
+                  disabled={loading}
                   sx={{
-                    bgcolor: "primary.dark",
-                    color: "white",
-                    py: 1.5,
+                    borderRadius: "0.75rem",
+                    bgcolor: "#214C65",
+                    padding: "1.125rem 3.75rem",
+                    gap: "0.625rem",
                     textTransform: "none",
-                    fontSize: "1rem",
+                    fontWeight: 600,
+                    fontSize: "1.1875rem",
+                    lineHeight: "1.25rem",
+                    letterSpacing: "1%",
+                    color: "#FFFFFF",
                     "&:hover": {
-                      bgcolor: "#25608A",
+                      bgcolor: "#214C65",
+                    },
+                    "&:disabled": {
+                      bgcolor: "#ccc",
+                      color: "#666",
                     },
                   }}
                 >
-                  Next
+                  {loading ? "Saving..." : "Next"}
                 </Button>
               </Box>
             </Box>

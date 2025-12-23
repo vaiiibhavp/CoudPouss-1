@@ -5,10 +5,9 @@ import {
   Box,
   Typography,
   Button,
-  Divider,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CelebrationIcon from "@mui/icons-material/Celebration";
+import Image from "next/image";
 
 interface SubscriptionDetails {
   plan?: string;
@@ -61,17 +60,29 @@ export default function SuccessModal({
           }}
         >
           {showSubscriptionDetails ? (
-            <CelebrationIcon
+            <Box
               sx={{
-                fontSize: 60,
-                color: "#FFB800",
+                width: "7.5rem",
+                height: "7.5rem",
+                borderRadius: "50%",
+                bgcolor: "rgba(76, 175, 80, 0.05)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 mb: 2,
               }}
-            />
+            >
+              <Image
+                src="/icons/crackerIcon.png"
+                alt="celebration"
+                width={60}
+                height={60}
+              />
+            </Box>
           ) : (
             <CheckCircleIcon
               sx={{
-                fontSize: 80,
+                fontSize: "5rem",
                 color: "#4CAF50",
                 mb: 2,
               }}
@@ -88,7 +99,7 @@ export default function SuccessModal({
           <Typography
             variant="body1"
             color="text.secondary"
-            sx={{ mb: showSubscriptionDetails ? 3 : 3, maxWidth: 450 }}
+            sx={{ mb: showSubscriptionDetails ? 3 : 3, maxWidth: "28.125rem" }}
           >
             {message}
           </Typography>
@@ -97,70 +108,170 @@ export default function SuccessModal({
             <Box
               sx={{
                 width: "100%",
-                bgcolor: "#f9fafb",
-                borderRadius: 2,
-                p: 3,
+                borderRadius: "0.75rem",
+                border: "0.0625rem solid #E6E6E6",
+                paddingTop: "0.8125rem",
+                paddingRight: "1rem",
+                paddingBottom: "0.8125rem",
+                paddingLeft: "1rem",
+                gap: "1rem",
                 mb: 3,
                 textAlign: "left",
+                "&:hover": {
+                  borderColor: "#E6E6E6",
+                },
               }}
             >
-              <Typography variant="subtitle1" fontWeight="600" gutterBottom>
+              <Typography sx={{
+                fontWeight:600,
+                fontSize:"1rem",
+                lineHeight:"1.125rem",
+                color:"primary.normal",
+                mb:"1rem"
+              }} >
                 Subscription Details
               </Typography>
-              <Divider sx={{ my: 2 }} />
               
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: "0%",
+                    color: "#595959",
+                  }}
+                >
                   Plan:
                 </Typography>
-                <Typography variant="body2" fontWeight="600">
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    color: "#424242",
+                  }}
+                >
                   {subscriptionDetails.plan || "Professional/Monthly"}
                 </Typography>
               </Box>
 
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: "0%",
+                    color: "#595959",
+                  }}
+                >
                   Mode of Payment:
                 </Typography>
-                <Typography variant="body2" fontWeight="600">
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    color: "#424242",
+                  }}
+                >
                   {subscriptionDetails.modeOfPayment || "Google Pay"}
                 </Typography>
               </Box>
 
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: "0%",
+                    color: "#595959",
+                  }}
+                >
                   Subscription Date:
                 </Typography>
-                <Typography variant="body2" fontWeight="600">
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    color: "#424242",
+                  }}
+                >
                   {subscriptionDetails.subscriptionDate || new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                 </Typography>
               </Box>
 
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: "0%",
+                    color: "#595959",
+                  }}
+                >
                   Start Date:
                 </Typography>
-                <Typography variant="body2" fontWeight="600">
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    color: "#424242",
+                  }}
+                >
                   {subscriptionDetails.startDate || new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                 </Typography>
               </Box>
 
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: "0%",
+                    color: "#595959",
+                  }}
+                >
                   Billing Date:
                 </Typography>
-                <Typography variant="body2" fontWeight="600">
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    color: "#424242",
+                  }}
+                >
                   {subscriptionDetails.billingDate || "Monthly"}
                 </Typography>
               </Box>
 
-              <Divider sx={{ my: 2 }} />
-
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  sx={{
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: "0%",
+                    color: "#595959",
+                  }}
+                >
                   Next Charge Date:
                 </Typography>
-                <Typography variant="body2" fontWeight="600">
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    color: "#424242",
+                  }}
+                >
                   {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                 </Typography>
               </Box>
@@ -173,14 +284,14 @@ export default function SuccessModal({
             fullWidth={showSubscriptionDetails}
             onClick={onClose}
             sx={{
-              bgcolor: "#2F6B8E",
+              bgcolor: "#214C65",
               color: "white",
               px: showSubscriptionDetails ? 4 : 6,
               py: 1.5,
               textTransform: "none",
               fontSize: "1rem",
               "&:hover": {
-                bgcolor: "#25608A",
+                bgcolor: "#214C65",
               },
             }}
           >

@@ -22,7 +22,7 @@ export default function EnterSecurityCodeModal({
   onClose,
   onValidate,
 }: EnterSecurityCodeModalProps) {
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [code, setCode] = useState(["", "", ""]);
   const [error, setError] = useState(false);
 
   const handleChange = (index: number, value: string) => {
@@ -57,7 +57,6 @@ export default function EnterSecurityCodeModal({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          p: 2,
         },
       }}
     >
@@ -68,15 +67,14 @@ export default function EnterSecurityCodeModal({
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            py: 2,
           }}
         >
           {/* Security Code Icon */}
           <Box
             sx={{
               mb: 3,
-              width: 80,
-              height: 80,
+              width: 60,
+              height: 60,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -85,19 +83,20 @@ export default function EnterSecurityCodeModal({
             <Image
               src="/icons/security-code.png"
               alt="Security Code"
-              width={80}
-              height={80}
+              width={60}
+              height={60}
               style={{ objectFit: "contain" }}
             />
           </Box>
 
           {/* Title */}
           <Typography
-            variant="h6"
+            
             fontWeight="600"
             sx={{
-              color: "#1F2937",
-              mb: 2,
+              color: "#2C6587",
+              mb: "1rem",
+              fontSize:"1.375rem",
             }}
           >
             Enter Security Code
@@ -105,11 +104,11 @@ export default function EnterSecurityCodeModal({
 
           {/* Message */}
           <Typography
-            variant="body2"
             sx={{
-              color: "#6B7280",
-              mb: 3,
-              lineHeight: 1.6,
+              color: "#737373",
+              mb: "1rem",
+              lineHeight: "1.125rem",
+              fontSize:"0.875rem",
               px: 2,
             }}
           >
@@ -119,8 +118,7 @@ export default function EnterSecurityCodeModal({
 
           {/* Security Code Display */}
           <Typography
-            variant="body2"
-            sx={{ color: "#6B7280", mb: 1 }}
+            sx={{ color: "#0F232F", mb: "0.75rem", fontSize:"1.188rem", lineHeight:"1.75rem" }}
           >
             3 2 5 - 5 5 8
           </Typography>
@@ -145,9 +143,18 @@ export default function EnterSecurityCodeModal({
                   },
                 }}
                 sx={{
-                  width: 40,
+                  width: "3.125rem",
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 1,
+                    "& fieldset": {
+                      borderColor: error ? "#EF5350" : undefined,
+                    },
+                    "&:hover fieldset": {
+                      borderColor: error ? "#EF5350" : undefined,
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: error ? "#EF5350" : undefined,
+                    },
                   },
                 }}
               />
@@ -170,15 +177,19 @@ export default function EnterSecurityCodeModal({
             fullWidth
             onClick={handleValidate}
             sx={{
-              bgcolor: "#2F6B8E",
-              color: "white",
+              bgcolor: "#E6E6E6",
+              color: "#424242",
               textTransform: "none",
+              fontSize: "19px",
+              lineHeight: "20px",
+              letterSpacing: "1%",
               py: 1.5,
               borderRadius: 2,
-              fontWeight: 600,
+              fontWeight: 700,
               mt: 2,
+              boxShadow:"none",
               "&:hover": {
-                bgcolor: "#25608A",
+                boxShadow:"none"
               },
             }}
           >

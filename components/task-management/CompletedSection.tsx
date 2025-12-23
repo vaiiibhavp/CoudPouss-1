@@ -1,10 +1,18 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, Button, Card, Avatar, Rating } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
+  Avatar,
+  Rating,
+  Divider,
+} from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CheckIcon from "@mui/icons-material/Check";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -73,13 +81,41 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
       total: "€340.00",
     },
     serviceTimeline: [
-      { status: "Quote Sent", date: "Wed, 16 Jan' 2025 - 7:07pm", completed: true },
-      { status: "Quote Accepted", date: "Wed, 16 Jan' 2025 - 7:07pm", completed: true },
-      { status: "Out for Service", date: "Wed, 18 Jan' 2025 - 7:07pm", completed: true },
-      { status: "Started Service", date: "Wed, 18 Jan' 2025 - 7:07pm", completed: true },
-      { status: "Renegotiated the amount", date: "Wed, 18 Jan' 2025 - 7:07pm", completed: true },
-      { status: "Service Completed", date: "Wed, 18 Jan' 2025 - 7:07pm", completed: true },
-      { status: "Payment Received", date: "Wed, 18 Jan' 2025 - 7:07pm", completed: true },
+      {
+        status: "Quote Sent",
+        date: "Wed, 16 Jan' 2025 - 7:07pm",
+        completed: true,
+      },
+      {
+        status: "Quote Accepted",
+        date: "Wed, 16 Jan' 2025 - 7:07pm",
+        completed: true,
+      },
+      {
+        status: "Out for Service",
+        date: "Wed, 18 Jan' 2025 - 7:07pm",
+        completed: true,
+      },
+      {
+        status: "Started Service",
+        date: "Wed, 18 Jan' 2025 - 7:07pm",
+        completed: true,
+      },
+      {
+        status: "Renegotiated the amount",
+        date: "Wed, 18 Jan' 2025 - 7:07pm",
+        completed: true,
+      },
+      {
+        status: "Service Completed",
+        date: "Wed, 18 Jan' 2025 - 7:07pm",
+        completed: true,
+      },
+      {
+        status: "Payment Received",
+        date: "Wed, 18 Jan' 2025 - 7:07pm",
+        completed: true,
+      },
     ],
     review: {
       clientName: "Wade Warren",
@@ -94,14 +130,22 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
     <Box>
       {/* Back Button */}
       <Button
-        startIcon={<ArrowBackIcon />}
+        startIcon={<ArrowBackIcon sx={{ color: "#424242" }} />}
         onClick={() => router.push(ROUTES.PROFESSIONAL_EXPLORE_REQUESTS)}
         sx={{
-          color: "text.secondary",
+          color: "#214C65",
+          fontWeight: 500,
+          fontSize: "1rem",
+          lineHeight: "140%",
+          letterSpacing: 0,
           textTransform: "none",
-          mb: 3,
+          mb: "1.25rem",
+          px: 0,
+          minWidth: 0,
+          "& .MuiButton-startIcon": { mr: "0.5rem" },
           "&:hover": {
             bgcolor: "transparent",
+            color: "#2C6587",
           },
         }}
       >
@@ -113,7 +157,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
         sx={{
           display: "grid",
           gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-          gap: 4,
+          gap: { xs: "1.5rem", md: "2.5rem" },
         }}
       >
         {/* Left Column */}
@@ -129,59 +173,90 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
           />
 
           {/* Service Description */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
-              boxShadow: "none",
+              mb: "1.5rem",
+              bgcolor: "#FFFFFF",
+              border: "0.0625rem solid #E6E6E6",
+              borderRadius: "0.75rem",
+              px: "1rem",
+              py: "0.8125rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                fontWeight: 600,
+              }}
             >
               Service description
             </Typography>
             <Typography
-              variant="body2"
-              sx={{ color: "#6B7280", lineHeight: 1.8, textAlign: "justify" }}
+              sx={{
+                color: "#555555",
+                fontWeight: 400,
+                fontSize: "1.125rem",
+                lineHeight: "1.575rem",
+                letterSpacing: 0,
+                textAlign: "justify",
+              }}
             >
               {completedData.description}
             </Typography>
-          </Card>
+          </Box>
 
           {/* Job Photos */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
-              boxShadow: "none",
+              mb: "1.5rem",
+              bgcolor: "#FFFFFF",
+              border: "0.0625rem solid #E6E6E6",
+              borderRadius: "0.75rem",
+              px: "1rem",
+              py: "0.8125rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1rem",
+              }}
             >
               Job photos
             </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                },
+                gap: "1rem",
+              }}
+            >
               {completedData.jobPhotos.map((photo, index) => (
                 <Box
                   key={index}
                   sx={{
                     position: "relative",
                     width: "100%",
-                    height: 180,
-                    borderRadius: 2,
+                    height: "9rem",
+                    borderRadius: "0.5rem",
                     overflow: "hidden",
+                    border: "0.0625rem solid #E5E7EB",
                   }}
                 >
                   <Image
@@ -193,105 +268,118 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
                 </Box>
               ))}
             </Box>
-          </Card>
+          </Box>
 
           {/* Payment Breakdown */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
-              boxShadow: "none",
+              mb: "1.5rem",
+              bgcolor: "#FFFFFF",
+              border: "0.0625rem solid #E6E6E6",
+              borderRadius: "0.75rem",
+              px: "1rem",
+              py: "0.8125rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Payment Breakdown
             </Typography>
-            <Box sx={{ bgcolor: "#F9FAFB", p: 2, borderRadius: 2 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1.5,
-                }}
-              >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#6B7280" }}>
                   Finalized Quote Amount
                 </Typography>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  sx={{ color: "#1F2937" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#595959",
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: 0,
+                  }}
                 >
                   {completedData.paymentBreakdown.finalizedQuoteAmount}
                 </Typography>
               </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1.5,
-                }}
-              >
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#6B7280" }}>
                   Platform Fee (15%)
                 </Typography>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  sx={{ color: "#1F2937" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#595959",
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: 0,
+                  }}
                 >
                   {completedData.paymentBreakdown.platformFee}
                 </Typography>
               </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 2,
-                }}
-              >
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography variant="body2" sx={{ color: "#6B7280" }}>
                   Taxes
                 </Typography>
                 <Typography
-                  variant="body2"
-                  fontWeight="600"
-                  sx={{ color: "#1F2937" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#595959",
+                    fontSize: "0.875rem",
+                    lineHeight: "1rem",
+                    letterSpacing: 0,
+                  }}
                 >
                   {completedData.paymentBreakdown.taxes}
                 </Typography>
               </Box>
-              <Box
+              <Divider
                 sx={{
-                  borderTop: "0.0625rem dashed #D1D5DB",
-                  pt: 2,
+                  mb: "0.25rem",
+                  mt: "-0.25rem",
+                  borderColor: "#2C6587",
+                  borderStyle: "dashed",
+                  borderWidth: "0.0625rem",
+                  borderRadius: "0.0625rem",
                 }}
               />
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography
-                  variant="body1"
-                  fontWeight="600"
-                  sx={{ color: "#1F2937" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#0F232F",
+                    fontSize: "1.25rem",
+                    lineHeight: "1.5rem",
+                    letterSpacing: 0,
+                  }}
                 >
                   Total
                 </Typography>
                 <Typography
-                  variant="h6"
-                  fontWeight="700"
-                  sx={{ color: "#2F6B8E" }}
+                  fontWeight={600}
+                  sx={{
+                    color: "#2C6587",
+                    fontSize: "1.25rem",
+                    lineHeight: "1",
+                    letterSpacing: 0,
+                  }}
                 >
                   {completedData.paymentBreakdown.total}
                 </Typography>
               </Box>
             </Box>
-          </Card>
+          </Box>
 
           {/* Client Review */}
           <Card
@@ -334,25 +422,40 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
           {/* Finalized Quote Amount */}
           <Card
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #E6E6E6",
+              bgcolor: "#FFFFFF",
+              padding: "0.8125rem 1rem 0.8125rem 1rem",
+              mb: "1rem",
               boxShadow: "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.25rem",
+              "&:hover": {
+                border: "0.0625rem solid #E6E6E6",
+              },
             }}
           >
             <Typography
-              variant="body2"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight="500"
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Finalized Quote Amount
             </Typography>
             <Typography
-              variant="h4"
               fontWeight="700"
-              sx={{ color: "#2F6B8E", mb: 3 }}
+              sx={{
+                color: "#0F232F",
+                fontSize: "1.6875rem",
+                lineHeight: "2rem",
+                letterSpacing: "3%",
+                textAlign: "left",
+              }}
             >
               {completedData.finalizedQuoteAmount}
             </Typography>
@@ -361,66 +464,99 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
           {/* Security Code */}
           <Card
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #E6E6E6",
+              bgcolor: "#FFFFFF",
+              padding: "0.8125rem 1rem 0.8125rem 1rem",
+              mb: "1rem",
               boxShadow: "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.25rem",
+              "&:hover": {
+                border: "0.0625rem solid #E6E6E6",
+              },
             }}
           >
             <Typography
-              variant="body2"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Security Code
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                gap: "0.625rem",
+                justifyContent: "space-between",
+              }}
+            >
               {completedData.securityCode.map((digit, index) => (
                 <Box
                   key={index}
                   sx={{
-                    width: 56,
-                    height: 56,
+                    py: "1.438rem",
+                    px: "2.089rem",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    border: "none",
-                    borderRadius: 2,
-                    bgcolor: "#F3F4F6",
+                    borderRadius: "1.25rem",
+                    bgcolor: "#EAF0F34D",
                   }}
                 >
                   <Typography
-                    variant="h5"
-                    fontWeight="500"
-                    sx={{ color: "#1F2937" }}
+                    fontWeight={400}
+                    sx={{
+                      color: "#0F232F",
+                      fontSize: "1.25rem",
+                      lineHeight: "100%",
+                      letterSpacing: 0,
+                      verticalAlign: "middle",
+                    }}
                   >
                     {digit}
                   </Typography>
                 </Box>
               ))}
             </Box>
-            <Typography variant="caption" sx={{ color: "#6B7280" }}>
+            <Typography
+              fontWeight={400}
+              sx={{
+                color: "#424242",
+                fontSize: "0.6875rem",
+                lineHeight: "1rem",
+                letterSpacing: 0,
+              }}
+            >
               Note: Final 3 digits will be given to you on service date
             </Typography>
           </Card>
 
           {/* About Client Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
+              px: "1.375rem",
+              py: "1rem",
+              borderRadius: "0.75rem",
               mb: 3,
               border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1rem",
+              }}
             >
               About client
             </Typography>
@@ -429,17 +565,25 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                gap: 2,
+                gap: "1.5rem",
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Avatar
                   src={completedData.clientAvatar}
                   alt={completedData.clientName}
-                  sx={{ width: 56, height: 56 }}
+                  sx={{ width: 48, height: 48 }}
                 />
                 <Box>
-                  <Typography variant="body1" fontWeight="600" sx={{ mb: 0.5 }}>
+                  <Typography
+                    fontWeight={600}
+                    sx={{
+                      color: "#0F232F",
+                      fontSize: "1.25rem",
+                      lineHeight: "1.5rem",
+                      letterSpacing: 0,
+                    }}
+                  >
                     {completedData.clientName}
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -466,82 +610,119 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               <Button
                 variant="contained"
                 sx={{
-                  bgcolor: "#2F6B8E",
-                  color: "white",
+                  bgcolor: "#214C65",
+                  color: "#FFFFFF",
                   textTransform: "none",
-                  py: 1.25,
-                  px: 3,
-                  borderRadius: 2,
-                  fontWeight: 600,
+                  px: "1.75rem",
+                  py: "0.625rem",
+                  width: "fit-content",
+                  borderRadius: "0.5rem",
+                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                  lineHeight: "1.125rem",
+                  letterSpacing: 0,
                   "&:hover": {
-                    bgcolor: "#25608A",
+                    bgcolor: "#1b3f55",
                   },
                 }}
               >
                 Chat
               </Button>
             </Box>
-          </Card>
+          </Box>
 
           {/* Address Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
+              px: "1rem",
+              py: "0.8125rem",
+              borderRadius: "0.75rem",
+              mb: "1.5rem",
+              border: "0.0625rem solid #E6E6E6",
               boxShadow: "none",
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
             }}
           >
             <Typography
               variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Address
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <LocationOnIcon
-                sx={{ fontSize: "1.2rem", color: "#6B7280", mt: 0.2 }}
+                sx={{
+                  fontSize: "1.5rem",
+                  width: "1.5rem",
+                  height: "1.5rem",
+                  color: "#6B7280",
+                }}
               />
               <Typography
                 variant="body2"
-                sx={{ color: "#374151", lineHeight: 1.6 }}
+                sx={{
+                  color: "#595959",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: 0,
+                }}
               >
                 4517 Washington Ave. Manchester, Kentucky 39495
               </Typography>
             </Box>
-          </Card>
+          </Box>
 
           {/* Service Status Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              border: "0.0625rem solid #E5E7EB",
+              p: "1.5rem",
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #E6E6E6",
               boxShadow: "none",
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 3 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1.25rem",
+              }}
             >
               Service Status
             </Typography>
 
-            {/* Timeline */}
             {completedData.serviceTimeline.map((item, index) => (
-              <Box key={index} sx={{ mb: 3, position: "relative" }}>
+              <Box
+                key={index}
+                sx={{
+                  mb:
+                    index === completedData.serviceTimeline.length - 1 ? 0 : 3,
+                  position: "relative",
+                }}
+              >
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
                   <Box
                     sx={{
-                      width: 32,
-                      height: 32,
+                      width: "1.5rem",
+                      height: "1.5rem",
                       borderRadius: "50%",
-                      bgcolor: item.completed ? "#10B981" : "#4B5563",
+                      bgcolor: item.completed ? "#2E7D32" : "#424242",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -549,14 +730,11 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
                     }}
                   >
                     {item.completed ? (
-                      <CheckCircleIcon
-                        sx={{ fontSize: "1.1rem", color: "white" }}
-                      />
+                      <CheckIcon sx={{ fontSize: "0.6rem", color: "white" }} />
                     ) : (
                       <Typography
-                        variant="body2"
                         fontWeight="600"
-                        sx={{ color: "white" }}
+                        sx={{ color: "white", fontSize: "0.875rem" }}
                       >
                         {index + 1}
                       </Typography>
@@ -565,15 +743,27 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
                   <Box sx={{ flex: 1 }}>
                     <Typography
                       variant="body1"
-                      fontWeight="600"
+                      fontWeight={400}
                       sx={{
-                        color: "#1F2937",
-                        mb: 0.5,
+                        color: "#2B2B2B",
+                        fontSize: "1rem",
+                        lineHeight: "1.4rem",
+                        letterSpacing: 0,
+                        mb: "0.188rem",
                       }}
                     >
                       {item.status}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "#9CA3AF" }}>
+                    <Typography
+                      fontWeight={400}
+                      sx={{
+                        color: "#737373",
+                        fontSize: "0.75rem",
+                        lineHeight: "1.125rem",
+                        letterSpacing: 0,
+                        textAlign: "left",
+                      }}
+                    >
                       {item.date}
                     </Typography>
                   </Box>
@@ -582,17 +772,17 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
                   <Box
                     sx={{
                       position: "absolute",
-                      left: 13.5,
-                      top: 36,
-                      width: "0.5%",
-                      height: 40,
+                      left: "0.75rem",
+                      top: "1.5rem",
+                      width: "0.125rem",
+                      bottom: "-1.5rem",
                       bgcolor: "#E5E7EB",
                     }}
                   />
                 )}
               </Box>
             ))}
-          </Card>
+          </Box>
 
           {/* Information Message */}
           <Box
@@ -602,48 +792,48 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
               borderRadius: 2,
             }}
           >
-            <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+            <Box sx={{ flex: 1 }}>
               <Box
                 sx={{
-                  width: 20,
-                  height: 20,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  mt: 0.2,
+                  gap: "11px",
+                  mb: "0.688rem",
                 }}
               >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+                <Image
+                  src={"/icons/warning.png"}
+                  alt="warning"
+                  width={20}
+                  height={20}
+                />
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: "1rem",
+                    lineHeight: "1.125rem",
+                    color: "primary.normal",
+                  }}
                 >
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-                    fill="#F59E0B"
-                  />
-                </svg>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body2" fontWeight="600" sx={{ mb: 1 }}>
                   Information message:
                 </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ lineHeight: 1.6, fontSize: "0.8rem" }}
-                >
-                  CoudPouss does not guarantee the quality of services exchanged
-                  from this point onward. Our role is to connect you with
-                  professionals and secure your transactions through escrow. All
-                  providers on our platform issue their own invoices directly to
-                  clients. Once you provide the validation code to your provider,
-                  you must request an invoice or receipt from them for your
-                  payment.
-                </Typography>
               </Box>
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "0.75rem",
+                  lineHeight: "150%",
+                  color: "#323232",
+                }}
+              >
+                CoudPouss does not guarantee the quality of services exchanged
+                from this point onward. Our role is to connect you with
+                professionals and secure your transactions through escrow. All
+                providers on our platform issue their own invoices directly to
+                clients. Once you provide the validation code to your provider,
+                you must request an invoice or receipt from them for your
+                payment.
+              </Typography>
             </Box>
           </Box>
         </Box>

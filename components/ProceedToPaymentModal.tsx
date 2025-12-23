@@ -69,6 +69,7 @@ export default function ProceedToPaymentModal({
             fontWeight={600}
             sx={{
               fontSize: "1.375rem",
+              fontWeight:600,
               lineHeight: "1.875rem",
               letterSpacing: "0%",
               my: 2,
@@ -280,6 +281,7 @@ export default function ProceedToPaymentModal({
               fullWidth
               onClick={onClose}
               sx={{
+                width:"40%",
                 height: "3.5rem",
                 borderRadius: "0.75rem",
                 border: "0.0625rem solid #214C65",
@@ -287,7 +289,8 @@ export default function ProceedToPaymentModal({
                 textTransform: "none",
                 bgcolor: "#FFFFFF",
                 color: "#214C65",
-                fontWeight: 500,
+                fontSize:"1.187rem",
+                fontWeight: 700,
                 "&:hover": {
                   border: "0.0625rem solid #214C65",
                   bgcolor: "#FFFFFF",
@@ -308,7 +311,8 @@ export default function ProceedToPaymentModal({
                 textTransform: "none",
                 bgcolor: "#214C65",
                 color: "#FFFFFF",
-                fontWeight: 500,
+                fontSize:"1.187rem",
+                fontWeight: 700,
                 "&:hover": {
                   bgcolor: "#214C65",
                 },

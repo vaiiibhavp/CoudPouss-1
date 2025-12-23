@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -8,44 +8,90 @@ import {
   Typography,
   Paper,
   Radio,
-  Divider,
+  CircularProgress,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
-const plans = [
-  {
-    id: "professional-certified",
-    name: "Professional (Certified)",
-    subtitle: "Monthly",
-    price: "€15.99",
-    period: "/month",
-    features: [
-      "Must have required certifications",
-    ],
-  },
-  {
-    id: "non-certified-provider",
-    name: "Non-Certified Provider",
-    subtitle: "Monthly",
-    price: "€9.99",
-    period: "/month",
-    features: [
-      "Without required certifications and experience",
-    ],
-  },
-];
+interface Plan {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  duration: string;
+  description: string;
+  features: string[];
+}
+
+interface PlansResponse {
+  status: string;
+  message: string;
+  data: {
+    professional: Plan[];
+    non_professional: Plan[];
+  };
+}
 
 export default function SelectPlanPage() {
   const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState("professional-certified");
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await apiGet<PlansResponse>(API_ENDPOINTS.AUTH.PLANS_ALL);
+
+        if (response.success && response.data) {
+          // Combine professional and non_professional plans
+          const allPlans = [
+            ...(response.data.data.professional || []),
+            ...(response.data.data.non_professional || []),
+          ];
+          setPlans(allPlans);
+          
+          // Set first plan as default selected
+          if (allPlans.length > 0) {
+            setSelectedPlan(allPlans[0].id);
+          }
+        } else {
+          setError(response.error?.message || "Failed to fetch plans");
+        }
+      } catch (err: any) {
+        console.error("Error fetching plans:", err);
+        setError(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
 
   const handleContinue = () => {
+    if (!selectedPlan) return;
+    
     const plan = plans.find(p => p.id === selectedPlan);
-    sessionStorage.setItem("selected_plan", selectedPlan);
-    sessionStorage.setItem("selected_plan_details", JSON.stringify(plan));
-    router.push(ROUTES.PROFESSIONAL_ONBOARDING_REVIEW_PLAN);
+    if (plan) {
+      sessionStorage.setItem("selected_plan", selectedPlan);
+      sessionStorage.setItem("selected_plan_details", JSON.stringify(plan));
+      router.push(ROUTES.PROFESSIONAL_ONBOARDING_REVIEW_PLAN);
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return `€${price.toFixed(2)}`;
+  };
+
+  const formatDuration = (duration: string) => {
+    return duration.charAt(0).toUpperCase() + duration.slice(1);
   };
 
   return (
@@ -123,7 +169,7 @@ export default function SelectPlanPage() {
                   color: "primary.normal",
                   fontSize: "1.25rem",
                   lineHeight: "1.5rem",
-                  fontWeight: 600
+                  fontWeight: 700
                 }}>
                   CoudPouss
                 </Typography>
@@ -134,9 +180,9 @@ export default function SelectPlanPage() {
             <Box>
               <Typography
                 sx={{
-                  fontWeight: `700`,
+                  fontWeight: 700,
                   fontSize: `1.5rem`,
-                  color: `primary.normal`,
+                  color: `#424242`,
                   mb: "0.75rem",
                   lineHeight: "1.75rem",
                   textAlign: "left"
@@ -147,37 +193,60 @@ export default function SelectPlanPage() {
               <Typography
                 sx={{
                   fontWeight: 400,
-                  fontSize: "1rem",
+                  fontSize: "16px",
                   textAlign: "left",
                   lineHeight: "140%",
+                  letterSpacing: "0%",
                   mb: "2.5rem",
-                  color: "secondary.neutralWhiteDark",
+                  color: "#939393",
                 }}
               >
-                Select the plan that best suits you and fits your budget to get started.
+                Select the plan that fits your activity. You can change it later in your profile.
               </Typography>
 
               <Typography
                 sx={{
                   fontWeight: 500,
-                  fontSize: "1.0625rem",
-                  lineHeight: "1.25rem",
-                  color: "#424242",
+                  fontSize: "19px",
+                  lineHeight: "28px",
+                  letterSpacing: "0%",
+                  color: "#214C65",
                   mb: "1rem"
                 }}
               >
                 All Premium Plans
               </Typography>
 
-              {plans.map((plan) => (
+              {loading && (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              )}
+
+              {error && (
+                <Typography color="error" sx={{ mb: 2, textAlign: "center" }}>
+                  {error}
+                </Typography>
+              )}
+
+              {!loading && !error && plans.length === 0 && (
+                <Typography sx={{ mb: 2, textAlign: "center", color: "text.secondary" }}>
+                  No plans available
+                </Typography>
+              )}
+
+              {!loading && plans.map((plan) => (
                 <Paper
                   key={plan.id}
                   elevation={0}
                   sx={{
                     mb: 2,
-                    p: 2,
-                    border: selectedPlan === plan.id ? "2px solid #2F6B8E" : "1px solid #e0e0e0",
-                    borderRadius: 2,
+                    paddingTop: "24px",
+                    paddingRight: "20px",
+                    paddingBottom: "24px",
+                    paddingLeft: "20px",
+                    border: selectedPlan === plan.id ? "2px solid #2F6B8E" : "1px solid rgba(204, 204, 204, 0.4)",
+                    borderRadius: "12px",
                     cursor: "pointer",
                     position: "relative",
                     "&:hover": {
@@ -188,20 +257,67 @@ export default function SelectPlanPage() {
                 >
                   <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle1" fontWeight="600" gutterBottom>
+                      <Typography
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: "19px",
+                          lineHeight: "20px",
+                          letterSpacing: "1%",
+                          color: "#214C65",
+                          mb:"19px"
+                        }}
+                       >
                         {plan.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {plan.subtitle}
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: "18px",
+                          lineHeight: "24px",
+                          letterSpacing: "0%",
+                          color: "#214C65",
+                          mb:"8px"
+                        }}
+                      >
+                        {formatDuration(plan.duration)}
                       </Typography>
-                      <Typography variant="h6" color="#2F6B8E" fontWeight="bold" sx={{ mt: 1 }}>
-                        {plan.price}
-                        <Typography component="span" variant="body2" color="text.secondary">
-                          {plan.period}
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: "19px",
+                          lineHeight: "20px",
+                          letterSpacing: "1%",
+                          color: "#214C65",
+                          mt: 1
+                        }}
+                      >
+                        {formatPrice(plan.price)}
+                        <Typography
+                          component="span"
+                          sx={{
+                            fontWeight: 400,
+                            fontSize: "14px",
+                            lineHeight: "20px",
+                            letterSpacing: "0%",
+                            color: "#214C65",
+                            ml: 0.5
+                          }}
+                        >
+                          /month
                         </Typography>
                       </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-                        {plan.features[0]}
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: "12px",
+                          lineHeight: "150%",
+                          letterSpacing: "0%",
+                          color: "#214C65",
+                          display: "block",
+                          mt: 1
+                        }}
+                      >
+                        *Billed & recurring monthly cancel anytime
                       </Typography>
                     </Box>
                     <Radio
@@ -218,27 +334,33 @@ export default function SelectPlanPage() {
                 </Paper>
               ))}
 
-              <Divider sx={{ my: 3 }} />
+    
 
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 3 }}>
-                All plans come with a 30-day money-back guarantee. You can cancel anytime. No questions asked. By subscribing, you agree to our Terms of Service and Privacy Policy.
+              <Typography variant="caption"  sx={{ display: "block", fontWeight:400 , fontSize:"11px",lineHeight:"16px", color:"#2C6587" }}>
+              Your membership starts as soon as you set up payment and subscribe. Your monthly charge will occur on the last day of the current billing period. We’ll renew your membership for you can manage your subscription or turn off auto-renewal under accounts setting.
               </Typography>
 
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Typography variant="caption"  sx={{ display: "block", fontWeight:400 , fontSize:"11px",lineHeight:"16px", color:"#2C6587" }}>
+              By continuing, you are agreeing to these terms. See the privacy statement and restricions.
+              </Typography>
+
+              <Box sx={{ display: "flex", flexDirection: "column"}}>
                 <Button
                   fullWidth
-                  variant="outlined"
+                  variant="text"
                   size="large"
                   onClick={() => router.push(ROUTES.PROFESSIONAL_DASHBOARD)}
                   sx={{
-                    borderColor: "primary.dark",
                     color: "primary.dark",
-                    py: 1.5,
+                    bgcolor: "transparent",
+                    py: "20px",
+                    fontWeight:600,
+                    fontSize:"14px",
                     textTransform: "none",
-                    fontSize: "1rem",
+                    borderRadius: "8px",
+                    lineHeight:"16px",
                     "&:hover": {
-                      borderColor: "#25608A",
-                      bgcolor: "rgba(47, 107, 142, 0.04)",
+                      bgcolor: "transparent",
                     },
                   }}
                 >
@@ -249,14 +371,22 @@ export default function SelectPlanPage() {
                   variant="contained"
                   size="large"
                   onClick={handleContinue}
+                  disabled={!selectedPlan || loading}
                   sx={{
-                    bgcolor: "primary.dark",
+                    bgcolor: "#214C65",
                     color: "white",
-                    py: 1.5,
+                    py: "18px",
+                    fontWeight:700,
+                    lineHeight:"20px",
                     textTransform: "none",
-                    fontSize: "1rem",
+                    fontSize: "19px",
+                    borderRadius: "8px",
                     "&:hover": {
                       bgcolor: "#25608A",
+                    },
+                    "&:disabled": {
+                      bgcolor: "#ccc",
+                      color: "#666",
                     },
                   }}
                 >

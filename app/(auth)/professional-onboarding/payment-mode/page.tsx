@@ -1,22 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
   Container,
   Typography,
   Paper,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  Card,
-  CardContent,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
 import SuccessModal from "@/components/SuccessModal";
+
+interface Plan {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  duration: string;
+  description: string;
+  features: string[];
+}
 
 const paymentMethods = [
   {
@@ -35,16 +40,43 @@ const paymentMethods = [
 
 export default function PaymentModePage() {
   const router = useRouter();
-  const [selectedMethod, setSelectedMethod] = useState("google-pay");
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const planDetailsStr = sessionStorage.getItem("selected_plan_details");
+      if (planDetailsStr) {
+        try {
+          const parsedPlan = JSON.parse(planDetailsStr);
+          setPlan(parsedPlan);
+        } catch (error) {
+          console.error("Error parsing plan details:", error);
+        }
+      }
+    }
+  }, []);
+
+  const formatPrice = (price: number) => {
+    return `€${price.toFixed(2)}`;
+  };
+
+  const formatDuration = (duration: string) => {
+    return duration.charAt(0).toUpperCase() + duration.slice(1);
+  };
 
   const handleBack = () => {
     router.back();
   };
 
   const handleSubscribe = () => {
-    // Show success modal after payment
-    setShowSuccessModal(true);
+    // Skip payment method flow for now - directly proceed to next step
+    // Payment method implementation will be added later
+    router.push(ROUTES.PROFESSIONAL_ONBOARDING_ADDITIONAL_DETAILS);
+    
+    // Uncomment below when payment method flow is implemented
+    // setShowSuccessModal(true);
   };
 
   const handleSuccessClose = () => {
@@ -139,7 +171,7 @@ export default function PaymentModePage() {
             <Box>
               <Typography
                 sx={{
-                  fontWeight: `700`,
+                  fontWeight: 600,
                   fontSize: `1.5rem`,
                   color: `primary.normal`,
                   mb: "0.75rem",
@@ -155,43 +187,99 @@ export default function PaymentModePage() {
                   fontSize: "1rem",
                   textAlign: "left",
                   lineHeight: "140%",
+                  letterSpacing: "0%",
                   mb: "2.5rem",
-                  color: "secondary.neutralWhiteDark",
+                  color: "#939393",
                 }}
               >
                 Select a quick and secure way to complete your subscription
               </Typography>
 
               {/* Plan Summary */}
-              <Paper
-                elevation={0}
-                sx={{
-                  border: "1px solid #e0e0e0",
-                  borderRadius: 2,
-                  p: 2,
-                  mb: 3,
-                  bgcolor: "#f9fafb",
-                }}
-              >
-                <Typography variant="subtitle2" fontWeight="600" gutterBottom>
-                  Professional (Certified)
-                </Typography>
-                <Typography variant="h6" color="#2F6B8E" fontWeight="bold">
-                  €15.99
-                  <Typography component="span" variant="body2" color="text.secondary">
-                    /month
+              {plan ? (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    border: "0.0625rem solid #e0e0e0",
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 3,
+                    bgcolor: "#f9fafb",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: "1.1875rem",
+                      lineHeight: "1.25rem",
+                      letterSpacing: "1%",
+                      color: "#214C65",
+                      marginBottom: "1.1875rem",
+                    }}
+                  >
+                    {plan.name}
                   </Typography>
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                  Billed on a recurring monthly basis
-                </Typography>
-              </Paper>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "1.1875rem",
+                      lineHeight: "1.25rem",
+                      letterSpacing: "1%",
+                      color: "#214C65",
+                    }}
+                  >
+                    {formatPrice(plan.price)}
+                    <Typography
+                      component="span"
+                      sx={{
+                        fontWeight: 400,
+                        fontSize: "1.125rem",
+                        lineHeight: "1.5rem",
+                        letterSpacing: "0%",
+                        color: "#214C65",
+                      }}
+                    >
+                      /month
+                    </Typography>
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "0.75rem",
+                      lineHeight: "150%",
+                      letterSpacing: "0%",
+                      color: "#214C65",
+                      display: "block",
+                      mt: 0.5
+                    }}
+                  >
+                    *Billed & recurring {formatDuration(plan.duration).toLowerCase()} cancel anytime
+                  </Typography>
+                </Paper>
+              ) : (
+                <Paper
+                  elevation={0}
+                  sx={{
+                    border: "0.0625rem solid #e0e0e0",
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 3,
+                    bgcolor: "#f9fafb",
+                  }}
+                >
+                  <Typography sx={{ color: "text.secondary" }}>
+                    No plan selected. Please go back and select a plan.
+                  </Typography>
+                </Paper>
+              )}
 
+              {/* Payment Method Selection - Disabled for now */}
               <Typography
                 sx={{
-                  fontWeight: 500,
+                  fontWeight: 400,
                   fontSize: "1.0625rem",
                   lineHeight: "1.25rem",
+                  letterSpacing: "0%",
                   color: "#424242",
                   mb: "1rem"
                 }}
@@ -199,54 +287,96 @@ export default function PaymentModePage() {
                 Choose payment method
               </Typography>
 
-              {paymentMethods.map((method) => (
+              <Box
+                sx={{
+                  mb: 3,
+                  p: 2,
+                  border: "1px dashed #ccc",
+                  borderRadius: 2,
+                  bgcolor: "#f9fafb",
+                  textAlign: "center",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: "0.875rem",
+                    lineHeight: "1.25rem",
+                    color: "#939393",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Payment method selection will be implemented later
+                </Typography>
+              </Box>
+
+              {/* Payment methods UI - Hidden for now, will be enabled later */}
+              {false && paymentMethods.map((method) => (
                 <Paper
                   key={method.id}
                   elevation={0}
                   sx={{
                     mb: 2,
-                    p: 2,
-                    border: selectedMethod === method.id ? "2px solid #2F6B8E" : "1px solid #e0e0e0",
-                    borderRadius: 2,
+                    paddingTop: "0.5rem",
+                    paddingRight: "0.75rem",
+                    paddingBottom: "0.5rem",
+                    paddingLeft: "0.75rem",
+                    border: selectedMethod === method.id ? "0.125rem solid #2F6B8E" : "0.03125rem solid #e0e0e0",
+                    borderRadius: "1rem",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    bgcolor: "#FFFFFF",
+                    gap: "0.9375rem",
                     "&:hover": {
-                      borderColor: "#2F6B8E",
+                      borderColor: "#DFE8ED",
                     },
                   }}
                   onClick={() => setSelectedMethod(method.id)}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
                     <Box
                       sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 1,
-                        bgcolor: "#f3f4f6",
+                        borderRadius: "1rem",
+                        border: "0.015625rem solid #EAF0F3",
+                        padding: "1rem",
+                        bgcolor: "#F2F2F2",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      <Typography variant="body2" fontWeight="600">
-                        {method.id === "google-pay" ? "G" : method.id === "apple-pay" ? "" : "💳"}
-                      </Typography>
+                      <Image
+                        src={
+                          method.id === "google-pay"
+                            ? "/icons/G_Pay_Lockup_1_.png"
+                            : method.id === "apple-pay"
+                            ? "/icons/appleLogo.png"
+                            : "/icons/creditcard.png"
+                        }
+                        alt={method.name}
+                        width={28}
+                        height={28}
+                      />
                     </Box>
-                    <Typography variant="body1" fontWeight="500">
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: "1.125rem",
+                        lineHeight: "1.25rem",
+                        letterSpacing: "0%",
+                        color: "#424242",
+                      }}
+                    >
                       {method.name}
                     </Typography>
                   </Box>
-                  <Radio
-                    checked={selectedMethod === method.id}
-                    value={method.id}
-                    sx={{
-                      color: "#2F6B8E",
-                      "&.Mui-checked": {
-                        color: "#2F6B8E",
-                      },
-                    }}
+                  <Image
+                    src="/icons/chevron-right.png"
+                    alt="chevron right"
+                    width={24}
+                    height={24}
                   />
                 </Paper>
               ))}
@@ -277,6 +407,7 @@ export default function PaymentModePage() {
                   variant="contained"
                   size="large"
                   onClick={handleSubscribe}
+                  disabled={!plan}
                   sx={{
                     bgcolor: "primary.dark",
                     color: "white",
@@ -286,9 +417,13 @@ export default function PaymentModePage() {
                     "&:hover": {
                       bgcolor: "#25608A",
                     },
+                    "&:disabled": {
+                      bgcolor: "#ccc",
+                      color: "#666",
+                    },
                   }}
                 >
-                  Subscribe
+                  Continue
                 </Button>
               </Box>
             </Box>
@@ -300,16 +435,16 @@ export default function PaymentModePage() {
       <SuccessModal
         open={showSuccessModal}
         onClose={handleSuccessClose}
-        title="Welcome aboard!"
+        title=""
         message="Your subscription is now active. You are now receiving all features immediately."
         buttonText="Complete Profile Now"
         showSubscriptionDetails={true}
         subscriptionDetails={{
-          plan: "Professional/Monthly",
-          modeOfPayment: selectedMethod === "google-pay" ? "Google Pay" : selectedMethod === "apple-pay" ? "Apple Pay" : "Credit Card",
+          plan: plan ? `${plan.name}/${formatDuration(plan.duration)}` : "N/A",
+          modeOfPayment: selectedMethod === "google-pay" ? "Google Pay" : selectedMethod === "apple-pay" ? "Apple Pay" : selectedMethod === "credit-card" ? "Credit Card" : "Not selected",
           subscriptionDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
           startDate: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
-          billingDate: "Monthly",
+          billingDate: plan ? formatDuration(plan.duration) : "Monthly",
         }}
       />
     </Box>

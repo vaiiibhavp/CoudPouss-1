@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -13,13 +13,38 @@ import {
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { apiPost } from "@/lib/api";
+import { buildInputData } from "@/utils/validation";
+import { API_ENDPOINTS } from "@/constants/api";
+
+interface SignUpApiError {
+  [key: string]: string;
+}
+
+interface SignUpApiResponse {
+  data: any | null;
+  error: SignUpApiError | null;
+}
 
 export default function ProfessionalVerifyOtpPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     otp: ["", "", "", ""],
+    emailOrMobile: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Get emailOrMobile from sessionStorage
+    const contact = sessionStorage.getItem("professional_contact");
+    if (contact) {
+      setFormData((prev) => ({ ...prev, emailOrMobile: contact }));
+    } else {
+      // If no contact found, redirect back to enter-contact
+      router.push(ROUTES.SIGNUP_PROFESSIONAL_ENTER_CONTACT);
+    }
+  }, [router]);
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return;
@@ -44,14 +69,104 @@ export default function ProfessionalVerifyOtpPage() {
     }
   };
 
-  const handleContinue = () => {
+  const apiCallToVerifyOtp = async (): Promise<SignUpApiResponse> => {
+    try {
+      let payload = {};
+      let url = API_ENDPOINTS.AUTH.VERIFY_OTP;
+      let validData = buildInputData(formData.emailOrMobile);
+
+      if (validData.email) {
+        payload = {
+          email: validData.email || "",
+          otp: formData.otp.join(""),
+        };
+      } else {
+        payload = {
+          mobile: validData.mobile || "",
+          phone_country_code: validData.phone_country_code || "",
+          otp: formData.otp.join(""),
+        };
+      }
+
+      const response = await apiPost(url, payload);
+
+      if (response.success && response.data) {
+        return { data: response.data, error: null };
+      } else {
+        let error: SignUpApiError = {};
+        if (response.error) {
+          error = { otp: response.error.message || "Something went wrong." };
+        }
+        return {
+          data: null,
+          error: Object.keys(error).length > 0 ? error : { general: "Something went wrong" },
+        };
+      }
+    } catch (error: any) {
+      return {
+        data: null,
+        error: { general: error.message || "Something went wrong" },
+      };
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setLoading(true);
+    try {
+      let payload = {};
+      let url = API_ENDPOINTS.AUTH.RESEND_OTP;
+      let validData = buildInputData(formData.emailOrMobile);
+
+      if (validData.email) {
+        payload = {
+          email: validData.email || "",
+        };
+      } else {
+        payload = {
+          mobile: validData.mobile || "",
+          phone_country_code: validData.phone_country_code || "",
+        };
+      }
+
+      await apiPost(url, payload);
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+    }
+    setLoading(false);
+  };
+
+  const handleContinue = async () => {
     if (formData.otp.some((digit) => !digit)) {
       setErrors({ otp: "Please enter valid code" });
       return;
     }
-    // Store OTP in sessionStorage
-    sessionStorage.setItem("professional_otp", formData.otp.join(""));
-    router.push(ROUTES.SIGNUP_PROFESSIONAL_CREATE_PASSWORD);
+
+    setLoading(true);
+    let { data, error } = await apiCallToVerifyOtp();
+
+    if (data) {
+      router.push(ROUTES.SIGNUP_PROFESSIONAL_CREATE_PASSWORD);
+    } else {
+      if (error) {
+        const errorMsg =
+          error.submit ||
+          error.otp ||
+          error.password ||
+          error.general ||
+          error.msg ||
+          "Something Went Wrong";
+        if (errorMsg.includes("OTP already sent")) {
+          router.push(ROUTES.SIGNUP_PROFESSIONAL_VERIFY_OTP);
+        } else if (errorMsg.includes("OTP already verified")) {
+          router.push(ROUTES.SIGNUP_PROFESSIONAL_CREATE_PASSWORD);
+        } else if (errorMsg.includes("Password already set")) {
+          router.push(ROUTES.SIGNUP_PROFESSIONAL_ADD_DETAILS);
+        } else {
+          setErrors({ otp: errorMsg });
+        }
+      }
+    }
+    setLoading(false);
   };
 
   return (
@@ -63,7 +178,7 @@ export default function ProfessionalVerifyOtpPage() {
       }}
     >
       {/* Header Bar */}
-      <Box
+      {/* <Box
         sx={{
           position: "absolute",
           top: 0,
@@ -80,7 +195,7 @@ export default function ProfessionalVerifyOtpPage() {
         <Typography variant="body1" fontWeight="500">
           02_Verify OTP
         </Typography>
-      </Box>
+      </Box> */}
 
       {/* Left side - Image Section */}
       <Box
@@ -140,7 +255,7 @@ export default function ProfessionalVerifyOtpPage() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: 'primary.main',
+                  // bgcolor: 'primary.main',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -233,12 +348,17 @@ export default function ProfessionalVerifyOtpPage() {
               )}
               <Link
                 href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleResendOtp();
+                }}
                 sx={{
                   display: "block",
                   textAlign: "center",
                   mb: 3,
                   fontSize: "1.25rem",
-                  lineHeight: "1.5rem", fontWeight: 600,
+                  lineHeight: "1.5rem",
+                  fontWeight: 600,
                   color: "primary.normal",
                   textDecoration: "none",
                   "&:hover": {
@@ -253,6 +373,7 @@ export default function ProfessionalVerifyOtpPage() {
                 variant="contained"
                 size="large"
                 onClick={handleContinue}
+                disabled={loading}
                 sx={{
                   bgcolor: "primary.dark",
                   color: "white",
@@ -264,7 +385,7 @@ export default function ProfessionalVerifyOtpPage() {
                   },
                 }}
               >
-                verify OTP
+                {loading ? "Loading..." : "Verify OTP"}
               </Button>
             </Box>
 

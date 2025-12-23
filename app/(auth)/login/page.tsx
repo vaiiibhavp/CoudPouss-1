@@ -14,7 +14,8 @@ import {
   Paper,
   Link,
 } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { validateLoginForm } from '@/utils/validation';
@@ -26,8 +27,7 @@ import { AppDispatch, RootState } from '@/lib/redux/store';
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
-
+  const { loading, error, isAuthenticated,user } = useSelector((state: RootState) => state.auth);
   const [formData, setFormData] = useState({
     emailOrMobile: '',
     password: '',
@@ -64,7 +64,6 @@ export default function LoginPage() {
     e.preventDefault();
 
     const validation = validateLoginForm(formData.emailOrMobile, formData.password);
-
     if (!validation.valid) {
       setErrors(validation.errors);
       return;
@@ -146,7 +145,7 @@ export default function LoginPage() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: 'primary.main',
+                  // bgcolor: 'primary.main',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -279,7 +278,7 @@ export default function LoginPage() {
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
                           >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                            {showPassword ?  <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
 
                           </IconButton>
                         </InputAdornment>
@@ -298,6 +297,8 @@ export default function LoginPage() {
                   fullWidth
                   variant="contained"
                   sx={{
+                    fontSize: "1.1875rem",
+                    fontWeight:700,
                     bgcolor: "primary.dark"
                   }}
                   size="large"
@@ -313,19 +314,25 @@ export default function LoginPage() {
                 <Typography sx={{
                   color: 'secondary.naturalGray',
                   fontSize: "1.125rem",
+                  fontWeight:600,
                   lineHeight: "1.25rem"
                 }}>
                   Don&apos;t have an account?{' '}
                   <Link
                     href={ROUTES.SIGNUP}
                     sx={{
-                      color: 'primary.normal',
-                      textDecoration: 'none',
-                      offset: "3%",
+                      fontFamily: "Lato, sans-serif",
                       fontWeight: 600,
-                      fontSize: "1.25rem",
-                      lineHeight: "1.5rem"
-
+                      fontSize: "1.25rem", // 20px -> 20 / 16 = 1.25rem
+                      lineHeight: "1.5rem", // 24px -> 24 / 16 = 1.5rem
+                      letterSpacing: "0em",
+                      textAlign: "center",
+                      color: "#2C6587", // or primary.normal if defined in theme
+                      textDecorationLine: "underline",
+                      textDecorationThickness: "0.08em", // 8% of font-size
+                      textUnderlineOffset: "0.03em", // 3% of font-size
+                      textDecorationSkipInk: "auto", // skip-ink effect
+                      display: "inline-block", // ensures text-align works if needed
                     }}
                   >
                     Sign up
@@ -338,6 +345,7 @@ export default function LoginPage() {
                       color: 'secondary.naturalGray',
                       fontSize: "1.125rem",
                       lineHeight: "1.25rem",
+                      fontWeight:600,
                       textDecoration: 'none',
                     }}
                   >

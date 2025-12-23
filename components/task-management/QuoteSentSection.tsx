@@ -5,6 +5,7 @@ import { Box, Typography, Button, Card, Avatar } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CheckIcon from "@mui/icons-material/Check";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -38,15 +39,22 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
     <Box>
       {/* Back Button */}
       <Button
-        startIcon={<ArrowBackIcon />}
+        startIcon={<ArrowBackIcon sx={{ color: "#424242" }} />}
         onClick={() => router.push(ROUTES.PROFESSIONAL_EXPLORE_REQUESTS)}
         sx={{
-          color: "text.secondary",
+          color: "#214C65",
+          fontWeight: 500,
+          fontSize: "1rem",
+          lineHeight: "140%",
+          letterSpacing: 0,
           textTransform: "none",
-          mb: 3,
+          mb: "1.25rem",
+          px: 0,
+          minWidth: 0,
+          "& .MuiButton-startIcon": { mr: "0.5rem" },
           "&:hover": {
             bgcolor: "transparent",
-            color: "primary.main",
+            color: "#2C6587",
           },
         }}
       >
@@ -74,42 +82,85 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
           />
 
           {/* Service Description */}
-          <Box sx={{ mb: 3 }}>
+          <Box
+            sx={{
+              mb: "1.5rem",
+              bgcolor: "#FFFFFF",
+              border: "0.0625rem solid #E6E6E6",
+              borderRadius: "0.75rem",
+              px: "1rem",
+              py: "0.8125rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+            }}
+          >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", fontSize: "1.125rem" }}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                fontWeight: 600,
+              }}
             >
               Service description
             </Typography>
             <Typography
-              variant="body2"
-              sx={{ color: "#6B7280", lineHeight: 1.8 }}
+              sx={{
+                color: "#555555",
+                fontWeight: 400,
+                fontSize: "1.125rem",
+                lineHeight: "1.575rem",
+                letterSpacing: 0,
+                textAlign: "justify",
+              }}
             >
               {data.description}
             </Typography>
           </Box>
 
           {/* Job Photos */}
-          <Box>
+          <Box
+            sx={{
+              mb: "1.5rem",
+              bgcolor: "#FFFFFF",
+              border: "0.0625rem solid #E6E6E6",
+              borderRadius: "0.75rem",
+              px: "1rem",
+              py: "0.8125rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+            }}
+          >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", fontSize: "1.125rem", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1rem",
+              }}
             >
               Job photos
             </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+                gap: "1rem",
+              }}
+            >
               {data.jobPhotos.map((photo, index) => (
                 <Box
                   key={index}
                   sx={{
                     position: "relative",
-                    width: 140,
-                    height: 140,
-                    borderRadius: 2,
+                    width: "100%",
+                    height: "9rem",
+                    borderRadius: "0.5rem",
                     overflow: "hidden",
                     border: "0.0625rem solid #E5E7EB",
                   }}
@@ -129,46 +180,71 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
         {/* Right Column - Client Info and Status */}
         <Box>
           {/* About Client Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
+              px: "1.375rem",
+              py: "1rem",
+              borderRadius: "0.75rem",
               mb: 3,
               border: "0.0625rem solid #E5E7EB",
               boxShadow: "none",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1rem",
+              }}
             >
               About client
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, mb: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "1.5rem",
+                mb: 3,
+              }}
+            >
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Avatar
                   src={data.clientAvatar}
                   alt={data.clientName}
                   sx={{ width: 48, height: 48 }}
                 />
-                <Typography variant="body1" fontWeight="600">
+                <Typography
+                  fontWeight={600}
+                  sx={{
+                    color: "#0F232F",
+                    fontSize: "1.25rem",
+                    lineHeight: "1.5rem",
+                    letterSpacing: 0,
+                  }}
+                >
                   {data.clientName}
                 </Typography>
               </Box>
               <Button
                 variant="contained"
                 sx={{
-                  bgcolor: "#2F6B8E",
-                  color: "white",
+                  bgcolor: "#214C65",
+                  color: "#FFFFFF",
                   textTransform: "none",
-                  py: 1,
+                  px: "1.75rem",
+                  py: "0.625rem",
                   width: "fit-content",
-                  borderRadius: 2,
-                  fontWeight: 600,
+                  borderRadius: "0.5rem",
+                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                  lineHeight: "1.125rem",
+                  letterSpacing: 0,
                   "&:hover": {
-                    bgcolor: "#25608A",
+                    bgcolor: "#1b3f55",
                   },
                 }}
               >
@@ -177,147 +253,169 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
             </Box>
 
             {/* Chat Button */}
-          </Card>
+          </Box>
 
           {/* Address Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              mb: 3,
-              border: "0.0625rem solid #E5E7EB",
+              px: "1rem",
+              py: "0.8125rem",
+              borderRadius: "0.75rem",
+              mb: "1.5rem",
+              border: "0.0625rem solid #E6E6E6",
               boxShadow: "none",
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
             }}
           >
             <Typography
               variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 2 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+              }}
             >
               Address
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
               <LocationOnIcon
-                sx={{ fontSize: "1.2rem", color: "#6B7280", mt: 0.2 }}
+                sx={{
+                  fontSize: "1.5rem",
+                  width: "1.5rem",
+                  height: "1.5rem",
+                  color: "#6B7280",
+                }}
               />
               <Typography
                 variant="body2"
-                sx={{ color: "#374151", lineHeight: 1.6 }}
+                sx={{
+                  color: "#595959",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  lineHeight: "1rem",
+                  letterSpacing: 0,
+                }}
               >
                 4517 Washington Ave. Manchester, Kentucky 39495
               </Typography>
             </Box>
-          </Card>
+          </Box>
 
           {/* Service Status Card */}
-          <Card
+          <Box
             sx={{
-              p: 3,
-              borderRadius: 3,
-              border: "0.0625rem solid #E5E7EB",
+              p: "1.5rem",
+              borderRadius: "0.75rem",
+              border: "0.0625rem solid #E6E6E6",
               boxShadow: "none",
+              bgcolor: "#FFFFFF",
+              display: "flex",
+              flexDirection: "column",
             }}
           >
             <Typography
-              variant="h6"
-              fontWeight="600"
-              gutterBottom
-              sx={{ color: "#1F2937", mb: 3 }}
+              fontWeight={600}
+              sx={{
+                color: "#323232",
+                fontSize: "1.125rem",
+                lineHeight: "1.25rem",
+                letterSpacing: 0,
+                mb: "1.25rem",
+              }}
             >
               Service Status
             </Typography>
 
-            {/* Timeline */}
-            {/* Quote Sent Status */}
-            <Box sx={{ mb: 3, position: "relative" }}>
-              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    bgcolor: "#10B981",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <CheckCircleIcon
-                    sx={{ fontSize: "1.1rem", color: "white" }}
-                  />
-                </Box>
-                <Box sx={{ flex: 1 }}>
-                  <Typography
-                    variant="body1"
-                    fontWeight="600"
-                    sx={{
-                      color: "#1F2937",
-                      mb: 0.5,
-                    }}
-                  >
-                    {data.serviceStatus}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "#9CA3AF" }}>
-                    {data.statusDate}
-                  </Typography>
-                </Box>
-              </Box>
-              {/* Connector Line */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  left: 13.5,
-                  top: 36,
-                  width: "0.5%",
-                  height: 40,
-                  bgcolor: "#E5E7EB",
-                }}
-              />
-            </Box>
+            {[
+              {
+                title: data.serviceStatus,
+                subtitle: data.statusDate,
+                completed: true,
+              },
+              {
+                title: data.waitingStatus,
+                subtitle: "Pending",
+                completed: false,
+              },
+            ].map((item, index, arr) => {
+              const stepNumber = index + 1;
+              const isLast = index === arr.length - 1;
+              return (
+                <Box key={item.title} sx={{ mb: isLast ? 0 : 3, position: "relative" }}>
+                  <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: "1.5rem",
+                        height: "1.5rem",
+                        borderRadius: "50%",
+                        bgcolor: item.completed ? "#2E7D32" : "#424242",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {item.completed ? (
 
-            {/* Waiting Status */}
-            <Box sx={{ mb: 3, position: "relative" }}>
-              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    bgcolor: "#4B5563",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    fontWeight="600"
-                    sx={{ color: "white" }}
-                  >
-                    2
-                  </Typography>
+                        <Image src="/icons/check.png" alt="check" width={10} height={10} />
+                      ) : (
+                        <Typography
+                          fontWeight="600"
+                          sx={{ color: "white", fontSize: "0.875rem" }}
+                        >
+                          {stepNumber}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography
+                        variant="body1"
+                        fontWeight={400}
+                        sx={{
+                          color: "#2B2B2B",
+                          fontSize: "1rem",
+                          lineHeight: "1.4rem",
+                          letterSpacing: 0,
+                          mb:"0.188rem"
+                        }}
+                      >
+                        {item.title}
+                      </Typography>
+                      <Typography
+                        fontWeight={400}
+                        sx={{
+                          color: "#737373",
+                          fontSize: "0.75rem",
+                          lineHeight: "1.125rem",
+                          letterSpacing: 0,
+                          textAlign: "left",
+                        }}
+                      >
+                        {item.subtitle}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {!isLast && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        left: "0.75rem",
+                        top: "1.5rem",
+                        width: "0.125rem",
+                        bottom: "-1.5rem",
+                        bgcolor: "#E5E7EB",
+                      }}
+                    />
+                  )}
                 </Box>
-                <Box sx={{ flex: 1 }}>
-                  <Typography
-                    variant="body1"
-                    fontWeight="600"
-                    sx={{
-                      color: "#1F2937",
-                      mb: 0.5,
-                    }}
-                  >
-                    {data.waitingStatus}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "#9CA3AF" }}>
-                    Pending
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Card>
+              );
+            })}
+          </Box>
         </Box>
       </Box>
     </Box>
