@@ -14,8 +14,25 @@ import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/redux/store";
 
 export default function HomePage() {
+  const router = useRouter();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  
+  // Redirect authenticated users to /home
+  useEffect(() => {
+    const storedInitial = localStorage.getItem("userInitial");
+    const storedEmail = localStorage.getItem("userEmail");
+    
+    // If user is authenticated (either via Redux or localStorage), redirect to /home
+    if (isAuthenticated || (storedInitial && storedEmail)) {
+      router.push(ROUTES.AUTH_HOME);
+    }
+  }, [isAuthenticated, router]);
+
   // Swipeable carousel state
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);

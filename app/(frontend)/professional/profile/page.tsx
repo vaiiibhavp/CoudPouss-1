@@ -12,12 +12,19 @@ import ManageSubscription from "@/components/ManageSubscription";
 import RatingsAndReviews from "@/components/RatingsAndReviews";
 import ProfessionalEditProfile from "./components/ProfessionalEditProfile";
 import DeleteProfileModal from "@/components/DeleteProfileModal";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { logout } from "@/lib/redux/authSlice";
+import { apiDelete } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export default function ProfessionalProfilePage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [activeTab, setActiveTab] = useState("My Profile");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const tabs = [
     "My Profile",
@@ -31,10 +38,29 @@ export default function ProfessionalProfilePage() {
     setOpenDeleteModal(true);
   };
 
-  const handleConfirmDelete = () => {
-    localStorage.removeItem("userInitial");
-    localStorage.removeItem("userEmail");
-    router.push(ROUTES.HOME);
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    try {
+      const response = await apiDelete(API_ENDPOINTS.AUTH.DELETE_PROFILE);
+      
+      if (response.success) {
+        // Clear user data
+        localStorage.removeItem("userInitial");
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("role");
+        dispatch(logout());
+        router.push(ROUTES.HOME);
+      } else {
+        alert(response.error?.message || "Failed to delete profile. Please try again.");
+        setOpenDeleteModal(false);
+      }
+    } catch (error: any) {
+      console.error("Error deleting profile:", error);
+      alert("Failed to delete profile. Please try again.");
+      setOpenDeleteModal(false);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -631,8 +657,9 @@ export default function ProfessionalProfilePage() {
 
       <DeleteProfileModal
         open={openDeleteModal}
-        onClose={() => setOpenDeleteModal(false)}
+        onClose={() => !deleting && setOpenDeleteModal(false)}
         onConfirm={handleConfirmDelete}
+        loading={deleting}
       />
     </Box>
   );

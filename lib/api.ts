@@ -92,6 +92,54 @@ export async function apiPost<T>(
 }
 
 /**
+ * POST request with FormData (for file uploads)
+ */
+export async function apiPostFormData<T>(
+  endpoint: string,
+  formData: FormData
+): Promise<ApiResponse<T>> {
+  try {
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+    
+    // Get access token from Redux
+    const store = getStore();
+    const { accessToken } = store.getState().auth;
+    let token = accessToken;
+
+    // Don't set Content-Type header for FormData - browser will set it with boundary
+    const headers: HeadersInit = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: {
+          message: data?.message || `HTTP error! status: ${response.status}`,
+          code: data?.code,
+          fields: data?.fields,
+        },
+      };
+    }
+    
+    return { success: true, data };
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new NetworkError('Network request failed. Please check your connection.');
+    }
+    throw error;
+  }
+}
+
+/**
  * PUT request
  */
 export async function apiPut<T>(

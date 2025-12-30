@@ -23,14 +23,21 @@ export const API_ENDPOINTS = {
     VERIFY_EMAIL: `${API_BASE_URL}userService/auth/verify-email`,
     PLANS_ALL: `${API_BASE_URL}userService/auth/plans/all`,
     EXPERIENCE: `${API_BASE_URL}userService/auth/experience`,
+    GET_USER: `${API_BASE_URL}userService/auth/get_user`,
+    DELETE_PROFILE: `${API_BASE_URL}userService/auth/delete-profile`,
   },
   HOME:{
-    HOME:`http://localhost:3000/home`,
+    HOME: `${API_BASE_URL}home_module/home`,
     ALL_CATEGORIES: `${API_BASE_URL}home_module/all_categories`,
+    ALL_BANNERS: `${API_BASE_URL}home_module/all_banners`,
   },
   USER: {
     PROFILE: `${API_BASE_URL}/user/profile`,
     UPDATE: `${API_BASE_URL}/user/update`,
+  },
+  PROFILE: {
+    USER_PROFILE: `${API_BASE_URL}profile_module/user_profile`,
+    UPDATE_PROFILE: `${API_BASE_URL}profile_module/profile`,
   },
   SERVICES: {
     LIST: `${API_BASE_URL}/services`,
@@ -41,6 +48,12 @@ export const API_ENDPOINTS = {
     LIST: `${API_BASE_URL}/bookings`,
     DETAIL: (id: string) => `${API_BASE_URL}/bookings/${id}`,
     CANCEL: (id: string) => `${API_BASE_URL}/bookings/${id}/cancel`,
+  },
+  SERVICE_REQUEST: {
+    UPLOAD_FILE: `${API_BASE_URL}service_request/upload-job-file`,
+    CREATE: `${API_BASE_URL}service_request/service-requests`,
+    GET_SERVICES: `${API_BASE_URL}service_confirmation/service_accept/get_services`,
+    GET_SERVICE_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/get_service`,
   },
 } as const;
 

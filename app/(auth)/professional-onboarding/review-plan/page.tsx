@@ -287,9 +287,11 @@ export default function ReviewPlanPage() {
                   sx={{
                     borderColor: "primary.dark",
                     color: "primary.dark",
-                    py: 1.5,
+                    py: "18px",
                     textTransform: "none",
-                    fontSize: "1rem",
+                    fontSize: "19px",
+                    fontWeight: 700,
+                    lineHeight: "20px",
                     "&:hover": {
                       borderColor: "#25608A",
                       bgcolor: "rgba(47, 107, 142, 0.04)",
@@ -307,9 +309,11 @@ export default function ReviewPlanPage() {
                   sx={{
                     bgcolor: "#214C65",
                     color: "white",
-                    py: 1.5,
+                    py: "18px",
                     textTransform: "none",
-                    fontSize: "1rem",
+                    fontSize: "19px",
+                    fontWeight: 700,
+                    lineHeight: "20px",
                     "&:hover": {
                       bgcolor: "#25608A",
                     },

@@ -10,11 +10,18 @@ import ProfileOverview from "./components/ProfileOverview";
 import TransactionsHistory from "./components/TransactionsHistory";
 import RatingsReviews from "./components/RatingsReviews";
 import DeleteProfileModal from "@/components/DeleteProfileModal";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/lib/redux/store";
+import { logout } from "@/lib/redux/authSlice";
+import { apiDelete } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [activeMenuItem, setActiveMenuItem] = useState("My Profile");
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -36,6 +43,7 @@ export default function ProfilePage() {
       action: () => {
         localStorage.removeItem("userInitial");
         localStorage.removeItem("userEmail");
+        dispatch(logout());
         router.push(ROUTES.HOME);
       },
     },
@@ -45,14 +53,30 @@ export default function ProfilePage() {
     setOpenDeleteModal(true);
   };
 
-  const handleConfirmDelete = () => {
-    // Add delete profile logic here
-    console.log("Delete profile confirmed");
-    // Clear user data
-    localStorage.removeItem("userInitial");
-    localStorage.removeItem("userEmail");
-    // Redirect to home or login page
-    router.push(ROUTES.HOME);
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    try {
+      const response = await apiDelete(API_ENDPOINTS.AUTH.DELETE_PROFILE);
+      
+      if (response.success) {
+        // Clear user data
+        localStorage.removeItem("userInitial");
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("role");
+        dispatch(logout());
+        // Redirect to home or login page
+        router.push(ROUTES.HOME);
+      } else {
+        alert(response.error?.message || "Failed to delete profile. Please try again.");
+        setOpenDeleteModal(false);
+      }
+    } catch (error: any) {
+      console.error("Error deleting profile:", error);
+      alert("Failed to delete profile. Please try again.");
+      setOpenDeleteModal(false);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -186,8 +210,9 @@ export default function ProfilePage() {
       {/* Delete Profile Modal */}
       <DeleteProfileModal
         open={openDeleteModal}
-        onClose={() => setOpenDeleteModal(false)}
+        onClose={() => !deleting && setOpenDeleteModal(false)}
         onConfirm={handleConfirmDelete}
+        loading={deleting}
       />
     </Box>
   );

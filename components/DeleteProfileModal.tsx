@@ -7,6 +7,7 @@ import {
   Box,
   Typography,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import Image from "next/image";
 
@@ -14,16 +15,17 @@ interface DeleteProfileModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  loading?: boolean;
 }
 
 export default function DeleteProfileModal({
   open,
   onClose,
   onConfirm,
+  loading = false,
 }: DeleteProfileModalProps) {
   const handleDelete = () => {
     onConfirm();
-    onClose();
   };
 
   return (
@@ -117,6 +119,7 @@ export default function DeleteProfileModal({
           <Button
             variant="outlined"
             onClick={onClose}
+            disabled={loading}
             sx={{
               flex: 1,
               maxWidth: "200px",
@@ -137,6 +140,10 @@ export default function DeleteProfileModal({
                 borderColor: "#214C65",
                 bgcolor: "#F5F5F5",
               },
+              "&:disabled": {
+                borderColor: "#CCCCCC",
+                color: "#CCCCCC",
+              },
             }}
           >
             Cancel
@@ -146,6 +153,7 @@ export default function DeleteProfileModal({
           <Button
             variant="contained"
             onClick={handleDelete}
+            disabled={loading}
             sx={{
               flex: 1,
               maxWidth: "200px",
@@ -163,9 +171,17 @@ export default function DeleteProfileModal({
               "&:hover": {
                 bgcolor: "#1a3d52",
               },
+              "&:disabled": {
+                bgcolor: "#CCCCCC",
+                color: "#FFFFFF",
+              },
             }}
           >
-            Delete Profile
+            {loading ? (
+              <CircularProgress size={24} sx={{ color: "#FFFFFF" }} />
+            ) : (
+              "Delete Profile"
+            )}
           </Button>
         </Box>
       </DialogContent>

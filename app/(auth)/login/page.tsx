@@ -12,8 +12,8 @@ import {
   InputAdornment,
   IconButton,
   Paper,
-  Link,
 } from '@mui/material';
+import Link from 'next/link';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter } from 'next/navigation';
@@ -320,7 +320,7 @@ export default function LoginPage() {
                   Don&apos;t have an account?{' '}
                   <Link
                     href={ROUTES.SIGNUP}
-                    sx={{
+                    style={{
                       fontFamily: "Lato, sans-serif",
                       fontWeight: 600,
                       fontSize: "1.25rem", // 20px -> 20 / 16 = 1.25rem
@@ -328,7 +328,7 @@ export default function LoginPage() {
                       letterSpacing: "0em",
                       textAlign: "center",
                       color: "#2C6587", // or primary.normal if defined in theme
-                      textDecorationLine: "underline",
+                      textDecoration: "underline",
                       textDecorationThickness: "0.08em", // 8% of font-size
                       textUnderlineOffset: "0.03em", // 3% of font-size
                       textDecorationSkipInk: "auto", // skip-ink effect
@@ -341,11 +341,11 @@ export default function LoginPage() {
                 <Typography variant="body2" sx={{ mt: 1 }}>
                   <Link
                     href={ROUTES.RESET_PASSWORD}
-                    sx={{
+                    style={{
                       color: 'secondary.naturalGray',
                       fontSize: "1.125rem",
                       lineHeight: "1.25rem",
-                      fontWeight:600,
+                      fontWeight: 600,
                       textDecoration: 'none',
                     }}
                   >

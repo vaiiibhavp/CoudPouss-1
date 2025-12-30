@@ -123,22 +123,47 @@ export default function SignupPage() {
       }
 
       let {data,error} = await apiCallToSignUpUser("");
-      if(data){
+
+
+      console.log({error})
+
+
+      
+      // Extract nested data from response
+      // Response structure: { status: "error", data: { is_otp_verified: true, ... } }
+      const responseData: any = data?.data || data;
+      const nestedData = responseData?.data || responseData;
+      
+      // Check if OTP is already verified in the response data
+      if(nestedData && nestedData.is_otp_verified === true){
+        setStep("create-password");
+        setLoading(false);
+        return;
+      }
+      
+      // Check if password is already set
+      if(nestedData && nestedData.is_password_set === true){
+        setStep("add-details");
+        setLoading(false);
+        return;
+      }
+      
+      // If no redirect flags, proceed with normal flow
+      if(data && !error){
         setStep("verify-otp");
-      }else{
-        if(error){
-          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
-          if(errorMsg.includes("OTP already sent")){
-            setStep("verify-otp");
-          }else if(errorMsg.includes("OTP already verified")){
-            setStep("create-password");
-          }else if(errorMsg.includes("Password already set")){
-            setStep("add-details")
-          }else{
-            setErrors({ emailOrMobile: errorMsg });
-          }
+      }else if(error){
+        const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+        if(errorMsg.includes("OTP already sent")){
+          setStep("verify-otp");
+        }else if(errorMsg.includes("Email already registered")){
+          setStep("create-password");
+        }else if(errorMsg.includes("Password already set")){
+          setStep("add-details")
+        }else{
+          setErrors({ emailOrMobile: errorMsg });
         }
       }
+      setLoading(false);
 
     } else if (step === "verify-otp") {
       if (formData.otp.some((digit) => !digit)) {
@@ -148,22 +173,41 @@ export default function SignupPage() {
       }
 
       let {data,error} = await apiCallToSignUpUser("");
-      if(data){
+      
+      // Extract nested data from response
+      const responseData: any = data?.data || data;
+      const nestedData = responseData?.data || responseData;
+      
+      // Check if OTP is already verified in the response data
+      if(nestedData && nestedData.is_otp_verified === true){
         setStep("create-password");
-      }else{
-         if(error){
-          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
-          if(errorMsg.includes("OTP already sent")){
-            setStep("verify-otp");
-          }else if(errorMsg.includes("OTP already verified")){
-            setStep("create-password");
-          }else if(errorMsg.includes("Password already set")){
-            setStep("add-details")
-          }else{
-            setErrors({ otp: errorMsg });
-          }
+        setLoading(false);
+        return;
+      }
+      
+      // Check if password is already set
+      if(nestedData && nestedData.is_password_set === true){
+        setStep("add-details");
+        setLoading(false);
+        return;
+      }
+      
+      // If no redirect flags, proceed with normal flow
+      if(data && !error){
+        setStep("create-password");
+      }else if(error){
+        const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+        if(errorMsg.includes("OTP already sent")){
+          setStep("verify-otp");
+        }else if(errorMsg.includes("OTP already verified")){
+          setStep("create-password");
+        }else if(errorMsg.includes("Password already set")){
+          setStep("add-details")
+        }else{
+          setErrors({ otp: errorMsg });
         }
       }
+      setLoading(false);
     } else if (step === "create-password") {
       if(formData.password !== formData.confirmPassword){
         setErrors({ confirmPassword : "Please make sure your passwords match." });
@@ -172,20 +216,31 @@ export default function SignupPage() {
       }
       
       let {data,error} = await apiCallToSignUpUser("");
-      if(data){
+      
+      // Extract nested data from response
+      const responseData: any = data?.data || data;
+      const nestedData = responseData?.data || responseData;
+      
+      // Check if password is already set in the response data
+      if(nestedData && nestedData.is_password_set === true){
         setStep("add-details");
-      }else{
-        if(error){
-          const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
-         if(errorMsg.includes("OTP already sent")){
-            setStep("verify-otp");
-          }else if(errorMsg.includes("OTP already verified")){
-            setStep("create-password");
-          }else if(errorMsg.includes("Password already set")){
-            setStep("add-details")
-          }else{
-            setErrors({ confirmPassword: errorMsg });
-          }
+        setLoading(false);
+        return;
+      }
+      
+      // If no redirect flags, proceed with normal flow
+      if(data && !error){
+        setStep("add-details");
+      }else if(error){
+        const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
+        if(errorMsg.includes("OTP already sent")){
+          setStep("verify-otp");
+        }else if(errorMsg.includes("OTP already verified")){
+          setStep("create-password");
+        }else if(errorMsg.includes("Password already set")){
+          setStep("add-details")
+        }else{
+          setErrors({ confirmPassword: errorMsg });
         }
       }
       setLoading(false)
@@ -197,7 +252,6 @@ export default function SignupPage() {
       let payload = {}
       let url = ""
       let validData = buildInputData(formData.emailOrMobile)
-      let error = {}
 
       if (step === "enter-contact") {
         url = API_ENDPOINTS.AUTH.START
@@ -279,21 +333,63 @@ export default function SignupPage() {
       }
 
       let response  = await apiPost(url,payload)
+      
+      // API response structure can be:
+      // 1. HTTP 200 with { status: "error", message: "...", data: { is_otp_verified: true, ... } }
+      //    -> response = { success: true, data: { status: "error", data: { is_otp_verified: true } } }
+      // 2. HTTP 200 with { status: "success", data: { ... } }
+      //    -> response = { success: true, data: { status: "success", data: { ... } } }
+      // 3. HTTP error status
+      //    -> response = { success: false, error: { message: "..." }, data: undefined }
+      
+      let responseData: any = response.data;
+      
+      // Extract nested data if it exists (for case 1 and 2)
+      const nestedData = responseData?.data;
+      
+      // Check for redirect flags in the response (check both nested data and top level)
+      const isOtpVerified = nestedData?.is_otp_verified === true || responseData?.is_otp_verified === true;
+      const isPasswordSet = nestedData?.is_password_set === true || responseData?.is_password_set === true;
+      const hasRedirectFlags = isOtpVerified || isPasswordSet;
+      
+      // If we have redirect flags, return the data without error even if status is "error"
+      if (hasRedirectFlags) {
+        return {
+          data: responseData,
+          error: null
+        };
+      }
+      
+      // Check if there's an error message in the response
+      let errorObj: SignUpApiError | null = null;
       if (response?.error) {
-        let error = {}
+        errorObj = {}
          if (step === "enter-contact") {
-          error =  { submit: response.error.message || "Something went wrong." }
+          errorObj =  { submit: response.error.message || "Something went wrong." }
         }else if (step === "verify-otp") {
-          error =  { otp: response.error.message || "Something went wrong." }
+          errorObj =  { otp: response.error.message || "Something went wrong." }
         }else if (step === "create-password") {
-          error =  { password: response.error.message || "Something went wrong." }
+          errorObj =  { password: response.error.message || "Something went wrong." }
         }
-        setErrors(error)
+        
+        // Also check if response.data has status: "error" (HTTP 200 but JSON has error status)
+        if (responseData && responseData.status === "error" && !hasRedirectFlags) {
+          const errorMessage = responseData.message || response.error.message || "Something went wrong.";
+          if (step === "enter-contact") {
+            errorObj = { submit: errorMessage };
+          } else if (step === "verify-otp") {
+            errorObj = { otp: errorMessage };
+          } else if (step === "create-password") {
+            errorObj = { password: errorMessage };
+          }
+        }
+        
+        setErrors(errorObj);
       }
 
       return {
-        data: response.data,
-        error
+        data: responseData,
+        error: errorObj
       };
     } catch (error:any) {
       console.error("Signup error:", error);

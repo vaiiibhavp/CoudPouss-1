@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
   Box,
@@ -17,6 +17,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { apiGet, apiPost } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 import RejectServiceRequestModal from "@/components/RejectServiceRequestModal";
 import ConfirmServiceRequestModal from "@/components/ConfirmServiceRequestModal";
 import ProceedToPaymentModal from "@/components/ProceedToPaymentModal";
@@ -43,16 +45,216 @@ interface Request {
   videos: string[];
 }
 
+interface ApiServiceRequest {
+  id: string;
+  category_id: string;
+  sub_category_id: string;
+  is_professional: boolean;
+  status: string;
+  amount: number | null;
+  quoteid: string | null;
+  total_renegotiated: string | null;
+  chosen_datetime: string;
+  created_at: string;
+  service_type_photo_url: string;
+  category_name: string;
+  category_logo: string;
+  sub_category_name: string;
+  sub_category_logo: string;
+  created_date: string;
+}
+
+interface ServiceRequestsApiResponse {
+  message: string;
+  data: {
+    recent_requests: {
+      total_items: number;
+      page: number;
+      limit: number;
+      items: ApiServiceRequest[];
+    };
+  };
+  success: boolean;
+  status_code: number;
+}
+
+interface LifecycleItem {
+  id: number;
+  name: string;
+  time: string | null;
+  completed: boolean;
+}
+
+interface ServiceMedia {
+  photos: string[];
+  videos: string[];
+}
+
+interface ServiceDetailData {
+  service_id: string;
+  task_status: string;
+  service_description: string;
+  chosen_datetime: string;
+  category_name: string;
+  category_logo: string;
+  sub_category_name: string;
+  sub_category_logo: string;
+  elder_address: string;
+  lifecycle: LifecycleItem[];
+  total_renegotiated: number;
+  media: ServiceMedia;
+}
+
+interface ServiceDetailApiResponse {
+  message: string;
+  data: ServiceDetailData;
+  success: boolean;
+  status_code: number;
+}
+
 export default function MyRequestsPage() {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState("All");
-  const [selectedRequest, setSelectedRequest] = useState<string | null>("1"); // default select first
+  const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [openReject, setOpenReject] = useState(false);
   const [openConfirm, setOpenConfirm] = useState(false);
   const [openPayment, setOpenPayment] = useState(false);
   const [openProceed, setOpenProceed] = useState(false);
   const [openSummary, setOpenSummary] = useState(false);
   const [showTracking, setShowTracking] = useState(false);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [serviceDetail, setServiceDetail] = useState<ServiceDetailData | null>(null);
+  const [serviceDetailLoading, setServiceDetailLoading] = useState(false);
+
+  // Format date from ISO string to "16 Aug 2025" format
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  // Format time from ISO string to "10:00 am" format
+  const formatTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? "pm" : "am";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    const minutesStr = minutes < 10 ? `0${minutes}` : minutes;
+    return `${hours}:${minutesStr} ${period}`;
+  };
+
+  // Map API status to UI status
+  const mapStatus = (apiStatus: string): "Open Proposal" | "Responded" => {
+    if (apiStatus === "pending") {
+      return "Responded";
+    }
+    return "Open Proposal";
+  };
+
+  // Get status query param based on active filter
+  const getStatusParam = (filter: string): string => {
+    switch (filter) {
+      case "Open Proposal":
+        return "open";
+      case "Responses":
+        return "pending";
+      case "Validation":
+        return "accepted"; // Assuming this is the status for validation
+      case "All":
+      default:
+        return "all";
+    }
+  };
+
+  // Map API response to Request interface
+  const mapApiRequestToRequest = (apiRequest: ApiServiceRequest): Request => {
+    return {
+      id: apiRequest.id,
+      serviceName: apiRequest.sub_category_name || apiRequest.category_name,
+      date: formatDate(apiRequest.chosen_datetime),
+      time: formatTime(apiRequest.chosen_datetime),
+      status: mapStatus(apiRequest.status),
+      image: apiRequest.sub_category_logo || apiRequest.service_type_photo_url || "/image/service-image-1.png",
+      category: apiRequest.category_name,
+      location: "Paris, 75001", // TODO: Get from API if available
+      quote: apiRequest.amount || 0,
+      professional: {
+        name: "Bessie Cooper", // TODO: Get from API if available
+        avatar: "/icons/testimonilas-1.png", // TODO: Get from API if available
+        verified: true, // TODO: Get from API if available
+      },
+      message: "Our skilled team will expertly assemble your furniture, ensuring every piece is put together with precision. We take pride in our attention to detail, so you can trust that your items will be ready for use in no time. Whether it's a complex wardrobe or a simple table, we handle it all with care and professionalism.", // TODO: Get from API if available
+      videos: [
+        "/image/service-image-1.png",
+        "/image/service-image-2.png",
+        "/image/service-image-3.png",
+      ], // TODO: Get from API if available
+    };
+  };
+
+  // Fetch requests from API
+  const fetchRequests = useCallback(async () => {
+    setLoading(true);
+    try {
+      const status = getStatusParam(activeFilter);
+      const endpoint = `${API_ENDPOINTS.SERVICE_REQUEST.GET_SERVICES}?page=1&limit=30&status=${status}`;
+
+      const response = await apiGet<ServiceRequestsApiResponse>(endpoint);
+
+      if (response.success && response.data?.data?.recent_requests?.items) {
+        const apiRequests = response.data.data.recent_requests.items;
+        const mappedRequests = apiRequests.map(mapApiRequestToRequest);
+        setRequests(mappedRequests);
+        
+        // Auto-select first request if available
+        setSelectedRequest((prevSelected) => {
+          if (mappedRequests.length > 0 && !prevSelected) {
+            return mappedRequests[0].id;
+          } else if (mappedRequests.length > 0 && prevSelected) {
+            // Check if selected request still exists
+            const exists = mappedRequests.find(r => r.id === prevSelected);
+            return exists ? prevSelected : mappedRequests[0].id;
+          } else {
+            return null;
+          }
+        });
+      } else {
+        setRequests([]);
+        setSelectedRequest(null);
+      }
+    } catch (error) {
+      console.error("Error fetching service requests:", error);
+      setRequests([]);
+      setSelectedRequest(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeFilter]);
+
+  // Fetch service details when a request is selected
+  const fetchServiceDetail = useCallback(async (serviceId: string) => {
+    setServiceDetailLoading(true);
+    try {
+      const response = await apiPost<ServiceDetailApiResponse>(
+        API_ENDPOINTS.SERVICE_REQUEST.GET_SERVICE_DETAIL,
+        { service_id: serviceId }
+      );
+
+      if (response.success && response.data?.data) {
+        setServiceDetail(response.data.data);
+      } else {
+        setServiceDetail(null);
+      }
+    } catch (error) {
+      console.error("Error fetching service detail:", error);
+      setServiceDetail(null);
+    } finally {
+      setServiceDetailLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const storedInitial = localStorage.getItem("userInitial");
@@ -60,115 +262,24 @@ export default function MyRequestsPage() {
 
     if (!storedInitial || !storedEmail) {
       router.push(ROUTES.LOGIN);
+    } else {
+      fetchRequests();
     }
-  }, [router]);
+  }, [router, fetchRequests]);
+
+  // Fetch service details when selectedRequest changes
+  useEffect(() => {
+    if (selectedRequest) {
+      fetchServiceDetail(selectedRequest);
+    } else {
+      setServiceDetail(null);
+    }
+  }, [selectedRequest, fetchServiceDetail]);
 
   const filters = ["All", "Open Proposal", "Responses", "Validation"];
 
-  const requests: Request[] = [
-    {
-      id: "1",
-      serviceName: "Gardening Service",
-      date: "16 Aug 2025",
-      time: "10:00 am",
-      status: "Responded",
-      image: "/image/service-image-1.png",
-      category: "DIY Services",
-      location: "Paris, 75001",
-      quote: 499,
-      professional: {
-        name: "Bessie Cooper",
-        avatar: "/icons/testimonilas-1.png",
-        verified: true,
-      },
-      message:
-        "Our skilled team will expertly assemble your furniture, ensuring every piece is put together with precision. We take pride in our attention to detail, so you can trust that your items will be ready for use in no time. Whether it's a complex wardrobe or a simple table, we handle it all with care and professionalism.",
-      videos: [
-        "/image/service-image-1.png",
-        "/image/service-image-2.png",
-        "/image/service-image-3.png",
-      ],
-    },
-    {
-      id: "2",
-      serviceName: "Gardening Service",
-      date: "16 Aug 2025",
-      time: "10:00 am",
-      status: "Open Proposal",
-      image: "/image/service-image-1.png",
-      category: "DIY Services",
-      location: "Paris, 75001",
-      quote: 620,
-      professional: {
-        name: "Bessie Cooper",
-        avatar: "/icons/testimonilas-1.png",
-        verified: true,
-      },
-      message:
-        "Our skilled team will expertly assemble your furniture, ensuring every piece is put together with precision. We take pride in our attention to detail, so you can trust that your items will be ready for use in no time.",
-      videos: [
-        "/image/service-image-2.png",
-        "/image/service-image-3.png",
-        "/image/service-image-4.png",
-      ],
-    },
-    {
-      id: "3",
-      serviceName: "Gardening Service",
-      date: "16 Aug 2025",
-      time: "10:00 am",
-      status: "Open Proposal",
-      image: "/image/service-image-1.png",
-      category: "DIY Services",
-      location: "Paris, 75001",
-      quote: 620,
-      professional: {
-        name: "Bessie Cooper",
-        avatar: "/icons/testimonilas-1.png",
-        verified: true,
-      },
-      message:
-        "Our skilled team will expertly assemble your furniture, ensuring every piece is put together with precision. We take pride in our attention to detail, so you can trust that your items will be ready for use in no time.",
-      videos: [
-        "/image/service-image-2.png",
-        "/image/service-image-3.png",
-        "/image/service-image-4.png",
-      ],
-    },
-    {
-      id: "4",
-      serviceName: "Gardening Service",
-      date: "16 Aug 2025",
-      time: "10:00 am",
-      status: "Open Proposal",
-      image: "/image/service-image-1.png",
-      category: "DIY Services",
-      location: "Paris, 75001",
-      quote: 620,
-      professional: {
-        name: "Bessie Cooper",
-        avatar: "/icons/testimonilas-1.png",
-        verified: true,
-      },
-      message:
-        "Our skilled team will expertly assemble your furniture, ensuring every piece is put together with precision. We take pride in our attention to detail, so you can trust that your items will be ready for use in no time.",
-      videos: [
-        "/image/service-image-2.png",
-        "/image/service-image-3.png",
-        "/image/service-image-4.png",
-      ],
-    },
-  ];
-
-  const filteredRequests =
-    activeFilter === "All"
-      ? requests
-      : requests.filter((req) => {
-          if (activeFilter === "Open Proposal")
-            return req.status === "Open Proposal";
-          if (activeFilter === "Responses") return req.status === "Responded";
-          return true;
-        });
+  // Requests are already filtered by API based on activeFilter
+  const filteredRequests = requests;
 
   const selectedRequestData = requests.find(
     (req) => req.id === selectedRequest
@@ -188,7 +299,8 @@ export default function MyRequestsPage() {
         maxWidth="xl"
         sx={{
           flex: 1,
-          py: 6,
+          py: { xs: 3, sm: 4, md: 6 },
+          px: { xs: 2, sm: 3, md: 4 },
           display: "flex",
           flexDirection: "column",
         }}
@@ -196,12 +308,12 @@ export default function MyRequestsPage() {
         <Typography
           variant="h5"
           sx={{
-            fontSize: "1.5rem",
-            lineHeight: "1.75rem",
+            fontSize: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
+            lineHeight: { xs: "1.5rem", md: "1.75rem" },
             letterSpacing: "0%",
             fontWeight: 600,
             color: "primary.normal",
-            mb: 3,
+            mb: { xs: 2, sm: 2.5, md: 3 },
           }}
         >
           Request Management
@@ -211,31 +323,36 @@ export default function MyRequestsPage() {
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
-            alignItems: "center",
-            pr: 4,
+            alignItems: { xs: "stretch", sm: "center" },
+            gap: { xs: 2, sm: 0 },
+            pr: { xs: 0, md: 4 },
           }}
         >
           <Box>
             <Box
               sx={{
                 display: "flex",
-                gap: 1,
-                mb: 3,
+                gap: { xs: 0.75, sm: 1 },
+                mb: { xs: 2, sm: 2.5, md: 3 },
                 flexWrap: "wrap",
               }}
             >
               {filters.map((filter) => (
                 <Button
                   key={filter}
-                  onClick={() => setActiveFilter(filter)}
+                  onClick={() => {
+                    setActiveFilter(filter);
+                    setSelectedRequest(null); // Reset selection when filter changes
+                  }}
                   variant={activeFilter === filter ? "contained" : "outlined"}
                   sx={{
                     textTransform: "none",
-                    borderRadius: 2,
-                    px: 2,
-                    py: 1,
-                    fontSize: "1rem",
+                    borderRadius: { xs: 1.5, sm: 2 },
+                    px: { xs: 1.5, sm: 2 },
+                    py: { xs: 0.75, sm: 1 },
+                    fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
                     fontWeight: 500,
                     bgcolor:
                       activeFilter === filter
@@ -260,17 +377,18 @@ export default function MyRequestsPage() {
           <Box
             sx={{
               display: "flex",
-              justifyContent: "flex-end",
-              mb: 4,
+              justifyContent: { xs: "stretch", sm: "flex-end" },
+              mb: { xs: 0, sm: 4 },
+              width: { xs: "100%", sm: "auto" },
             }}
           >
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                width: { xs: "100%", sm: 478 },
+                width: { xs: "100%", sm: 300, md: 478 },
                 bgcolor: "white",
-                borderRadius: 2,
+                borderRadius: { xs: 1.5, sm: 2 },
                 border: "0.0625rem solid",
                 borderColor: "grey.300",
                 overflow: "hidden",
@@ -291,14 +409,14 @@ export default function MyRequestsPage() {
                 }
                 sx={{
                   flex: 1,
-                  px: 1,
-                  py: 1,
+                  px: { xs: 0.75, sm: 1 },
+                  py: { xs: 0.75, sm: 1 },
                   "& .MuiInputBase-input": {
                     color: "text.primary",
-                    fontSize: "1rem",
+                    fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
                   },
                   "& .MuiInputBase-input::placeholder": {
-                    fontSize: "1rem",
+                    fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
                     lineHeight: "140%",
                     letterSpacing: "0%",
                     color: "#555555",
@@ -310,14 +428,14 @@ export default function MyRequestsPage() {
           </Box>
         </Box>
 
-        <Box sx={{ pr: 4 }}>
-          <Divider sx={{ mb: 3 }} />
+        <Box sx={{ pr: { xs: 0, md: 4 } }}>
+          <Divider sx={{ mb: { xs: 2, sm: 2.5, md: 3 } }} />
         </Box>
 
         <Box
           sx={{
             display: "flex",
-            gap: 4,
+            gap: { xs: 2, sm: 3, md: 4 },
             flexDirection: { xs: "column", lg: "row" },
             flex: 1,
           }}
@@ -329,16 +447,25 @@ export default function MyRequestsPage() {
               flexShrink: 0,
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {filteredRequests.map((request) => (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 1.5, sm: 2 } }}>
+              {loading ? (
+                <Box sx={{ textAlign: "center", py: { xs: 3, sm: 4 } }}>
+                  <Typography sx={{ color: "text.secondary", fontSize: { xs: "0.875rem", sm: "1rem" } }}>Loading requests...</Typography>
+                </Box>
+              ) : filteredRequests.length === 0 ? (
+                <Box sx={{ textAlign: "center", py: { xs: 3, sm: 4 } }}>
+                  <Typography sx={{ color: "text.secondary", fontSize: { xs: "0.875rem", sm: "1rem" } }}>No requests found</Typography>
+                </Box>
+              ) : (
+                filteredRequests.map((request) => (
                 <Box
                   key={request.id}
                   onClick={() => setSelectedRequest(request.id)}
                   sx={{
-                    py: "0.65625rem",
-                    pl: "0.625rem",
-                    pr: "0.625rem",
-                    borderRadius: "0.75rem",
+                    py: { xs: "0.5rem", sm: "0.65625rem" },
+                    pl: { xs: "0.5rem", sm: "0.625rem" },
+                    pr: { xs: "0.5rem", sm: "0.625rem" },
+                    borderRadius: { xs: "0.5rem", sm: "0.75rem" },
                     cursor: "pointer",
                     border: "0.0625rem solid",
                     borderColor:
@@ -353,12 +480,12 @@ export default function MyRequestsPage() {
                     },
                   }}
                 >
-                  <Box sx={{ display: "flex", gap: 2 }}>
+                  <Box sx={{ display: "flex", gap: { xs: 1.5, sm: 2 } }}>
                     <Box
                       sx={{
-                        width: "5.5rem",
-                        height: "4.625rem",
-                        borderRadius: "0.75rem",
+                        width: { xs: "4rem", sm: "5.5rem" },
+                        height: { xs: "3.5rem", sm: "4.625rem" },
+                        borderRadius: { xs: "0.5rem", sm: "0.75rem" },
                         overflow: "hidden",
                         position: "relative",
                         flexShrink: 0,
@@ -377,16 +504,23 @@ export default function MyRequestsPage() {
                           display: "flex",
                           justifyContent: "space-between",
                           alignItems: "flex-start",
-                          mb: 0.5,
+                          mb: { xs: 0.25, sm: 0.5 },
+                          gap: 1,
                         }}
                       >
                         <Typography
                           sx={{
-                            fontSize: "1.125rem",
-                            lineHeight: "1.5rem",
+                            fontSize: { xs: "0.9375rem", sm: "1rem", md: "1.125rem" },
+                            lineHeight: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
                             letterSpacing: "0%",
                             color: "#424242",
                             fontWeight: 600,
+                            flex: 1,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
                           }}
                         >
                           {request.serviceName}
@@ -400,15 +534,16 @@ export default function MyRequestsPage() {
                               request.status === "Responded"
                                 ? "rgba(245, 158, 11, 0.1)"
                                 : "rgba(16, 185, 129, 0.1)",
-                            px: 1,
-                            py: 0.25,
-                            borderRadius: "0.5rem",
+                            px: { xs: 0.75, sm: 1 },
+                            py: { xs: 0.125, sm: 0.25 },
+                            borderRadius: { xs: "0.375rem", sm: "0.5rem" },
+                            flexShrink: 0,
                           }}
                         >
                           <Box
                             sx={{
-                              width: 6,
-                              height: 6,
+                              width: { xs: 5, sm: 6 },
+                              height: { xs: 5, sm: 6 },
                               borderRadius: "50%",
                               bgcolor:
                                 request.status === "Responded"
@@ -418,12 +553,13 @@ export default function MyRequestsPage() {
                           />
                           <Typography
                             sx={{
-                              fontSize: "0.75rem",
+                              fontSize: { xs: "0.625rem", sm: "0.6875rem", md: "0.75rem" },
                               color:
                                 request.status === "Responded"
                                   ? "#F59E0B"
                                   : "#10B981",
                               fontWeight: 500,
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {request.status === "Responded"
@@ -435,21 +571,22 @@ export default function MyRequestsPage() {
                       <Box
                         component="span"
                         sx={{
-                          fontSize: "0.875rem",
-                          lineHeight: "1.125rem",
+                          fontSize: { xs: "0.75rem", sm: "0.8125rem", md: "0.875rem" },
+                          lineHeight: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
                           letterSpacing: "0%",
                           color: "#555555",
                           display: "flex",
                           alignItems: "center",
                           gap: 0.5,
+                          flexWrap: "wrap",
                         }}
                       >
                         {request.date}
                         <Box
                           component="span"
                           sx={{
-                            width: 4,
-                            height: 4,
+                            width: { xs: 3, sm: 4 },
+                            height: { xs: 3, sm: 4 },
                             borderRadius: "50%",
                             bgcolor: "#2F6B8E",
                             display: "inline-block",
@@ -460,7 +597,8 @@ export default function MyRequestsPage() {
                     </Box>
                   </Box>
                 </Box>
-              ))}
+                ))
+              )}
             </Box>
           </Box>
 
@@ -473,57 +611,71 @@ export default function MyRequestsPage() {
               sx={{
                 flex: 1,
                 bgcolor: "white",
-                borderRadius: 3,
-                p: 4,
+                borderRadius: { xs: 2, sm: 2.5, md: 3 },
                 pt: 0,
                 position: "relative",
-                minHeight: 600,
+                minHeight: { xs: 400, sm: 500, md: 600 },
                 display: "flex",
                 flexDirection: "column",
               }}
             >
-              {selectedRequestData ? (
+              {serviceDetailLoading ? (
+                <Box
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    py: 4,
+                  }}
+                >
+                  <Typography sx={{ color: "text.secondary", fontSize: { xs: "0.875rem", sm: "1rem" } }}>
+                    Loading service details...
+                  </Typography>
+                </Box>
+              ) : selectedRequestData ? (
                 <Box
                   sx={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: "1.5rem",
+                    gap: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
                     flex: 1,
                   }}
                 >
                   <Box
                     sx={{
-                      borderRadius: 3,
+                      borderRadius: { xs: 2, sm: 2.5, md: 3 },
                       border: "0.0625rem solid",
                       borderColor: "grey.200",
-                      p: { xs: 2, md:"1.25rem" },
+                      p: { xs: 1.5, sm: 2, md: "1.25rem" },
                       flex: 1,
                       display: "flex",
                       flexDirection: "column",
-                      gap: "1.5rem",
+                      gap: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
                     }}
                   >
                     {/* IMAGE + TITLE */}
                     <Box
                       sx={{
                         display: "flex",
-                        flexDirection: { xs: "column", md: "row" },
-                        gap: 3,
+                        flexDirection: { xs: "column", sm: "row" },
+                        gap: { xs: 2, sm: 2.5, md: 3 },
+                        alignItems: { xs: "flex-start", sm: "center" },
                       }}
                     >
                       <Box
                         sx={{
-                          width: "10.3125rem",
-                          height: "8.625rem",
-                          borderRadius: "0.75rem",
+                          width: { xs: "100%", sm: "8rem", md: "10.3125rem" },
+                          height: { xs: "12rem", sm: "7rem", md: "8.625rem" },
+                          borderRadius: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
                           overflow: "hidden",
                           position: "relative",
                           flexShrink: 0,
                         }}
                       >
                         <Image
-                          src={selectedRequestData.image}
-                          alt={selectedRequestData.serviceName}
+                          src={serviceDetail?.sub_category_logo || serviceDetail?.category_logo || selectedRequestData.image}
+                          alt={serviceDetail?.sub_category_name || selectedRequestData.serviceName}
                           fill
                           style={{ objectFit: "cover" }}
                         />
@@ -539,25 +691,26 @@ export default function MyRequestsPage() {
                       >
                         <Typography
                           sx={{
-                            fontSize: "1.5rem",
-                            lineHeight: "1.75rem",
+                            fontSize: { xs: "1.125rem", sm: "1.25rem", md: "1.5rem" },
+                            lineHeight: { xs: "1.375rem", sm: "1.5rem", md: "1.75rem" },
                             letterSpacing: "0%",
                             color: "#424242",
                             fontWeight: "bold",
+                            mb: { xs: 0.5, sm: 0.75 },
                           }}
                         >
-                          {selectedRequestData.serviceName}
+                          {serviceDetail?.sub_category_name || selectedRequestData.serviceName}
                         </Typography>
                         <Typography
                           sx={{
-                            fontSize: "1.125rem",
-                            lineHeight: "1.5rem",
+                            fontSize: { xs: "0.9375rem", sm: "1rem", md: "1.125rem" },
+                            lineHeight: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
                             letterSpacing: "0%",
                             color: "#6D6D6D",
                             fontWeight: 400,
                           }}
                         >
-                          Exterior Cleaning
+                          {serviceDetail?.category_name || selectedRequestData.category}
                         </Typography>
                       </Box>
                     </Box>
@@ -566,37 +719,39 @@ export default function MyRequestsPage() {
                     <Box
                       sx={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
+                        gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
                         bgcolor: "#FBFBFB",
-                        p: "1rem",
-                        borderRadius: "1rem",
-                        rowGap: "0.75rem",
-                        columnGap: 2,
+                        p: { xs: "0.75rem", sm: "0.875rem", md: "1rem" },
+                        borderRadius: { xs: "0.75rem", sm: "0.875rem", md: "1rem" },
+                        rowGap: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
+                        columnGap: { xs: 1.5, sm: 2 },
                       }}
                     >
                       <Box
                         sx={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 1,
+                          gap: { xs: 0.75, sm: 1 },
                         }}
                       >
                         <Image
                           src="/icons/Calendar.png"
                           alt="Calendar"
-                          width={24}
-                          height={24}
+                          width={20}
+                          height={20}
+                          style={{ width: "auto", height: "auto" }}
+                          sizes="(max-width: 600px) 18px, 24px"
                         />
                         <Typography
                           sx={{
-                            fontSize: "0.875rem",
-                            lineHeight: "1.125rem",
+                            fontSize: { xs: "0.75rem", sm: "0.8125rem", md: "0.875rem" },
+                            lineHeight: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
                             letterSpacing: "0%",
                             color: "#2C6587",
                             fontWeight: 400,
                           }}
                         >
-                          {selectedRequestData.date}
+                          {serviceDetail?.chosen_datetime ? formatDate(serviceDetail.chosen_datetime) : selectedRequestData.date}
                         </Typography>
                       </Box>
 
@@ -604,25 +759,27 @@ export default function MyRequestsPage() {
                         sx={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 1,
+                          gap: { xs: 0.75, sm: 1 },
                         }}
                       >
                         <Image
                           src="/icons/Clock.png"
                           alt="Time"
-                          width={24}
-                          height={24}
+                          width={20}
+                          height={20}
+                          style={{ width: "auto", height: "auto" }}
+                          sizes="(max-width: 600px) 18px, 24px"
                         />
                         <Typography
                           sx={{
-                            fontSize: "0.875rem",
-                            lineHeight: "1.125rem",
+                            fontSize: { xs: "0.75rem", sm: "0.8125rem", md: "0.875rem" },
+                            lineHeight: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
                             letterSpacing: "0%",
                             color: "#2C6587",
                             fontWeight: 400,
                           }}
                         >
-                          {selectedRequestData.time}
+                          {serviceDetail?.chosen_datetime ? formatTime(serviceDetail.chosen_datetime) : selectedRequestData.time}
                         </Typography>
                       </Box>
 
@@ -630,25 +787,27 @@ export default function MyRequestsPage() {
                         sx={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 1,
+                          gap: { xs: 0.75, sm: 1 },
                         }}
                       >
                         <Image
                           src="/icons/fi_6374086.png"
                           alt="Category"
-                          width={24}
-                          height={24}
+                          width={20}
+                          height={20}
+                          style={{ width: "auto", height: "auto" }}
+                          sizes="(max-width: 600px) 18px, 24px"
                         />
                         <Typography
                           sx={{
-                            fontSize: "0.875rem",
-                            lineHeight: "1.125rem",
+                            fontSize: { xs: "0.75rem", sm: "0.8125rem", md: "0.875rem" },
+                            lineHeight: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
                             letterSpacing: "0%",
                             color: "#2C6587",
                             fontWeight: 400,
                           }}
                         >
-                          {selectedRequestData.category}
+                          {serviceDetail?.category_name || selectedRequestData.category}
                         </Typography>
                       </Box>
 
@@ -656,25 +815,27 @@ export default function MyRequestsPage() {
                         sx={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 1,
+                          gap: { xs: 0.75, sm: 1 },
                         }}
                       >
                         <Image
                           src="/icons/MapPin.png"
                           alt="Location"
-                          width={24}
-                          height={24}
+                          width={20}
+                          height={20}
+                          style={{ width: "auto", height: "auto" }}
+                          sizes="(max-width: 600px) 18px, 24px"
                         />
                         <Typography
                           sx={{
-                            fontSize: "0.875rem",
-                            lineHeight: "1.125rem",
+                            fontSize: { xs: "0.75rem", sm: "0.8125rem", md: "0.875rem" },
+                            lineHeight: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
                             letterSpacing: "0%",
                             color: "#2C6587",
                             fontWeight: 400,
                           }}
                         >
-                          {selectedRequestData.location}
+                          {serviceDetail?.elder_address || selectedRequestData.location}
                         </Typography>
                       </Box>
                     </Box>
@@ -683,12 +844,12 @@ export default function MyRequestsPage() {
                     <Box>
                       <Typography
                         sx={{
-                          fontSize: "1rem",
-                          lineHeight: "1.125rem",
+                          fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                          lineHeight: { xs: "1.0625rem", sm: "1.125rem" },
                           letterSpacing: "0%",
                           color: "#323232",
                           fontWeight: 400,
-                          mb: "0.75rem",
+                          mb: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
                         }}
                       >
                         Quote Amount
@@ -696,39 +857,44 @@ export default function MyRequestsPage() {
                       <Box
                         sx={{
                           display: "flex",
+                          flexDirection: { xs: "column", sm: "row" },
                           justifyContent: "space-between",
-                          alignItems: "center",
-                          borderRadius: "0.75rem",
+                          alignItems: { xs: "stretch", sm: "center" },
+                          gap: { xs: 1, sm: 0 },
+                          borderRadius: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
                           border: "0.0625rem solid #D5D5D5",
-                          pt: "0.875rem",
-                          pr: "1rem",
-                          pb: "0.875rem",
-                          pl: "1rem",
+                          pt: { xs: "0.75rem", sm: "0.875rem" },
+                          pr: { xs: "0.75rem", sm: "1rem" },
+                          pb: { xs: "0.75rem", sm: "0.875rem" },
+                          pl: { xs: "0.75rem", sm: "1rem" },
                         }}
                       >
                         <Typography
                           sx={{
-                            fontSize: "1.6875rem",
-                            lineHeight: "2rem",
+                            fontSize: { xs: "1.25rem", sm: "1.4375rem", md: "1.6875rem" },
+                            lineHeight: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
                             letterSpacing: "3%",
-                            textAlign: "center",
+                            textAlign: { xs: "left", sm: "center" },
                             color: "#0F232F",
                             fontWeight: "bold",
+                            mb: { xs: 1, sm: 0 },
                           }}
                         >
-                          €{selectedRequestData.quote}
+                          €{serviceDetail?.total_renegotiated || selectedRequestData.quote}
                         </Typography>
                         <Button
                           variant="contained"
                           sx={{
                             textTransform: "none",
-                            borderRadius: "0.5rem",
-                            pt: "0.625rem",
-                            pr: "1.25rem",
-                            pb: "0.625rem",
-                            pl: "1.25rem",
+                            borderRadius: { xs: "0.375rem", sm: "0.5rem" },
+                            pt: { xs: "0.5rem", sm: "0.625rem" },
+                            pr: { xs: "1rem", sm: "1.25rem" },
+                            pb: { xs: "0.5rem", sm: "0.625rem" },
+                            pl: { xs: "1rem", sm: "1.25rem" },
                             gap: "0.625rem",
                             bgcolor: "#214C65",
+                            fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                            width: { xs: "100%", sm: "auto" },
                             "&:hover": {
                               bgcolor: "#214C65",
                             },
@@ -743,14 +909,14 @@ export default function MyRequestsPage() {
                     <Box
                       sx={{
                         border: "0.0625rem solid #E6E6E6",
-                        borderRadius: "0.75rem",
-                        pt: "0.8125rem",
-                        pr: "1rem",
-                        pb: "0.8125rem",
-                        pl: "1rem",
+                        borderRadius: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
+                        pt: { xs: "0.75rem", sm: "0.8125rem" },
+                        pr: { xs: "0.75rem", sm: "1rem" },
+                        pb: { xs: "0.75rem", sm: "0.8125rem" },
+                        pl: { xs: "0.75rem", sm: "1rem" },
                         display: "flex",
                         flexDirection: "column",
-                        gap: "1rem",
+                        gap: { xs: "0.75rem", sm: "1rem" },
                       }}
                     >
                       <Box
@@ -762,8 +928,8 @@ export default function MyRequestsPage() {
                       >
                         <Typography
                           sx={{
-                            fontSize: "1rem",
-                            lineHeight: "1.125rem",
+                            fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                            lineHeight: { xs: "1.0625rem", sm: "1.125rem" },
                             letterSpacing: "0%",
                             color: "#323232",
                             fontWeight: 400,
@@ -780,19 +946,19 @@ export default function MyRequestsPage() {
                       <Box
                         sx={{
                           display: "flex",
-                          alignItems: "center",
-                          gap: 2,
+                          flexDirection: { xs: "column", sm: "row" },
+                          alignItems: { xs: "stretch", sm: "center" },
+                          gap: { xs: 1.5, sm: 2 },
                           justifyContent: "space-between",
-                          flexWrap: "wrap",
                         }}
                       >
                         <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 2 }}
+                          sx={{ display: "flex", alignItems: "center", gap: { xs: 1.5, sm: 2 } }}
                         >
                           <Box
                             sx={{
-                              width: "3.5rem",
-                              height: "3.5rem",
+                              width: { xs: "3rem", sm: "3.25rem", md: "3.5rem" },
+                              height: { xs: "3rem", sm: "3.25rem", md: "3.5rem" },
                               borderRadius: "50%",
                               overflow: "hidden",
                               position: "relative",
@@ -812,13 +978,14 @@ export default function MyRequestsPage() {
                               sx={{
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 1,
+                                gap: { xs: 0.75, sm: 1 },
+                                flexWrap: "wrap",
                               }}
                             >
                               <Typography
                                 sx={{
-                                  fontSize: "1.25rem",
-                                  lineHeight: "1.5rem",
+                                  fontSize: { xs: "1rem", sm: "1.125rem", md: "1.25rem" },
+                                  lineHeight: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
                                   letterSpacing: "0%",
                                   color: "#0F232F",
                                   fontWeight: 500,
@@ -830,26 +997,30 @@ export default function MyRequestsPage() {
                               <Image
                                 src="/icons/verify.png"
                                 alt="Verified"
-                                width={24}
-                                height={24}
+                                width={20}
+                                height={20}
+                                style={{ width: "auto", height: "auto" }}
+                                sizes="(max-width: 600px) 18px, 24px"
                               />
                             </Box>
                           </Box>
                         </Box>
 
-                        <Box sx={{ display: "flex", gap: "0.75rem" }}>
+                        <Box sx={{ display: "flex", gap: { xs: "0.5rem", sm: "0.75rem" }, flexDirection: { xs: "column", sm: "row" }, width: { xs: "100%", sm: "auto" } }}>
                           <Button
                             variant="contained"
                             sx={{
                               textTransform: "none",
-                              borderRadius: "0.5rem",
-                              pt: "0.625rem",
-                              minWidth:"200px",
-                              pr: "3.75rem",
-                              pb: "0.625rem",
-                              pl: "3.75rem",
+                              borderRadius: { xs: "0.375rem", sm: "0.5rem" },
+                              pt: { xs: "0.5rem", sm: "0.625rem" },
+                              pr: { xs: "1rem", sm: "2rem", md: "3.75rem" },
+                              pb: { xs: "0.5rem", sm: "0.625rem" },
+                              pl: { xs: "1rem", sm: "2rem", md: "3.75rem" },
                               gap: "0.625rem",
                               bgcolor: "#214C65",
+                              fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                              width: { xs: "100%", sm: "auto" },
+                              minWidth: { xs: "auto", sm: "120px", md: "200px" },
                               "&:hover": {
                                 bgcolor: "#214C65",
                               },
@@ -861,13 +1032,15 @@ export default function MyRequestsPage() {
                             variant="contained"
                             sx={{
                               textTransform: "none",
-                              borderRadius: "0.5rem",
-                              pt: "0.625rem",
-                              pr: "3.75rem",
-                              pb: "0.625rem",
-                              pl: "3.75rem",
+                              borderRadius: { xs: "0.375rem", sm: "0.5rem" },
+                              pt: { xs: "0.5rem", sm: "0.625rem" },
+                              pr: { xs: "1rem", sm: "2rem", md: "3.75rem" },
+                              pb: { xs: "0.5rem", sm: "0.625rem" },
+                              pl: { xs: "1rem", sm: "2rem", md: "3.75rem" },
                               gap: "0.625rem",
                               bgcolor: "#214C65",
+                              fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                              width: { xs: "100%", sm: "auto" },
                               "&:hover": {
                                 bgcolor: "#214C65",
                               },
@@ -883,12 +1056,12 @@ export default function MyRequestsPage() {
                     <Box>
                       <Typography
                         sx={{
-                          fontSize: "1rem",
-                          lineHeight: "1.125rem",
+                          fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                          lineHeight: { xs: "1.0625rem", sm: "1.125rem" },
                           letterSpacing: "0%",
                           color: "#323232",
                           fontWeight: 400,
-                          mb: "0.75rem",
+                          mb: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
                         }}
                       >
                         Personalized short message
@@ -896,23 +1069,23 @@ export default function MyRequestsPage() {
                       <Box
                         sx={{
                           border: "0.0625rem solid #D5D5D5",
-                          borderRadius: "0.75rem",
-                          pt: "0.875rem",
-                          pr: "1rem",
-                          pb: "0.875rem",
-                          pl: "1rem",
+                          borderRadius: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
+                          pt: { xs: "0.75rem", sm: "0.875rem" },
+                          pr: { xs: "0.75rem", sm: "1rem" },
+                          pb: { xs: "0.75rem", sm: "0.875rem" },
+                          pl: { xs: "0.75rem", sm: "1rem" },
                         }}
                       >
                         <Typography
                           sx={{
-                            fontSize: "1rem",
-                            lineHeight: "1.5rem",
+                            fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                            lineHeight: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
                             letterSpacing: "0%",
                             color: "#6D6D6D",
                             fontWeight: 400,
                           }}
                         >
-                          {selectedRequestData.message}
+                          {serviceDetail?.service_description || selectedRequestData.message}
                         </Typography>
                       </Box>
                     </Box>
@@ -921,54 +1094,114 @@ export default function MyRequestsPage() {
                     <Box>
                       <Typography
                         sx={{
-                          fontSize: "1rem",
-                          lineHeight: "1.125rem",
+                          fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                          lineHeight: { xs: "1.0625rem", sm: "1.125rem" },
                           letterSpacing: "0%",
                           color: "#323232",
                           fontWeight: 400,
-                          mb: "0.75rem",
+                          mb: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
                         }}
                       >
                         Short videos
                       </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          gap: "1.125rem",
-                        }}
-                      >
-                        {selectedRequestData.videos.map((video, index) => (
-                          <Box
-                            key={index}
-                            sx={{
-                              width: "100%",
-                              height: "9rem",
-                              borderRadius: 2,
-                              overflow: "hidden",
-                              position: "relative",
-                            }}
-                          >
-                            <Image
-                              src={video}
-                              alt={`Video ${index + 1}`}
-                              fill
-                              style={{ objectFit: "cover" }}
-                            />
-                          </Box>
-                        ))}
-                      </Box>
+                      {serviceDetailLoading ? (
+                        <Box sx={{ textAlign: "center", py: 2 }}>
+                          <Typography sx={{ color: "text.secondary", fontSize: { xs: "0.875rem", sm: "1rem" } }}>
+                            Loading videos...
+                          </Typography>
+                        </Box>
+                      ) : (serviceDetail?.media?.videos && serviceDetail.media.videos.length > 0) || (selectedRequestData.videos && selectedRequestData.videos.length > 0) ? (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: { xs: "column", sm: "row" },
+                            gap: { xs: "0.75rem", sm: "1rem", md: "1.125rem" },
+                          }}
+                        >
+                          {(serviceDetail?.media?.videos || selectedRequestData.videos).map((video, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                width: "100%",
+                                height: { xs: "8rem", sm: "8.5rem", md: "9rem" },
+                                borderRadius: { xs: 1.5, sm: 2 },
+                                overflow: "hidden",
+                                position: "relative",
+                              }}
+                            >
+                              <Image
+                                src={video}
+                                alt={`Video ${index + 1}`}
+                                fill
+                                style={{ objectFit: "cover" }}
+                              />
+                            </Box>
+                          ))}
+                        </Box>
+                      ) : (
+                        <Box sx={{ textAlign: "center", py: 2 }}>
+                          <Typography sx={{ color: "text.secondary", fontSize: { xs: "0.875rem", sm: "1rem" } }}>
+                            No videos available
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
+
+                    {/* PHOTOS */}
+                    {serviceDetail?.media?.photos && serviceDetail.media.photos.length > 0 && (
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                            lineHeight: { xs: "1.0625rem", sm: "1.125rem" },
+                            letterSpacing: "0%",
+                            color: "#323232",
+                            fontWeight: 400,
+                            mb: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
+                          }}
+                        >
+                          Job Photos
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: { xs: "column", sm: "row" },
+                            gap: { xs: "0.75rem", sm: "1rem", md: "1.125rem" },
+                          }}
+                        >
+                          {serviceDetail.media.photos.map((photo, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                width: "100%",
+                                height: { xs: "8rem", sm: "8.5rem", md: "9rem" },
+                                borderRadius: { xs: 1.5, sm: 2 },
+                                overflow: "hidden",
+                                position: "relative",
+                              }}
+                            >
+                              <Image
+                                src={photo}
+                                alt={`Photo ${index + 1}`}
+                                fill
+                                style={{ objectFit: "cover" }}
+                              />
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
 
                     {/* SUPPORTING DOCUMENTS */}
                     <Box>
                       <Typography
                         sx={{
-                          fontSize: "1rem",
-                          lineHeight: "1.125rem",
+                          fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                          lineHeight: { xs: "1.0625rem", sm: "1.125rem" },
                           letterSpacing: "0%",
                           color: "#323232",
                           fontWeight: 400,
-                          mb: "0.75rem",
+                          mb: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
                         }}
                       >
                         Supporting documents
@@ -976,7 +1209,7 @@ export default function MyRequestsPage() {
                       <Box
                         sx={{
                           display: "flex",
-                          gap: 2,
+                          gap: { xs: 1.5, sm: 2 },
                           flexWrap: "wrap",
                           bgcolor: "white",
                         }}
@@ -985,29 +1218,31 @@ export default function MyRequestsPage() {
                           <Box
                             key={doc}
                             sx={{
-                              flex: "1 1 12.5rem",
-                              borderRadius: 2,
+                              flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 0.5rem)", md: "1 1 12.5rem" },
+                              borderRadius: { xs: 1.5, sm: 2 },
                               border: "0.0625rem dashed",
                               borderColor: "grey.300",
                               bgcolor: "white",
-                              p: 3,
+                              p: { xs: 2, sm: 2.5, md: 3 },
                               display: "flex",
                               flexDirection: "column",
                               alignItems: "center",
                               justifyContent: "center",
-                              gap: 1,
+                              gap: { xs: 0.75, sm: 1 },
                             }}
                           >
                             <Image
                               src="/icons/codicon_file-pdf.png"
                               alt="Document"
-                              width={40}
-                              height={40}
+                              width={32}
+                              height={32}
+                              style={{ width: "auto", height: "auto" }}
+                              sizes="(max-width: 600px) 32px, 40px"
                             />
                             <Typography
                               sx={{
-                                fontSize: "1rem",
-                                lineHeight: "1.125rem",
+                                fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                                lineHeight: { xs: "1.0625rem", sm: "1.125rem" },
                                 letterSpacing: "0%",
                                 color: "#818285",
                                 fontWeight: 400,
@@ -1024,9 +1259,10 @@ export default function MyRequestsPage() {
                     <Box
                       sx={{
                         display: "flex",
-                        gap: "1rem",
-                        justifyContent: "flex-end",
-                        mt: 1,
+                        flexDirection: { xs: "column", sm: "row" },
+                        gap: { xs: "0.75rem", sm: "1rem" },
+                        justifyContent: { xs: "stretch", sm: "flex-end" },
+                        mt: { xs: 0.5, sm: 1 },
                       }}
                     >
                       <Button
@@ -1034,13 +1270,14 @@ export default function MyRequestsPage() {
                         variant="outlined"
                         sx={{
                           textTransform: "none",
-                          width: "192px",
-                          height: "56px",
-                          borderRadius: "12px",
+                          width: { xs: "100%", sm: "192px" },
+                          height: { xs: "48px", sm: "56px" },
+                          borderRadius: { xs: "0.5rem", sm: "0.75rem", md: "12px" },
                           border: "1px solid #214C65",
                           borderColor: "#214C65",
-                          p: "10px",
+                          p: { xs: "8px", sm: "10px" },
                           gap: "10px",
+                          fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
                         }}
                       >
                         Reject
@@ -1050,12 +1287,13 @@ export default function MyRequestsPage() {
                         variant="contained"
                         sx={{
                           textTransform: "none",
-                          width: "12.8125rem",
-                          height: "3.5rem",
-                          borderRadius: "0.75rem",
-                          p: "0.625rem",
+                          width: { xs: "100%", sm: "12.8125rem" },
+                          height: { xs: "48px", sm: "3.5rem" },
+                          borderRadius: { xs: "0.5rem", sm: "0.625rem", md: "0.75rem" },
+                          p: { xs: "0.5rem", sm: "0.625rem" },
                           gap: "0.625rem",
                           bgcolor: "#214C65",
+                          fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
                           "&:hover": {
                             bgcolor: "#214C65",
                           },
