@@ -16,6 +16,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { toast } from "sonner";
 import { apiPost } from "@/lib/api";
 import { buildInputData, isValidPassword } from "@/utils/validation";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -152,7 +153,7 @@ export default function ProfessionalCreatePasswordPage() {
         } else if (errorMsg.includes("Password already set")) {
           router.push(ROUTES.SIGNUP_PROFESSIONAL_ADD_DETAILS);
         } else {
-          setErrors({ confirmPassword: errorMsg });
+          toast.error(errorMsg);
         }
       }
     }
@@ -242,8 +243,8 @@ export default function ProfessionalCreatePasswordPage() {
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: 140,
+                  height: 140,
                   borderRadius: '50%',
                   // bgcolor: 'primary.main',
                   display: 'flex',
@@ -321,8 +322,8 @@ export default function ProfessionalCreatePasswordPage() {
                 placeholder="Enter Password"
                 value={formData.password}
                 onChange={handleChange}
-                error={!!errors.password}
-                helperText={errors.password}
+                error={false}
+                helperText=""
                 margin="normal"
                 InputProps={{
                   endAdornment: (

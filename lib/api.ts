@@ -59,6 +59,18 @@ async function apiRequest<T>(
         },
       };
     }
+
+    // Check if response data indicates an error (even with 200 status)
+    if (data?.status === "error") {
+      return {
+        success: false,
+        error: {
+          message: data?.message || "An error occurred",
+          code: data?.code,
+          fields: data?.fields,
+        },
+      };
+    }
     
     return { success: true, data };
   } catch (error) {

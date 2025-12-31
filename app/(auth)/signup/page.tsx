@@ -7,21 +7,45 @@ import {
   Container,
   TextField,
   Typography,
-  Link,
   InputAdornment,
   IconButton,
   Paper,
 } from "@mui/material";
-import { Password, Visibility, VisibilityOff, VisibilityOffOutlined, VisibilityOutlined } from "@mui/icons-material";
+import Link from "next/link";
+import {
+  Password,
+  Visibility,
+  VisibilityOff,
+  VisibilityOffOutlined,
+  VisibilityOutlined,
+} from "@mui/icons-material";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { Formik, Form, Field, FieldProps } from "formik";
+import * as Yup from "yup";
+import { toast } from "sonner";
 import { ROUTES } from "@/constants/routes";
+import { setTokens } from "@/lib/redux/authSlice";
+import { AppDispatch } from "@/lib/redux/store";
 import Image from "next/image";
-import { apiPost } from "@/lib/api";
-import { buildInputData, emailRegex, isValidPassword, parseMobile } from "@/utils/validation";
+import { apiPost, apiPostFormData } from "@/lib/api";
+import {
+  buildInputData,
+  emailRegex,
+  isValidEmailOrMobile,
+  isValidPassword,
+  parseMobile,
+} from "@/utils/validation";
 import ResponseCache from "next/dist/server/response-cache";
 import { API_ENDPOINTS } from "@/constants/api";
+import PhoneInputWrapper from "@/components/PhoneInputWrapper";
 
-type SignupStep = "select-profile" | "enter-contact" | "verify-otp" | "create-password" | "add-details";
+type SignupStep =
+  | "select-profile"
+  | "enter-contact"
+  | "verify-otp"
+  | "create-password"
+  | "add-details";
 type UserType = "elderly_user" | "professional" | null;
 
 interface SignUpApiError {
@@ -40,9 +64,72 @@ interface SignUpApiResponse {
   error: SignUpApiError | null;
 }
 
+// Yup validation schemas for each step
+const enterContactSchema = Yup.object().shape({
+  emailOrMobile: Yup.string()
+    .required("Email or Mobile Number is required")
+    .test(
+      "is-valid-email-or-mobile",
+      "Please enter a valid email or mobile number",
+      (value) => {
+        if (!value) return false;
+        return isValidEmailOrMobile(value);
+      }
+    ),
+});
+
+const verifyOtpSchema = Yup.object().shape({
+  otp: Yup.array()
+    .of(Yup.string())
+    .length(4, "Please enter valid code")
+    .test("all-filled", "Please enter valid code", (values) => {
+      return values?.every((val) => val && val.length === 1) || false;
+    }),
+});
+
+const createPasswordSchema = Yup.object().shape({
+  password: Yup.string()
+    .required("Password is required")
+    .test(
+      "password-requirements",
+      "Your password must be 8 characters long and include a capital letter, a small letter, and a number.",
+      (value) => {
+        if (!value) return false;
+        if (value.length < 8) return false;
+        if (!/[A-Z]/.test(value)) return false;
+        if (!/[a-z]/.test(value)) return false;
+        if (!/[0-9]/.test(value)) return false;
+        return true;
+      }
+    ),
+  confirmPassword: Yup.string()
+    .required("Please confirm your password")
+    .oneOf([Yup.ref("password")], "Please make sure your passwords match"),
+});
+
+const addDetailsSchema = Yup.object().shape({
+  name: Yup.string()
+    .required("Name is required")
+    .min(2, "Name must be at least 2 characters long"),
+  mobileNo: Yup.string()
+    .required("Mobile number is required")
+    .test("is-valid-phone", "Please enter a valid phone number", (value) => {
+      if (!value) return false;
+      // Basic check - phone should have at least country code + some digits
+      const cleaned = value.replace(/\s/g, "");
+      return cleaned.length >= 10; // Minimum reasonable phone number length
+    }),
+  email: Yup.string()
+    .required("Email is required")
+    .email("Please enter a valid email address"),
+  address: Yup.string().required("Address is required"),
+});
+
 export default function SignupPage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [step, setStep] = useState<SignupStep>("select-profile");
+  // const [step, setStep] = useState<SignupStep>("add-details");
   const [userType, setUserType] = useState<UserType>(null);
   const [formData, setFormData] = useState({
     emailOrMobile: "",
@@ -51,29 +138,73 @@ export default function SignupPage() {
     confirmPassword: "",
     name: "",
     mobileNo: "",
+    phoneCountryCode: "",
     email: "",
     address: "",
     profilePicture: null as File | null,
-    profilePicturePreview: ""
+    profilePicturePreview: "",
   });
+  const [phoneError, setPhoneError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showReEnterPassword, setShowReEnterPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [otpCountdown, setOtpCountdown] = useState(0);
+
+  // Start countdown timer when OTP step is reached
+  useEffect(() => {
+    if (step === "verify-otp") {
+      setOtpCountdown(60);
+    }
+  }, [step]);
+
+  // Auto-populate email and mobile from emailOrMobile when reaching add-details step
+  useEffect(() => {
+    if (step === "add-details" && formData.emailOrMobile) {
+      try {
+        const validData = buildInputData(formData.emailOrMobile);
+        setFormData((prev) => {
+          const updates: any = {};
+          
+          // Only populate email if it's not already set
+          if (validData.email && !prev.email) {
+            updates.email = validData.email;
+          }
+          
+          // Only populate mobile if it's not already set
+          if (validData.mobile && validData.phone_country_code && !prev.mobileNo) {
+            // Format: country code + mobile number (e.g., "+1234567890")
+            updates.mobileNo = `${validData.phone_country_code}${validData.mobile}`;
+            updates.phoneCountryCode = validData.phone_country_code;
+          }
+          
+          // Only update if there are changes
+          if (Object.keys(updates).length > 0) {
+            return { ...prev, ...updates };
+          }
+          
+          return prev;
+        });
+      } catch (error) {
+        // If buildInputData fails, just continue without auto-populating
+        console.log("Could not auto-populate from emailOrMobile:", error);
+      }
+    }
+  }, [step]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (otpCountdown > 0) {
+      const timer = setTimeout(() => {
+        setOtpCountdown(otpCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpCountdown]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    if(name == "password"){
-      const {valid, errors} = isValidPassword(value) 
-      if(!valid){
-        setPasswordErrors(errors)
-      }else{
-        setPasswordErrors([])
-      }
-    }
 
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -95,7 +226,10 @@ export default function SignupPage() {
     }
   };
 
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleOtpKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLDivElement>
+  ) => {
     if (e.key === "Backspace" && !formData.otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
       prevInput?.focus();
@@ -113,227 +247,292 @@ export default function SignupPage() {
     }
   };
 
-  const handleContinue = async() => {
+  const handleContinue = async () => {
     setLoading(true);
     if (step === "enter-contact") {
-      if (!formData.emailOrMobile) {
-        setErrors({ emailOrMobile: "Please enter email or mobile number" });
-        setLoading(false)
-        return;
-      }
-
-      let {data,error} = await apiCallToSignUpUser("");
-
-
-      console.log({error})
-
-
-      
+      let { data, error } = await apiCallToSignUpUser("");
       // Extract nested data from response
       // Response structure: { status: "error", data: { is_otp_verified: true, ... } }
       const responseData: any = data?.data || data;
       const nestedData = responseData?.data || responseData;
-      
+
       // Check if OTP is already verified in the response data
-      if(nestedData && nestedData.is_otp_verified === true){
+      if (nestedData && nestedData.is_otp_verified === true) {
         setStep("create-password");
         setLoading(false);
         return;
       }
-      
+
       // Check if password is already set
-      if(nestedData && nestedData.is_password_set === true){
+      if (nestedData && nestedData.is_password_set === true) {
         setStep("add-details");
         setLoading(false);
         return;
       }
-      
+
       // If no redirect flags, proceed with normal flow
-      if(data && !error){
+      if (data && !error) {
         setStep("verify-otp");
-      }else if(error){
-        const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
-        if(errorMsg.includes("OTP already sent")){
+      } else if (error) {
+        console.log("error", {error});
+        const errorMsg =
+          error.submit ||
+          error.otp ||
+          error.password ||
+          error.general ||
+          error.msg ||
+          "Something Went Wrong";
+        if (errorMsg.includes("OTP already sent")) {
           setStep("verify-otp");
-        }else if(errorMsg.includes("Email already registered")){
+        } else if (
+          errorMsg.includes("OTP already verified. Redirect to Password page.")
+        ) {
           setStep("create-password");
-        }else if(errorMsg.includes("Password already set")){
-          setStep("add-details")
-        }else{
-          setErrors({ emailOrMobile: errorMsg });
+        } else if (errorMsg.includes("Email already registered")) {
+          toast.error(errorMsg);
+        } else if (errorMsg.includes("Password already set")) {
+          setStep("add-details");
+        } else {
+          toast.error(errorMsg);
         }
       }
       setLoading(false);
-
     } else if (step === "verify-otp") {
-      if (formData.otp.some((digit) => !digit)) {
-        setErrors({ otp: "Please enter valid code" });
-        setLoading(false)
-        return;
-      }
+      let { data, error } = await apiCallToSignUpUser("");
 
-      let {data,error} = await apiCallToSignUpUser("");
-      
       // Extract nested data from response
       const responseData: any = data?.data || data;
       const nestedData = responseData?.data || responseData;
-      
+
       // Check if OTP is already verified in the response data
-      if(nestedData && nestedData.is_otp_verified === true){
+      if (nestedData && nestedData.is_otp_verified === true) {
         setStep("create-password");
         setLoading(false);
         return;
       }
-      
+
       // Check if password is already set
-      if(nestedData && nestedData.is_password_set === true){
+      if (nestedData && nestedData.is_password_set === true) {
         setStep("add-details");
         setLoading(false);
         return;
       }
-      
       // If no redirect flags, proceed with normal flow
-      if(data && !error){
+      if (data && !error) {
+        // Show success toast if status is success
+        if (data?.status === "success") {
+          const successMsg = data?.message ;
+          toast.success(successMsg);
+        }
         setStep("create-password");
-      }else if(error){
-        const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
-        if(errorMsg.includes("OTP already sent")){
+      } else if (error) {
+        const errorMsg =
+          error.message ||
+          error.submit ||
+          error.otp ||
+          error.password ||
+          error.general ||
+          error.msg ||
+          "Something Went Wrong";
+        if (errorMsg.includes("OTP already sent")) {
           setStep("verify-otp");
-        }else if(errorMsg.includes("OTP already verified")){
+        } else if (errorMsg.includes("OTP already verified")) {
           setStep("create-password");
-        }else if(errorMsg.includes("Password already set")){
-          setStep("add-details")
-        }else{
-          setErrors({ otp: errorMsg });
+        } else if (errorMsg.includes("Password already set")) {
+          setStep("add-details");
+        } else {
+          toast.error(errorMsg);
         }
       }
       setLoading(false);
     } else if (step === "create-password") {
-      if(formData.password !== formData.confirmPassword){
-        setErrors({ confirmPassword : "Please make sure your passwords match." });
-        setLoading(false)
-        return
-      }
-      
-      let {data,error} = await apiCallToSignUpUser("");
-      
+      let { data, error } = await apiCallToSignUpUser("");
+
       // Extract nested data from response
       const responseData: any = data?.data || data;
       const nestedData = responseData?.data || responseData;
-      
+
       // Check if password is already set in the response data
-      if(nestedData && nestedData.is_password_set === true){
+      if (nestedData && nestedData.is_password_set === true) {
         setStep("add-details");
         setLoading(false);
         return;
       }
-      
+
       // If no redirect flags, proceed with normal flow
-      if(data && !error){
+      if (data && !error) {
         setStep("add-details");
-      }else if(error){
-        const errorMsg = error.submit || error.otp || error.password || error.general || error.msg || "Something Went Wrong";
-        if(errorMsg.includes("OTP already sent")){
+      } else if (error) {
+        const errorMsg =
+          error.submit ||
+          error.otp ||
+          error.password ||
+          error.general ||
+          error.msg ||
+          "Something Went Wrong";
+        if (errorMsg.includes("OTP already sent")) {
           setStep("verify-otp");
-        }else if(errorMsg.includes("OTP already verified")){
+        } else if (errorMsg.includes("OTP already verified")) {
           setStep("create-password");
-        }else if(errorMsg.includes("Password already set")){
-          setStep("add-details")
-        }else{
-          setErrors({ confirmPassword: errorMsg });
+        } else if (errorMsg.includes("Password already set")) {
+          setStep("add-details");
+        } else {
+          toast.error(errorMsg);
         }
       }
-      setLoading(false)
+      setLoading(false);
     }
   };
 
-  const apiCallToSignUpUser = async(submit:string) : Promise<SignUpApiResponse> =>{
+  const handleResendOTP = async () => {
+    setLoading(true);
     try {
-      let payload = {}
-      let url = ""
-      let validData = buildInputData(formData.emailOrMobile)
+      const { data, error } = await apiCallToSignUpUser("resendOTP");
+      if (data && !error) {
+        toast.success("OTP has been resent successfully");
+        setOtpCountdown(60); // Restart countdown
+      } else if (error) {
+        const errorMsg = error.message || error.msg || error.general || "Failed to resend OTP. Please try again.";
+        toast.error(errorMsg);
+      }
+    } catch (error: any) {
+      console.error("Resend OTP error:", error);
+      toast.error("Failed to resend OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const apiCallToSignUpUser = async (
+    submit: string
+  ): Promise<SignUpApiResponse> => {
+
+
+    try {
+      let payload = {};
+      let url = "";
+      let validData: any = {};
+
+      // Only call buildInputData for steps that use emailOrMobile
+      // Skip it only for "add-details" step when submitting final form
+      if (!(step === "add-details" && submit === "submit") && formData.emailOrMobile) {
+        try {
+          validData = buildInputData(formData.emailOrMobile);
+        } catch (error: any) {
+          return {
+            data: null,
+            error: { general: error.message || "Invalid email or mobile input" },
+          };
+        }
+      }
 
       if (step === "enter-contact") {
-        url = API_ENDPOINTS.AUTH.START
+        url = API_ENDPOINTS.AUTH.START;
 
-        if(validData.email){
+        if (validData.email) {
           payload = {
-            "email": validData.email || "",
-            "role": userType 
-          } 
-        }else{
+            email: validData.email || "",
+            role: userType,
+          };
+        } else {
           payload = {
-            "mobile": validData.mobile || "",
-            "phone_country_code": validData.phone_country_code || "",
-            "role": userType
-          }  
+            mobile: validData.mobile || "",
+            phone_country_code: validData.phone_country_code || "",
+            role: userType,
+          };
         }
+      } else if (step === "verify-otp") {
+        url = API_ENDPOINTS.AUTH.VERIFY_OTP;
 
-      }else if (step === "verify-otp") {
-        url = API_ENDPOINTS.AUTH.VERIFY_OTP
-
-        if(validData.email){
+        if (validData.email) {
           payload = {
-            "email": validData.email || "",
-            "otp": formData.otp.join("")
-          } 
-        }else{
+            email: validData.email || "",
+            otp: formData.otp.join(""),
+          };
+        } else {
           payload = {
-            "mobile": validData.mobile || "",
-            "phone_country_code": validData.phone_country_code || "",
-            "otp": formData.otp.join("")
-          }  
+            mobile: validData.mobile || "",
+            phone_country_code: validData.phone_country_code || "",
+            otp: formData.otp.join(""),
+          };
         }
       } else if (step === "create-password") {
-        url = API_ENDPOINTS.AUTH.CREATE_PASSWORD
+        url = API_ENDPOINTS.AUTH.CREATE_PASSWORD;
 
-        if(validData.email){
+        if (validData.email) {
           payload = {
-            "email": validData.email || "",
-            "password": formData.password,
-            "confirm_password" : formData.confirmPassword
-          } 
-        }else{
+            email: validData.email || "",
+            password: formData.password,
+            confirm_password: formData.confirmPassword,
+          };
+        } else {
           payload = {
-            "mobile": validData.mobile || "",
-            "phone_country_code": validData.phone_country_code || "",
-            "password": formData.password,
-            "confirm_password" : formData.confirmPassword
-          }  
+            mobile: validData.mobile || "",
+            phone_country_code: validData.phone_country_code || "",
+            password: formData.password,
+            confirm_password: formData.confirmPassword,
+          };
         }
       }
 
-      if(submit == "submit"){
-        const mobileData = parseMobile(formData.mobileNo)
-        url = API_ENDPOINTS.AUTH.CREATE_ACCOUNT
-        
+      if (submit == "submit") {
+        url = API_ENDPOINTS.AUTH.CREATE_ACCOUNT;
+
+        // Extract country code and mobile number from phone input
+        // PhoneInput provides full number with country code (e.g., "+1234567890")
+        let phoneCountryCode = formData.phoneCountryCode;
+        let mobile = formData.mobileNo;
+
+        // If phoneCountryCode is set, remove it from the mobile number
+        if (phoneCountryCode && mobile) {
+          // Remove the country code prefix from the phone number
+          const countryCodeWithPlus = phoneCountryCode.startsWith("+")
+            ? phoneCountryCode
+            : `+${phoneCountryCode}`;
+          if (mobile.startsWith(countryCodeWithPlus)) {
+            mobile = mobile.substring(countryCodeWithPlus.length).trim();
+          }
+        }
+
+        // If phoneCountryCode is not set, try to parse from mobileNo
+        if (!phoneCountryCode && mobile) {
+          const mobileData = parseMobile(mobile);
+          if (mobileData) {
+            phoneCountryCode = mobileData.countryCode;
+            mobile = mobileData.mobile;
+          }
+        }
+
         payload = {
-          "email": formData.email || "",
-          "address": formData.address,
-          "name" : formData.name,
-          "role" : userType,
-          "mobile": (mobileData && mobileData.mobile) || "",
-          "phone_country_code": (mobileData && mobileData.countryCode) || "",
-        } 
+          email: formData.email || "",
+          address: formData.address,
+          name: formData.name,
+          role: userType,
+          mobile: mobile || "",
+          phone_country_code: phoneCountryCode || "",
+        };
       }
 
-      if(submit == "resendOTP"){
+      if (submit == "resendOTP") {
         url = API_ENDPOINTS.AUTH.RESEND_OTP;
 
-        if(validData.email){
+        if (validData.email) {
           payload = {
-            "email": validData.email || "",
-          } 
-        }else{
+            email: validData.email || "",
+          };
+        } else {
           payload = {
-            "mobile": validData.mobile || "",
-            "phone_country_code": validData.phone_country_code || "",
-          }  
+            mobile: validData.mobile || "",
+            phone_country_code: validData.phone_country_code || "",
+          };
         }
       }
 
-      let response  = await apiPost(url,payload)
-      
+      let response = await apiPost(url, payload);
+
+
+      console.log({response},"this is the response")
+
       // API response structure can be:
       // 1. HTTP 200 with { status: "error", message: "...", data: { is_otp_verified: true, ... } }
       //    -> response = { success: true, data: { status: "error", data: { is_otp_verified: true } } }
@@ -341,40 +540,61 @@ export default function SignupPage() {
       //    -> response = { success: true, data: { status: "success", data: { ... } } }
       // 3. HTTP error status
       //    -> response = { success: false, error: { message: "..." }, data: undefined }
-      
+
       let responseData: any = response.data;
-      
+
       // Extract nested data if it exists (for case 1 and 2)
       const nestedData = responseData?.data;
-      
+
       // Check for redirect flags in the response (check both nested data and top level)
-      const isOtpVerified = nestedData?.is_otp_verified === true || responseData?.is_otp_verified === true;
-      const isPasswordSet = nestedData?.is_password_set === true || responseData?.is_password_set === true;
+      const isOtpVerified =
+        nestedData?.is_otp_verified === true ||
+        responseData?.is_otp_verified === true;
+      const isPasswordSet =
+        nestedData?.is_password_set === true ||
+        responseData?.is_password_set === true;
       const hasRedirectFlags = isOtpVerified || isPasswordSet;
-      
+
       // If we have redirect flags, return the data without error even if status is "error"
       if (hasRedirectFlags) {
         return {
           data: responseData,
-          error: null
+          error: null,
         };
       }
-      
+
       // Check if there's an error message in the response
       let errorObj: SignUpApiError | null = null;
       if (response?.error) {
-        errorObj = {}
-         if (step === "enter-contact") {
-          errorObj =  { submit: response.error.message || "Something went wrong." }
-        }else if (step === "verify-otp") {
-          errorObj =  { otp: response.error.message || "Something went wrong." }
-        }else if (step === "create-password") {
-          errorObj =  { password: response.error.message || "Something went wrong." }
+        errorObj = {};
+        if (step === "enter-contact") {
+          errorObj = {
+            submit: response.error.message || "Something went wrong.",
+          };
+        } else if (step === "verify-otp") {
+          errorObj = { otp: response.error.message || "Something went wrong." };
         }
-        
+         else if (step === "create-password") {
+          errorObj = {
+            password: response.error.message || "Something went wrong.",
+          };
+        }
+         else if (step === "add-details") {
+          errorObj = {
+            message: response.error.message || "Something went wrong.",
+          };
+        }
+
         // Also check if response.data has status: "error" (HTTP 200 but JSON has error status)
-        if (responseData && responseData.status === "error" && !hasRedirectFlags) {
-          const errorMessage = responseData.message || response.error.message || "Something went wrong.";
+        if (
+          responseData &&
+          responseData.status === "error" &&
+          !hasRedirectFlags
+        ) {
+          const errorMessage =
+            responseData.message ||
+            response.error.message ||
+            "Something went wrong.";
           if (step === "enter-contact") {
             errorObj = { submit: errorMessage };
           } else if (step === "verify-otp") {
@@ -383,17 +603,18 @@ export default function SignupPage() {
             errorObj = { password: errorMessage };
           }
         }
-        
         setErrors(errorObj);
       }
 
       return {
         data: responseData,
-        error: errorObj
+        error: errorObj,
       };
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Signup error:", error);
-      const errorObj: SignUpApiError = { general: error.message || "Something went wrong. Please try again." };
+      const errorObj: SignUpApiError = {
+        general: error.message || "Something went wrong. Please try again.",
+      };
       return {
         data: null,
         error: errorObj,
@@ -401,31 +622,80 @@ export default function SignupPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
     try {
-      // TODO: validate the form Data
-      let {data,error} = await apiCallToSignUpUser("submit");
-      if(data){
-        router.push(ROUTES.LOGIN);
-        setStep("add-details");
-      }else{
-        if(error){
-          const errorMsg =  error.general || error.msg || "Something Went Wrong";
-          if(errorMsg.includes("Name is required")){
+      let { data, error } = await apiCallToSignUpUser("submit");
+      
+      // Check if response is successful with tokens
+      if (data && data.status === "success" && data.data) {
+        const responseData = data.data;
+        
+        // Extract tokens and user data
+        const accessToken = responseData.access_token;
+        const refreshToken = responseData.refresh_token;
+        const accessTokenExpire = responseData.access_token_expire;
+        const refreshTokenExpire = responseData.refresh_token_expire;
+        const userData = responseData.user_data || {};
+        
+        // Store tokens in cookies and localStorage (similar to login flow)
+        if (typeof window !== "undefined") {
+          // Store refresh token in cookie (7 days expiry)
+          document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${7*24*60*60}`;
+          
+          // Store access token in localStorage
+          localStorage.setItem("token", accessToken);
+          
+          // Store user data in localStorage
+          localStorage.setItem("userEmail", userData.email || "");
+          localStorage.setItem("userInitial", (userData.name?.charAt(0) || "U").toUpperCase());
+          localStorage.setItem("role", userData.role || "");
+        }
+        
+        // Update Redux state with tokens and user data (so API calls work immediately)
+        const user = {
+          email: userData.email || "",
+          initial: (userData.name?.charAt(0) || "U").toUpperCase(),
+          role: userData.role || "",
+        };
+        
+        dispatch(setTokens({
+          accessToken,
+          refreshToken,
+          accessTokenExpire,
+          refreshTokenExpire,
+          user,
+        }));
+        
+        // Show success toast
+        toast.success("Account created success");
+        
+        // Redirect to home page
+        router.push(ROUTES.AUTH_HOME);
+      } else if (data && data.status === "success") {
+        // If status is success but no data structure, still show success
+        toast.success("Account created success"); 
+        router.push(ROUTES.AUTH_HOME);
+      } else {
+        // Handle errors
+        if (error) {
+          const errorMsg = error.general || error.msg || error.message || "Something Went Wrong";
+          toast.error(errorMsg);
+          if (errorMsg.includes("Name is required")) {
             setErrors({ name: errorMsg });
-          }else if(errorMsg.includes("Address")){
+          } else if (errorMsg.includes("Address")) {
             setErrors({ address: errorMsg });
-          }else if(errorMsg.includes("country code") || errorMsg.includes("Mobile")){
+          } else if (
+            errorMsg.includes("country code") ||
+            errorMsg.includes("Mobile")
+          ) {
             setErrors({ mobileNo: errorMsg });
-          }else if(errorMsg.includes("email")){
+          } else if (errorMsg.includes("email")) {
             setErrors({ email: errorMsg });
-          }
-          else{
-
+          } else {
+            toast.error(errorMsg);
           }
         }
       }
@@ -437,40 +707,37 @@ export default function SignupPage() {
     }
   };
 
-  const uploadProfileImage = async(file:File) : Promise<void> =>{
-    setLoading(true)
-     try {
-      let payload = {}
-      let url = API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC
-      let validData = buildInputData(formData.emailOrMobile)
-      let error = {}
-
-      if(validData.email){
-        payload = {
-          "email": validData.email || "",
-          "file": formData.profilePicture 
-        } 
-      }else{
-        payload = {
-          "mobile": validData.mobile || "",
-          "phone_country_code": validData.phone_country_code || "",
-          "file": formData.profilePicture 
-        }  
+  const uploadProfileImage = async (file: File): Promise<void> => {
+    setLoading(true);
+    try {
+      const url = API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC;
+      const validData = buildInputData(formData.emailOrMobile);
+      
+      // Create FormData for file upload
+      const formDataPayload = new FormData();
+      
+      if (validData.email) {
+        formDataPayload.append("email", validData.email || "");
+      } else {
+        formDataPayload.append("mobile", validData.mobile || "");
+        formDataPayload.append("phone_country_code", validData.phone_country_code || "");
       }
+      
+      // Append the file - use the file parameter directly, not formData.profilePicture
+      formDataPayload.append("file", file);
 
-      const response : ProfilePhotoApi  = await apiPost(url,payload)
+      const response: ProfilePhotoApi = await apiPostFormData(url, formDataPayload);
       if (response?.error?.message) {
-        setErrors({
-          profilePicture: response.error.message,
-        });
+        toast.error(response.error.message);
         return;
       }
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Signup error:", error);
+      toast.error("Failed to upload profile picture. Please try again.");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const renderStepContent = () => {
     switch (step) {
@@ -484,7 +751,7 @@ export default function SignupPage() {
                 color: `primary.normal`,
                 mb: "0.75rem",
                 lineHeight: "1.75rem",
-                textAlign: "center"
+                textAlign: "center",
               }}
             >
               Welcome To CoudPouss!
@@ -499,7 +766,8 @@ export default function SignupPage() {
                 color: "secondary.neutralWhiteDark",
               }}
             >
-              Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
+              Empowering seniors with easy access to trusted help, care, and
+              companionship whenever needed.
             </Typography>
 
             <Button
@@ -510,11 +778,11 @@ export default function SignupPage() {
               sx={{
                 bgcolor: "#214C65",
                 color: "white",
-                py: 1.5,
-                mb: 2,
+                py: { xs: 1.25, md: 1.5 },
+                mb: { xs: 1.5, md: 2 },
                 textTransform: "none",
-                fontWeight:700,
-                fontSize: "1.1875rem",
+                fontWeight: 700,
+                fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
                 "&:hover": {
                   bgcolor: "#25608A",
                 },
@@ -522,18 +790,39 @@ export default function SignupPage() {
             >
               Sign up as Elder
             </Button>
-            <Box sx={{ textAlign: "center", my: 2,display:"flex",alignItems:"center" }}>
-              <Box sx={{ flex: 1, height: "1px", bgcolor: "rgba(0,0,0,0.3)", border: "1px solid #F2F3F3" }} />
+            <Box
+              sx={{
+                textAlign: "center",
+                my: 2,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Box
+                sx={{
+                  flex: 1,
+                  height: "1px",
+                  bgcolor: "rgba(0,0,0,0.3)",
+                  border: "1px solid #F2F3F3",
+                }}
+              />
               <Typography
                 sx={{
-                  fontSize: "1.125rem",
+                  fontSize: { xs: "1rem", md: "1.125rem" },
                   color: "#818285",
-                  mx:4
+                  mx: { xs: 2, md: 4 },
                 }}
               >
                 OR
               </Typography>
-              <Box sx={{ flex: 1, height: "1px", bgcolor: "rgba(0,0,0,0.3)", border: "1px solid #F2F3F3" }} />
+              <Box
+                sx={{
+                  flex: 1,
+                  height: "1px",
+                  bgcolor: "rgba(0,0,0,0.3)",
+                  border: "1px solid #F2F3F3",
+                }}
+              />
             </Box>
             <Button
               fullWidth
@@ -543,9 +832,9 @@ export default function SignupPage() {
               sx={{
                 borderColor: "primary.dark",
                 color: "primary.dark",
-                py: 1.5,
-                fontWeight:700,
-                fontSize: "1.1875rem",
+                py: { xs: 1.25, md: 1.5 },
+                fontWeight: 700,
+                fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
                 textTransform: "none",
                 "&:hover": {
                   borderColor: "#25608A",
@@ -560,80 +849,130 @@ export default function SignupPage() {
 
       case "enter-contact":
         return (
-          <Box>
-            <Typography
-              sx={{
-                fontWeight: `700`,
-                fontSize: `1.5rem`,
-                color: `primary.normal`,
-                mb: "0.75rem",
-                lineHeight: "1.75rem",
-                textAlign: "center"
-              }}
-            >
-              Welcome To CoudPouss!
-            </Typography>
-            <Typography
-              sx={{
-                fontWeight: 400,
-                fontSize: "1rem",
-                textAlign: "center",
-                lineHeight: "140%",
-                mb: "2.5rem",
-                color: "secondary.neutralWhiteDark",
-              }}
-            >
-              Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
-            </Typography>
+          <Formik
+            initialValues={{ emailOrMobile: formData.emailOrMobile || "" }}
+            validationSchema={enterContactSchema}
+            onSubmit={async (values, { setFieldError }) => {
+              setFormData((prev) => ({
+                ...prev,
+                emailOrMobile: values.emailOrMobile,
+              }));
+              await handleContinue();
+            }}
+            enableReinitialize
+          >
+            {({
+              values,
+              errors: formikErrors,
+              touched,
+              handleChange,
+              handleBlur,
+              handleSubmit,
+            }) => (
+              <Form>
+                <Typography
+                  sx={{
+                    fontWeight: `700`,
+                    fontSize: { xs: `1.25rem`, sm: `1.375rem`, md: `1.5rem` },
+                    color: `primary.normal`,
+                    mb: { xs: "0.5rem", md: "0.75rem" },
+                    lineHeight: { xs: "1.5rem", md: "1.75rem" },
+                    textAlign: "center",
+                  }}
+                >
+                  Welcome To CoudPouss!
+                </Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                    textAlign: "center",
+                    lineHeight: "140%",
+                    mb: { xs: "2rem", md: "2.5rem" },
+                    color: "secondary.neutralWhiteDark",
+                  }}
+                >
+                  Empowering seniors with easy access to trusted help, care, and
+                  companionship whenever needed.
+                </Typography>
 
-            <Typography sx={{
-              fontWeight: 500,
-              fontSize: "1.0625rem",
-              lineHeight: "1.25rem",
-              color: "#424242",
-              mb: "0.5rem"
-            }}>
-              Email / Mobile No
-            </Typography>
-            <TextField
-              sx={{
-                m: 0,
-                mb: 3,
-              }}
-              fullWidth
-              name="emailOrMobile"
-              placeholder="Enter Email/ Mobile No"
-              value={formData.emailOrMobile}
-              onChange={handleChange}
-              error={!!errors.emailOrMobile}
-              margin="normal"
-            />
-             {errors.emailOrMobile && (
-              <Typography color="error" variant="body2" sx={{ mb: 2, fontSize:"1.125rem", textAlign: "center",fontWeight:400 }}>
-                {errors.emailOrMobile}
-              </Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: { xs: "0.9375rem", md: "1.0625rem" },
+                    lineHeight: "1.25rem",
+                    color: "#424242",
+                    mb: "0.5rem",
+                  }}
+                >
+                  Email / Mobile No
+                </Typography>
+                <Field name="emailOrMobile">
+                  {({ field, meta }: FieldProps) => (
+                    <TextField
+                      {...field}
+                      sx={{
+                        m: 0,
+                        mb: 3,
+                        "& .MuiFormHelperText-root": {
+                          fontWeight: 400,
+                          fontSize: "16px",
+                          lineHeight: "140%",
+                          letterSpacing: "0%",
+                          color: "#EF5350",
+                          marginTop: "12px !important",
+                          marginLeft: "0 !important",
+                          marginRight: "0 !important",
+                          marginBottom: "0 !important",
+                        },
+                      }}
+                      fullWidth
+                      placeholder="Enter Email/ Mobile No"
+                      onChange={(e) => {
+                        handleChange(e);
+                        setFormData((prev) => ({
+                          ...prev,
+                          emailOrMobile: e.target.value,
+                        }));
+                      }}
+                      onBlur={handleBlur}
+                      error={!!(meta.touched && meta.error)}
+                      helperText={(meta.touched && meta.error) || ""}
+                      margin="normal"
+                      FormHelperTextProps={{
+                        sx: {
+                          marginTop: "12px",
+                          marginLeft: 0,
+                          marginRight: 0,
+                          marginBottom: 0,
+                        },
+                      }}
+                    />
+                  )}
+                </Field>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  disabled={loading}
+                  sx={{
+                    bgcolor: "primary.dark",
+                    color: "white",
+                    py: { xs: 1.25, md: 1.5 },
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
+                    "&:hover": {
+                      bgcolor: "#25608A",
+                    },
+                  }}
+                >
+                  Continue
+                </Button>
+              </Form>
             )}
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              disabled={loading}
-              onClick={handleContinue}
-              sx={{
-                bgcolor: "primary.dark",
-                color: "white",
-                py: 1.5,
-                textTransform: "none",
-                fontWeight:700,
-                fontSize: "1.1875rem",
-                "&:hover": {
-                  bgcolor: "#25608A",
-                },
-              }}
-            >
-              Continue
-            </Button>
-          </Box>
+          </Formik>
         );
 
       case "verify-otp":
@@ -642,11 +981,11 @@ export default function SignupPage() {
             <Typography
               sx={{
                 fontWeight: `700`,
-                fontSize: `1.5rem`,
+                fontSize: { xs: `1.25rem`, sm: `1.375rem`, md: `1.5rem` },
                 color: `primary.normal`,
-                mb: "0.75rem",
-                lineHeight: "1.75rem",
-                textAlign: "center"
+                mb: { xs: "0.5rem", md: "0.75rem" },
+                lineHeight: { xs: "1.5rem", md: "1.75rem" },
+                textAlign: "center",
               }}
             >
               Welcome To CoudPouss!
@@ -654,111 +993,225 @@ export default function SignupPage() {
             <Typography
               sx={{
                 fontWeight: 400,
-                fontSize: "1rem",
+                fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
                 textAlign: "center",
                 lineHeight: "140%",
-                mb: "2.5rem",
+                mb: { xs: "2rem", md: "2.5rem" },
                 color: "secondary.neutralWhiteDark",
               }}
             >
-              Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
+              Empowering seniors with easy access to trusted help, care, and
+              companionship whenever needed.
             </Typography>
 
-
-            <Typography sx={{
-              fontWeight: 400,
-              fontSize: "16px",
-              textAlign: "center",
-              lineHeight: "140%",
-              mb: "1.25rem",
-              color: "secondary.neutralWhiteDark",
-            }}>
-              To continue Please enter the 4 Digit OTP sent to your Email or Phone Number.
-            </Typography>
             <Typography
-
               sx={{
-                fontSize: "18px",
-                fontWeight: "500",
-                lineHeight: "100%",
-                color: "#555555",
-                mb: 2
-              }}
-            >
-              Code
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, justifyContent: "space-between", mb: 2 }}>
-              {formData.otp.map((digit, index) => (
-                <TextField
-                  key={index}
-                  id={`otp-${index}`}
-                  value={digit}
-                  error={!!errors.otp}
-                  onChange={(e) => handleOtpChange(index, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                  inputProps={{
-                    maxLength: 1,
-                    style: { textAlign: "center", fontSize: "1.5rem", fontWeight: "bold", width: "5rem",borderColor:errors.otp ? "red" : "" },
-                  }}
-                  sx={{
-                    borderColor:errors.otp ? "red" : "",
-                    width: 60,
-                    "& .MuiOutlinedInput-root": {
-                      height: 60,
-                      borderColor: errors.otp ? "red" : "",
-                      width: "5.03125rem"
-                    },
-                  }}
-                />
-              ))}
-            </Box>
-            {errors.otp && (
-              <Typography color="error" variant="body2" sx={{ mb: 2, fontSize:"1.125rem", textAlign: "center",fontWeight:400 }}>
-                {errors.otp}
-              </Typography>
-            )}
-            <Link
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                apiCallToSignUpUser("resendOTP");   
-              }}
-              sx={{
-                display: "block",
+                fontWeight: 400,
+                fontSize: { xs: "14px", sm: "15px", md: "16px" },
                 textAlign: "center",
-                mb: 3,
-                fontSize: "1.25rem",
-                lineHeight: "1.5rem",
-                fontWeight: 600,
-                color: "primary.normal",
-                textDecoration: "none",
-                "&:hover": {
-                  textDecoration: "underline",
-                },
+                lineHeight: "140%",
+                mb: { xs: "1rem", md: "1.25rem" },
+                color: "secondary.neutralWhiteDark",
               }}
             >
-              Resend code
-            </Link>
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              disabled={loading}
-              onClick={handleContinue}
-              sx={{
-                bgcolor: "primary.dark",
-                color: "white",
-                py: 1.5,
-                textTransform: "none",
-                fontWeight:700,
-                fontSize: "1.1875rem",
-                "&:hover": {
-                  bgcolor: "#25608A",
-                },
+              To continue Please enter the 4 Digit OTP sent to your Email or
+              Phone Number.
+            </Typography>
+            <Formik
+              initialValues={{ otp: formData.otp || ["", "", "", ""] }}
+              validationSchema={verifyOtpSchema}
+              validateOnChange={false}
+              validateOnBlur={false}
+              onSubmit={async (values) => {
+                setFormData((prev) => ({ ...prev, otp: values.otp }));
+                await handleContinue();
               }}
+              enableReinitialize
             >
-              Verify OTP
-            </Button>
+              {({
+                values,
+                errors: formikErrors,
+                touched,
+                setFieldValue,
+                handleSubmit,
+                submitCount,
+              }) => {
+                const handleOtpChangeFormik = (
+                  index: number,
+                  value: string
+                ) => {
+                  // Only allow numeric digits (0-9)
+                  const numericValue = value.replace(/[^0-9]/g, "");
+                  if (numericValue.length > 1) return;
+                  const newOtp = [...values.otp];
+                  newOtp[index] = numericValue;
+                  setFieldValue("otp", newOtp);
+                  setFormData((prev) => ({ ...prev, otp: newOtp }));
+
+                  // Auto-focus next input
+                  if (numericValue && index < 3) {
+                    const nextInput = document.getElementById(
+                      `otp-${index + 1}`
+                    );
+                    nextInput?.focus();
+                  }
+                };
+
+                const handleOtpKeyDownFormik = (
+                  index: number,
+                  e: React.KeyboardEvent<HTMLDivElement>
+                ) => {
+                  if (
+                    e.key === "Backspace" &&
+                    !values.otp[index] &&
+                    index > 0
+                  ) {
+                    const prevInput = document.getElementById(
+                      `otp-${index - 1}`
+                    );
+                    prevInput?.focus();
+                  }
+                };
+
+                return (
+                  <Form>
+                    <Typography
+                      sx={{
+                        fontSize: { xs: "16px", md: "18px" },
+                        fontWeight: "500",
+                        lineHeight: "100%",
+                        color: "#555555",
+                        mb: { xs: 1.5, md: 2 },
+                      }}
+                    >
+                      Code
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: { xs: 0.75, md: 1 },
+                        justifyContent: "space-between",
+                        mb: formikErrors.otp && submitCount > 0 ? 1 : 2,
+                      }}
+                    >
+                      {values.otp.map((digit, index) => (
+                        <TextField
+                          key={index}
+                          id={`otp-${index}`}
+                          value={digit || ""}
+                          error={!!(formikErrors.otp && submitCount > 0)}
+                          onChange={(e) =>
+                            handleOtpChangeFormik(index, e.target.value)
+                          }
+                          onKeyDown={(e) => handleOtpKeyDownFormik(index, e)}
+                          inputProps={{
+                            maxLength: 1,
+                            inputMode: "numeric",
+                            pattern: "[0-9]*",
+                            style: {
+                              textAlign: "center",
+                              fontSize: "1.25rem",
+                              fontWeight: "bold",
+                            },
+                          }}
+                          InputProps={{
+                            sx: {
+                              "& input": {
+                                fontSize: { xs: "1.125rem", sm: "1.25rem", md: "1.5rem" },
+                              },
+                            },
+                          }}
+                          sx={{
+                            borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
+                            width: { xs: 50, sm: 55, md: 60 },
+                            "& .MuiOutlinedInput-root": {
+                              height: { xs: 50, sm: 55, md: 60 },
+                              borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
+                              width: { xs: "3.125rem", sm: "3.4375rem", md: "5.03125rem" },
+                            },
+                          }}
+                        />
+                      ))}
+                    </Box>
+                    {formikErrors.otp && submitCount > 0 && (
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: "16px",
+                          lineHeight: "140%",
+                          letterSpacing: "0%",
+                          color: "#EF5350",
+                          mb: 2,
+                          mt: "12px",
+                          textAlign: "center",
+                        }}
+                      >
+                        Please enter valid code
+                      </Typography>
+                    )}
+                    {otpCountdown > 0 ? (
+                      <Typography
+                        sx={{
+                          display: "block",
+                          textAlign: "center",
+                          mb: { xs: 2, md: 3 },
+                          fontSize: { xs: "1.125rem", md: "1.25rem" },
+                          lineHeight: "1.5rem",
+                          fontWeight: 600,
+                          color: "#2C6587",
+                        }}
+                      >
+                        Resend code in {otpCountdown} seconds
+                      </Typography>
+                    ) : (
+                      <Box sx={{ textAlign: "center", mb: { xs: 2, md: 3 } }}>
+                        <Typography
+                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                            e.preventDefault();
+                            setOtpCountdown(60);
+                            apiCallToSignUpUser("resendOTP");
+                          }}
+                          sx={{
+                            cursor: "pointer",
+                            display: "inline-block",
+                            fontSize: { xs: "1.125rem", md: "1.25rem" },
+                            lineHeight: "1.5rem",
+                            fontWeight: 600,
+                            color: "#2C6587",
+                            textDecoration: "none",
+                            "&:hover": {
+                              textDecoration: "underline",
+                            },
+                          }}
+                        >
+                          Resend code
+                        </Typography>
+                      </Box>
+                    )}
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      disabled={loading}
+                      sx={{
+                        bgcolor: "primary.dark",
+                        color: "white",
+                        py: { xs: 1.25, md: 1.5 },
+                        textTransform: "none",
+                        fontWeight: 700,
+                        fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
+                        "&:hover": {
+                          bgcolor: "#25608A",
+                        },
+                      }}
+                    >
+                      Verify OTP
+                    </Button>
+                  </Form>
+                );
+              }}
+            </Formik>
           </Box>
         );
 
@@ -766,411 +1219,683 @@ export default function SignupPage() {
         return (
           <Box>
             <Typography
-
               sx={{
                 fontWeight: `700`,
-                fontSize: `1.5rem`,
+                fontSize: { xs: `1.25rem`, sm: `1.375rem`, md: `1.5rem` },
                 color: `primary.normal`,
-                mb: "0.75rem",
-                lineHeight: "1.75rem",
-                textAlign: "center"
-
-
+                mb: { xs: "0.5rem", md: "0.75rem" },
+                lineHeight: { xs: "1.5rem", md: "1.75rem" },
+                textAlign: "center",
               }}
             >
               CoudPouss
             </Typography>
             <Typography
-
               sx={{
                 fontWeight: 400,
-                fontSize: "1rem",
+                fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
                 textAlign: "center",
                 lineHeight: "140%",
-                mb: "2.5rem",
+                mb: { xs: "2rem", md: "2.5rem" },
                 color: "secondary.neutralWhiteDark",
               }}
             >
-              Empowering seniors with easy access to trusted help, care, and companionship whenever needed.
+              Empowering seniors with easy access to trusted help, care, and
+              companionship whenever needed.
             </Typography>
 
             <Typography
               sx={{
                 fontWeight: `700`,
-                fontSize: `1.5rem`,
+                fontSize: { xs: `1.25rem`, sm: `1.375rem`, md: `1.5rem` },
                 color: `primary.normal`,
-                mb: "0.75rem",
-                lineHeight: "1.75rem",
-                textAlign: "center"
-
-
-              }}>
+                mb: { xs: "0.5rem", md: "0.75rem" },
+                lineHeight: { xs: "1.5rem", md: "1.75rem" },
+                textAlign: "center",
+              }}
+            >
               Create a strong password
             </Typography>
-            <Typography
-
-              sx={{
-                fontWeight: 500,
-                fontSize: "17px",
-                lineHeight: "20px",
-                color: "#6D6D6D",
-                mb: "8px"
+            <Formik
+              initialValues={{
+                password: formData.password || "",
+                confirmPassword: formData.confirmPassword || "",
               }}
+              validationSchema={createPasswordSchema}
+              onSubmit={async (values) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  password: values.password,
+                  confirmPassword: values.confirmPassword,
+                }));
+                await handleContinue();
+              }}
+              enableReinitialize
             >
-              Password
-            </Typography>
-            <TextField
-              fullWidth
-              name="password"
-              sx={{
-                m: 0,
-                mb: 2
+              {({
+                values,
+                errors: formikErrors,
+                touched,
+                handleChange,
+                handleBlur,
+                handleSubmit,
+              }) => {
+                return (
+                  <Form>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: { xs: "15px", md: "17px" },
+                        lineHeight: "20px",
+                        color: "#6D6D6D",
+                        mb: "8px",
+                      }}
+                    >
+                      Password
+                    </Typography>
+                    <Field name="password">
+                      {({ field, meta }: FieldProps) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          sx={{
+                            m: 0,
+                            mb: 2,
+                            "& .MuiFormHelperText-root": {
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "140%",
+                              letterSpacing: "0%",
+                              color: "#EF5350",
+                              marginTop: "12px !important",
+                              marginLeft: "0 !important",
+                              marginRight: "0 !important",
+                              marginBottom: "0 !important",
+                            },
+                          }}
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter Password"
+                          onChange={(e) => {
+                            handleChange(e);
+                            const value = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              password: value,
+                            }));
+                          }}
+                          onBlur={handleBlur}
+                          error={!!(meta.touched && meta.error)}
+                          helperText={(meta.touched && meta.error) || ""}
+                          margin="normal"
+                          FormHelperTextProps={{
+                            sx: {
+                              marginTop: "12px",
+                              marginLeft: 0,
+                              marginRight: 0,
+                              marginBottom: 0,
+                            },
+                          }}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  edge="end"
+                                >
+                                  {showPassword ? (
+                                    <VisibilityOffOutlined />
+                                  ) : (
+                                    <VisibilityOutlined />
+                                  )}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      )}
+                    </Field>
+                    <Typography
+                      sx={{
+                        mt: "8px",
+                        fontWeight: 500,
+                        fontSize: { xs: "15px", md: "17px" },
+                        lineHeight: "20px",
+                        color: "#6D6D6D",
+                        mb: "8px",
+                      }}
+                    >
+                      Confirm Password
+                    </Typography>
+                    <Field name="confirmPassword">
+                      {({ field, meta }: FieldProps) => (
+                        <TextField
+                          {...field}
+                          sx={{
+                            m: 0,
+                            mb: "14px",
+                            "& .MuiFormHelperText-root": {
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "140%",
+                              letterSpacing: "0%",
+                              color: "#EF5350",
+                              marginTop: "12px !important",
+                              marginLeft: "0 !important",
+                              marginRight: "0 !important",
+                              marginBottom: "0 !important",
+                            },
+                          }}
+                          fullWidth
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Re-enter Password"
+                          onChange={(e) => {
+                            handleChange(e);
+                            setFormData((prev) => ({
+                              ...prev,
+                              confirmPassword: e.target.value,
+                            }));
+                          }}
+                          onBlur={handleBlur}
+                          error={!!(meta.touched && meta.error)}
+                          helperText={(meta.touched && meta.error) || ""}
+                          margin="normal"
+                          FormHelperTextProps={{
+                            sx: {
+                              marginTop: "12px",
+                              marginLeft: 0,
+                              marginRight: 0,
+                              marginBottom: 0,
+                            },
+                          }}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton
+                                  onClick={() =>
+                                    setShowConfirmPassword(!showConfirmPassword)
+                                  }
+                                  edge="end"
+                                >
+                                  {showConfirmPassword ? (
+                                    <VisibilityOffOutlined />
+                                  ) : (
+                                    <VisibilityOutlined />
+                                  )}
+                                </IconButton>
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      )}
+                    </Field>
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      size="large"
+                      disabled={loading}
+                      sx={{
+                        bgcolor: "primary.dark",
+                        color: "white",
+                        py: { xs: 1.25, md: 1.5 },
+                        textTransform: "none",
+                        fontWeight: 700,
+                        fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
+                        "&:hover": {
+                          bgcolor: "#25608A",
+                        },
+                      }}
+                    >
+                      Next
+                    </Button>
+                  </Form>
+                );
               }}
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter Password"
-              value={formData.password}
-              onChange={handleChange}
-              error={!!errors.password}
-              helperText={errors.password}
-              margin="normal"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ?   <VisibilityOutlined /> : <VisibilityOffOutlined />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            {
-              passwordErrors && passwordErrors.map((err)=>{
-                return(
-                  <Typography color="error" variant="body2" sx={{fontSize:"0.9rem", textAlign: "left",fontWeight:400 }}>
-                    {err}
-                  </Typography>
-                )
-              })
-            }
-            <Typography
-              sx={{
-                mt:"8px",
-                fontWeight: 500,
-                fontSize: "17px",
-                lineHeight: "20px",
-                color: "#6D6D6D",
-                mb: "8px"
-              }}
-            >
-              Confirm Password
-            </Typography>
-            <TextField
-              sx={{
-                m: 0,
-                mb: "14px"
-              }}
-              fullWidth
-              name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Re-enter Password"
-              value={formData.confirmPassword}
-              error={!!errors.confirmPassword}
-              onChange={handleChange}
-              margin="normal"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                      {showConfirmPassword ?  <VisibilityOutlined /> :  <VisibilityOffOutlined />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            {errors.confirmPassword && (
-              <Typography color="error" variant="body2" sx={{ mb: 6, fontSize:"1rem", textAlign: "center",fontWeight:400 }}>
-                {errors.confirmPassword}
-              </Typography>
-            )}
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              disabled={loading}
-              onClick={handleContinue}
-              sx={{
-                bgcolor: "primary.dark",
-                color: "white",
-                py: 1.5,
-                textTransform: "none",
-                fontWeight:700,
-                fontSize: "1.1875rem",
-                "&:hover": {
-                  bgcolor: "#25608A",
-                },
-              }}
-            >
-              Next
-            </Button>
+            </Formik>
           </Box>
         );
 
       case "add-details":
         return (
-          <Box component="form" onSubmit={handleSubmit}>
-            <Box
-              sx={{
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                // bgcolor: 'primary.main',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'left',
-              }}
-            >
-              <Image
-                alt='appLogo'
-                width={140}
-                height={140}
-                src={"/icons/appLogo.png"}
-              />
-              <Typography
-                sx={{
-                  fontWeight: `700`,
-                  fontSize: `1.5rem`,
-                  marginLeft:"6px",
-                  color: `primary.normal`,
-                  mb: "0.75rem",
-                  lineHeight: "1.75rem",
-                  textAlign: "center"
-                }}
-              >
-                CoudPouss
-              </Typography>
-            </Box>
-            
-            <Typography gutterBottom sx={{ mb: 1, mt:2, fontSize: "24px", fontWeight: 700, color: "#424242", lineHeight: "28px" }}>
-              Add Personal Details
-            </Typography>
-            <Typography sx={{ mb: 3, color: "#6D6D6D", lineHeight: "20px", fontSize: "18px" }}>
-              Enter profile details
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 3 }}>
-              <Box
-                sx={{
-                  width: 120,
-                  height: 120,
-                  borderRadius: "50%",
-                  bgcolor: "grey.200",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  mb: 1,
-                  overflow: "hidden",
-                  // border: "3px solid",
-                  borderColor: "primary.dark",
-                }}
-              >
-                {
-                  formData.profilePicturePreview ? (
-                    <img
-                      src={formData.profilePicturePreview}
-                      alt="Profile"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <Typography variant="h4" sx={{ color: "primary.dark",fontSize:"1.125rem", fontWeight:400 }}>
-                      {formData.name
-                        ? formData.name
-                            .split(" ")
-                            .map((n) => n.charAt(0).toUpperCase())
-                            .join("")
-                        : "BC"}
+          <Formik
+            initialValues={{
+              name: formData.name || "",
+              mobileNo: formData.mobileNo || "",
+              email: formData.email || "",
+              address: formData.address || "",
+            }}
+            validationSchema={addDetailsSchema}
+            onSubmit={async (values) => {
+              setFormData((prev) => ({
+                ...prev,
+                name: values.name,
+                mobileNo: values.mobileNo,
+                email: values.email,
+                address: values.address,
+              }));
+              await handleSubmit();
+            }}
+            enableReinitialize
+          >
+            {({
+              values,
+              errors: formikErrors,
+              touched,
+              handleChange,
+              handleBlur,
+              handleSubmit,
+            }) => (
+              <Box component={Form} onSubmit={handleSubmit}>
+                <Box
+                  sx={{
+                    width: { xs: 100, sm: 120, md: 140 },
+                    height: { xs: 100, sm: 120, md: 140 },
+                    borderRadius: "50%",
+                    // bgcolor: 'primary.main',
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "left",
+                  }}
+                >
+                  <Image
+                    alt="appLogo"
+                    width={140}
+                    height={140}
+                    src={"/icons/appLogo.png"}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontWeight: `700`,
+                      fontSize: { xs: `1.25rem`, sm: `1.375rem`, md: `1.5rem` },
+                      marginLeft: { xs: "4px", md: "6px" },
+                      color: `primary.normal`,
+                      mb: "0.75rem",
+                      lineHeight: { xs: "1.5rem", md: "1.75rem" },
+                      textAlign: "center",
+                    }}
+                  >
+                    CoudPouss
+                  </Typography>
+                </Box>
+
+                <Typography
+                  gutterBottom
+                  sx={{
+                    mb: 1,
+                    mt: { xs: 1.5, md: 2 },
+                    fontSize: { xs: "20px", sm: "22px", md: "24px" },
+                    fontWeight: 700,
+                    color: "#424242",
+                    lineHeight: { xs: "24px", md: "28px" },
+                  }}
+                >
+                  Add Personal Details
+                </Typography>
+                <Typography
+                  sx={{
+                    mb: { xs: 2, md: 3 },
+                    color: "#6D6D6D",
+                    lineHeight: "20px",
+                    fontSize: { xs: "16px", md: "18px" },
+                  }}
+                >
+                  Enter profile details
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    mb: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: { xs: 100, sm: 110, md: 120 },
+                      height: { xs: 100, sm: 110, md: 120 },
+                      borderRadius: "50%",
+                      bgcolor: "grey.200",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 1,
+                      overflow: "hidden",
+                      // border: "3px solid",
+                      borderColor: "primary.dark",
+                    }}
+                  >
+                    {formData.profilePicturePreview ? (
+                      <img
+                        src={formData.profilePicturePreview}
+                        alt="Profile"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        variant="h4"
+                        sx={{
+                          color: "primary.dark",
+                          fontSize: "1.125rem",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {formData.name
+                          ? formData.name
+                              .split(" ")
+                              .map((n) => n.charAt(0).toUpperCase())
+                              .join("")
+                          : "BC"}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Typography
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById("profile-upload")?.click();
+                    }}
+                    sx={{
+                      cursor: "pointer",
+                      color: "primary.normal",
+                      textDecoration: "none",
+                      lineHeight: "140%",
+                      fontSize: { xs: "0.875rem", md: "1rem" },
+                      "&:hover": {
+                        textDecoration: "underline",
+                      },
+                    }}
+                  >
+                    upload profile picture
+                  </Typography>
+                  <input
+                    id="profile-upload"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // Create preview URL so you can display the image visually
+                        const previewURL = URL.createObjectURL(file);
+
+                        // Update UI instantly
+                        setFormData((prev) => ({
+                          ...prev,
+                          profilePicture: file,
+                          profilePicturePreview: previewURL,
+                        }));
+
+                        // Call API to upload image
+                        await uploadProfileImage(file);
+                      }
+                    }}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: { xs: "15px", md: "17px" },
+                        lineHeight: "20px",
+                        color: "#6D6D6D",
+                        mb: "8px",
+                      }}
+                    >
+                      Name
                     </Typography>
-                  )}
-              </Box>
-              <Typography
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById("profile-upload")?.click();
-                }}
-                sx={{
-                  cursor:"pointer",
-                  color: "primary.normal",
-                  textDecoration: "none",
-                  lineHeight: "140%",
-                  fontSize: "1rem",
-                  "&:hover": {
-                    textDecoration: "underline",
-                  },
-                }}
-              >
-                upload profile picture
-              </Typography>
-              <input
-                id="profile-upload"
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={async(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    // Create preview URL so you can display the image visually
-                    const previewURL = URL.createObjectURL(file);
-
-                    // Update UI instantly
-                    setFormData((prev) => ({
-                      ...prev,
-                      profilePicture: file,
-                      profilePicturePreview: previewURL,
-                    }));
-
-                    // Call API to upload image
-                    await uploadProfileImage(file);
-                  }
-                }}
-              />
-            </Box>
-            <Box sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 2
-            }}>
-              <Box>
-                <Typography
+                    <Field name="name">
+                      {({ field, meta }: FieldProps) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          placeholder="Enter Name"
+                          onChange={(e) => {
+                            handleChange(e);
+                            setFormData((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }));
+                          }}
+                          onBlur={handleBlur}
+                          error={!!(meta.touched && meta.error)}
+                          helperText={(meta.touched && meta.error) || ""}
+                          margin="normal"
+                          sx={{
+                            m: 0,
+                            "& .MuiFormHelperText-root": {
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "140%",
+                              letterSpacing: "0%",
+                              color: "#EF5350",
+                              marginTop: "12px !important",
+                              marginLeft: "0 !important",
+                              marginRight: "0 !important",
+                              marginBottom: "0 !important",
+                            },
+                          }}
+                          FormHelperTextProps={{
+                            sx: {
+                              marginTop: "12px",
+                              marginLeft: 0,
+                              marginRight: 0,
+                              marginBottom: 0,
+                            },
+                          }}
+                        />
+                      )}
+                    </Field>
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: { xs: "15px", md: "17px" },
+                        lineHeight: "20px",
+                        color: "#6D6D6D",
+                        mb: "8px",
+                      }}
+                    >
+                      Mobile No.
+                    </Typography>
+                    <Field name="mobileNo">
+                      {({ field, meta, form }: FieldProps) => {
+                        const isError = !!(meta.touched && meta.error) || (meta.touched && phoneError);
+                        return (
+                          <>
+                            <PhoneInputWrapper
+                              value={form.values.mobileNo || ""}
+                              onChange={(phone: string, country?: any) => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  mobileNo: phone,
+                                  phoneCountryCode: country?.dialCode
+                                    ? `+${country.dialCode}`
+                                    : "",
+                                }));
+                                form.setFieldValue("mobileNo", phone);
+                                form.setFieldTouched("mobileNo", true);
+                                // Clear phone error when user starts typing
+                                if (phoneError && phone) {
+                                  setPhoneError(false);
+                                }
+                              }}
+                              setShowPhoneError={(isValid: boolean) => {
+                                if (meta.touched) {
+                                  setPhoneError(!isValid);
+                                }
+                              }}
+                              error={isError}
+                              placeholder="Enter Mobile No."
+                              defaultCountry="us"
+                              preferredCountries={["in", "us"]}
+                            />
+                            {isError && (
+                              <Typography
+                                sx={{
+                                  fontWeight: 400,
+                                  fontSize: "16px",
+                                  lineHeight: "140%",
+                                  letterSpacing: "0%",
+                                  color: "#EF5350",
+                                  marginTop: "12px !important",
+                                  marginLeft: "0 !important",
+                                  marginRight: "0 !important",
+                                  marginBottom: "0 !important",
+                                }}
+                              >
+                                {meta.error || "Please enter a valid phone number"}
+                              </Typography>
+                            )}
+                          </>
+                        );
+                      }}
+                    </Field>
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: { xs: "15px", md: "17px" },
+                        lineHeight: "20px",
+                        color: "#6D6D6D",
+                        mb: "8px",
+                      }}
+                    >
+                      Email
+                    </Typography>
+                    <Field name="email">
+                      {({ field, meta }: FieldProps) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          type="email"
+                          placeholder="Enter Email"
+                          onChange={(e) => {
+                            handleChange(e);
+                            setFormData((prev) => ({
+                              ...prev,
+                              email: e.target.value,
+                            }));
+                          }}
+                          onBlur={handleBlur}
+                          error={!!(meta.touched && meta.error)}
+                          helperText={(meta.touched && meta.error) || ""}
+                          margin="normal"
+                          sx={{
+                            m: 0,
+                            "& .MuiFormHelperText-root": {
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "140%",
+                              letterSpacing: "0%",
+                              color: "#EF5350",
+                              margin: 0,
+                              marginTop: "12px",
+                              mt: "12px",
+                            },
+                          }}
+                        />
+                      )}
+                    </Field>
+                  </Box>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: { xs: "15px", md: "17px" },
+                        lineHeight: "20px",
+                        color: "#6D6D6D",
+                        mb: "8px",
+                      }}
+                    >
+                      Address
+                    </Typography>
+                    <Field name="address">
+                      {({ field, meta }: FieldProps) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          placeholder="Enter Address"
+                          onChange={(e) => {
+                            handleChange(e);
+                            setFormData((prev) => ({
+                              ...prev,
+                              address: e.target.value,
+                            }));
+                          }}
+                          onBlur={handleBlur}
+                          error={!!(meta.touched && meta.error)}
+                          helperText={(meta.touched && meta.error) || ""}
+                          margin="normal"
+                          multiline
+                          rows={3}
+                          sx={{
+                            m: 0,
+                            "& .MuiFormHelperText-root": {
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "140%",
+                              letterSpacing: "0%",
+                              color: "#EF5350",
+                              marginTop: "12px !important",
+                              marginLeft: "0 !important",
+                              marginRight: "0 !important",
+                              marginBottom: "0 !important",
+                            },
+                          }}
+                          FormHelperTextProps={{
+                            sx: {
+                              marginTop: "12px",
+                              marginLeft: 0,
+                              marginRight: 0,
+                              marginBottom: 0,
+                            },
+                          }}
+                        />
+                      )}
+                    </Field>
+                  </Box>
+                </Box>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  disabled={loading}
                   sx={{
-                    fontWeight: 500,
-                    fontSize: "17px",
-                    lineHeight: "20px",
-                    color: "#6D6D6D",
-                    mb: "8px"
+                    bgcolor: "primary.dark",
+                    color: "white",
+                    py: { xs: 1.25, md: 1.5 },
+                    mt: { xs: "30px", md: "40px" },
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
+                    "&:hover": {
+                      bgcolor: "#25608A",
+                    },
                   }}
                 >
-                  Name
-                </Typography>
-                <TextField
-                  fullWidth
-                  name="name"
-                  placeholder="Enter Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  error={!!errors.name}
-                  helperText={errors.name}
-                  margin="normal"
-                  sx={{
-                    m: 0
-                  }}
-                />
+                  {loading ? "Creating account..." : "Create Account"}
+                </Button>
               </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: "17px",
-                    lineHeight: "20px",
-                    color: "#6D6D6D",
-                    mb: "8px"
-                  }}
-                >
-                  Mobile No.
-                </Typography>
-                <TextField
-                  fullWidth
-                  name="mobileNo"
-                  placeholder="Enter Mobile No."
-                  value={formData.mobileNo}
-                  onChange={handleChange}
-                  error={!!errors.mobileNo}
-                  helperText={errors.mobileNo}
-                  margin="normal" sx={{
-                    m: 0
-                  }}
-                />
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: "17px",
-                    lineHeight: "20px",
-                    color: "#6D6D6D",
-                    mb: "8px"
-                  }}
-                >
-                  Email
-                </Typography>
-                <TextField
-                  fullWidth
-                  name="email"
-                  type="email"
-                  placeholder="Enter Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  margin="normal"
-                  sx={{
-                    m: 0
-                  }}
-                />
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: "17px",
-                    lineHeight: "20px",
-                    color: "#6D6D6D",
-                    mb: "8px"
-                  }}
-                >
-                  Address
-                </Typography>
-                <TextField
-                  fullWidth
-                  name="address"
-                  placeholder="Enter Address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  error={!!errors.address}
-                  helperText={errors.address}
-                  margin="normal"
-                  multiline
-                  rows={3}
-                  sx={{
-                    m: 0
-                  }}
-                />
-              </Box>
-            </Box>
-            {errors.submit && (
-              <Typography color="error" variant="body2" sx={{ mb: 2 }}>
-                {errors.submit}
-              </Typography>
             )}
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              size="large"
-              disabled={loading}
-              sx={{
-                bgcolor: "primary.dark",
-                color: "white",
-                py: 1.5,
-                mt:"40px",
-                textTransform: "none",
-                fontWeight:700,
-                fontSize: "1.1875rem",
-                "&:hover": {
-                  bgcolor: "#25608A",
-                },
-              }}
-            >
-              {loading ? "Creating account..." : "Create Account"}
-            </Button>
-          </Box>
+          </Formik>
         );
 
       default:
@@ -1233,8 +1958,8 @@ export default function SignupPage() {
             alt="CoudPouss Service"
             fill
             style={{
-              objectFit: 'cover',
-              objectPosition: 'top',
+              objectFit: "cover",
+              objectPosition: "top",
             }}
             sizes="66.666vw"
             priority
@@ -1249,81 +1974,92 @@ export default function SignupPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: 4,
+          padding: { xs: 2, sm: 3, md: 4 },
           overflowY: "auto",
-          pt: step !== "select-profile" ? { xs: 4, md: 10 } : 4,
+          pt: step !== "select-profile" ? { xs: 2, sm: 4, md: 10 } : { xs: 2, md: 4 },
         }}
       >
         <Container maxWidth="sm">
           <Paper
             elevation={0}
             sx={{
-              padding: 4,
+              padding: { xs: 2, sm: 3, md: 4 },
               width: "100%",
             }}
           >
             {/* Logo Section */}
-            {
-              step != "add-details" && 
-                <Box sx={{ textAlign: 'center', mb: 3 }}>
-                  <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: '50%',
-                      // bgcolor: 'primary.main',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 16px',
+            {step != "add-details" && (
+              <Box sx={{ textAlign: "center", mb: { xs: 2, md: 3 } }}>
+                <Box
+                  sx={{
+                    width: { xs: 100, sm: 120, md: 140 },
+                    height: { xs: 100, sm: 120, md: 140 },
+                    borderRadius: "50%",
+                    // bgcolor: 'primary.main',
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto",
+                    mb: { xs: "12px", md: "16px" },
+                  }}
+                >
+                  <Image
+                    alt="appLogo"
+                    width={140}
+                    height={140}
+                    src={"/icons/appLogo.png"}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
                     }}
-                  >
-                    <Image
-                      alt='appLogo'
-                      width={140}
-                      height={140}
-                      src={"/icons/appLogo.png"}
-                    />
-                  </Box>
-
+                  />
                 </Box>
-            }
+              </Box>
+            )}
 
             {/* Step Content */}
             {renderStepContent()}
 
             {/* Login Link */}
-            {
-              (step == "select-profile" || step == "enter-contact") && 
-                <Box sx={{ textAlign: "center", mt: 3 }}>
-                  <Typography sx={{
-                    color: 'secondary.naturalGray',
-                    fontSize: "18px",
-                    lineHeight: "20px"
-                  }}>
-                    Already have an account?{" "}
-                    <Link
-                      href={ROUTES.LOGIN}
+            {(step == "select-profile" || step == "enter-contact") && (
+              <Box sx={{ textAlign: "center", mt: { xs: 2, md: 3 } }}>
+                <Typography
+                  sx={{
+                    color: "secondary.naturalGray",
+                    fontSize: { xs: "16px", md: "18px" },
+                    lineHeight: "20px",
+                  }}
+                >
+                  Already have an account?{" "}
+                  <Link
+                    href={ROUTES.LOGIN}
+                    style={{
+                      fontFamily: "Lato, sans-serif",
+                      fontWeight: 600,
+                      lineHeight: "1.5rem",
+                      letterSpacing: "0em",
+                      textAlign: "center",
+                      color: "#2C6587",
+                      textDecorationLine: "underline",
+                      textDecorationThickness: "0.08em",
+                      textUnderlineOffset: "0.03em",
+                      textDecorationSkipInk: "auto",
+                      display: "inline-block",
+                    }}
+                  >
+                    <Box
+                      component="span"
                       sx={{
-                        fontFamily: "Lato, sans-serif",
-                        fontWeight: 600,
-                        fontSize: "1.25rem", // 20px -> 20 / 16 = 1.25rem
-                        lineHeight: "1.5rem", // 24px -> 24 / 16 = 1.5rem
-                        letterSpacing: "0em",
-                        textAlign: "center",
-                        color: "#2C6587", // or primary.normal if defined in theme
-                        textDecorationLine: "underline",
-                        textDecorationThickness: "0.08em", // 8% of font-size
-                        textUnderlineOffset: "0.03em", // 3% of font-size
-                        textDecorationSkipInk: "auto", // skip-ink effect
-                        display: "inline-block", // ensures text-align works if needed
+                        fontSize: { xs: "1.125rem", md: "1.25rem" },
                       }}
                     >
                       Log In
-                    </Link>
-                  </Typography>
-                </Box>
-            }
+                    </Box>
+                  </Link>
+                </Typography>
+              </Box>
+            )}
           </Paper>
         </Container>
       </Box>

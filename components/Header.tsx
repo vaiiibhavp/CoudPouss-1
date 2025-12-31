@@ -1,7 +1,7 @@
 // components/Header.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
   Box,
@@ -137,16 +137,30 @@ export default function Header({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<SearchService[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const servicesMenuCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isHoveringServicesRef = useRef(false);
 
   useEffect(() => {
     // Sync Redux state with localStorage on component mount
     dispatch(setUserFromStorage());
   }, [dispatch]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (servicesMenuCloseTimeoutRef.current) {
+        clearTimeout(servicesMenuCloseTimeoutRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     // Fetch services from API on component mount and when page reloads
     const fetchServices = async () => {
       if (!showExploreServices || isProfessionalDashboard) return;
+      
+      // Don't call API if user is not authenticated
+      if (!isAuthenticated) return;
       
       setServicesLoading(true);
       try {
@@ -168,13 +182,19 @@ export default function Header({
     };
 
     fetchServices();
-  }, [showExploreServices, isProfessionalDashboard]);
+  }, [showExploreServices, isProfessionalDashboard, isAuthenticated]);
 
   // Debounced search for services
   useEffect(() => {
     const handler = setTimeout(async () => {
       const term = searchTerm.trim();
       if (!term) {
+        setSearchResults([]);
+        return;
+      }
+
+      // Don't call API if user is not authenticated
+      if (!isAuthenticated) {
         setSearchResults([]);
         return;
       }
@@ -199,7 +219,7 @@ export default function Header({
     return () => {
       clearTimeout(handler);
     };
-  }, [searchTerm]);
+  }, [searchTerm, isAuthenticated]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -208,11 +228,56 @@ export default function Header({
   };
 
   const handleServicesMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    // Clear any pending close timeout
+    if (servicesMenuCloseTimeoutRef.current) {
+      clearTimeout(servicesMenuCloseTimeoutRef.current);
+      servicesMenuCloseTimeoutRef.current = null;
+    }
+    isHoveringServicesRef.current = true;
     setServicesMenuAnchor(event.currentTarget);
   };
 
   const handleServicesMenuClose = () => {
+    // Clear any pending close timeout
+    if (servicesMenuCloseTimeoutRef.current) {
+      clearTimeout(servicesMenuCloseTimeoutRef.current);
+      servicesMenuCloseTimeoutRef.current = null;
+    }
+    isHoveringServicesRef.current = false;
     setServicesMenuAnchor(null);
+  };
+
+  const handleServicesButtonMouseLeave = () => {
+    // Mark that we're leaving the button
+    isHoveringServicesRef.current = false;
+    // Delay closing to allow mouse to move to menu
+    servicesMenuCloseTimeoutRef.current = setTimeout(() => {
+      // Only close if still not hovering (mouse didn't enter menu)
+      if (!isHoveringServicesRef.current) {
+        handleServicesMenuClose();
+      }
+    }, 250); // 250ms delay to allow smooth transition
+  };
+
+  const handleServicesMenuMouseEnter = () => {
+    // Mark that we're hovering over menu
+    isHoveringServicesRef.current = true;
+    // Clear close timeout when mouse enters menu
+    if (servicesMenuCloseTimeoutRef.current) {
+      clearTimeout(servicesMenuCloseTimeoutRef.current);
+      servicesMenuCloseTimeoutRef.current = null;
+    }
+  };
+
+  const handleServicesMenuMouseLeave = () => {
+    // Mark that we're leaving the menu
+    isHoveringServicesRef.current = false;
+    // Delay closing
+    servicesMenuCloseTimeoutRef.current = setTimeout(() => {
+      if (!isHoveringServicesRef.current) {
+        handleServicesMenuClose();
+      }
+    }, 250);
   };
 
   const handleNotificationsMenuOpen = (
@@ -533,48 +598,60 @@ export default function Header({
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 {/* Explore Services Dropdown - Only for non-professional routes */}
                 {!isProfessionalDashboard && showExploreServices  && (
-                  <Button
-                    onClick={handleServicesMenuOpen}
-                    // endIcon={<ExpandMoreIcon />}
-                    sx={{
-                      color: "text.secondary",
-                      textTransform: "none",
-                      display: { xs: "none", lg: "flex", fontSize: "1rem", lineHeight: "140%" },
-                      "&:hover": {
-                        bgcolor: "transparent",
-                        color: "primary.main",
-                      },
-                    }}
+                  <Box
+                    onMouseEnter={handleServicesMenuOpen}
+                    onMouseLeave={handleServicesButtonMouseLeave}
+                    sx={{ display: "inline-block" }}
                   >
-                    Explore Services
-                  </Button>
-                )}
-                <Menu
-                  anchorEl={servicesMenuAnchor}
-                  open={Boolean(servicesMenuAnchor)}
-                  onClose={handleServicesMenuClose}
-                  PaperProps={{
-                    sx: {
-                      mt: 1.5,
-                      minWidth: 400,
-                      maxWidth: 500,
-                      borderRadius: 2,
-                      boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
-                      px: "2rem",
-                      py: "1.25rem",
-                    },
-                  }}
-                  transformOrigin={{ horizontal: "left", vertical: "top" }}
-                  anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-                >
+                    <Button
+                      // endIcon={<ExpandMoreIcon />}
+                      sx={{
+                        color: "text.secondary",
+                        textTransform: "none",
+                        display: { xs: "none", lg: "flex", fontSize: "1rem", lineHeight: "1.125rem" },
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
+                      }}
+                    >
+                      Explore Services
+                    </Button>
+                    <Menu
+                      anchorEl={servicesMenuAnchor}
+                      open={Boolean(servicesMenuAnchor)}
+                      onClose={handleServicesMenuClose}
+                      MenuListProps={{
+                        onMouseLeave: handleServicesMenuMouseLeave,
+                        onMouseEnter: handleServicesMenuMouseEnter,
+                      }}
+                      PaperProps={{
+                        onMouseEnter: handleServicesMenuMouseEnter,
+                        onMouseLeave: handleServicesMenuMouseLeave,
+                        sx: {
+                          mt: 1.5,
+                          minWidth: 400,
+                          maxWidth: 500,
+                          borderRadius: 2,
+                          boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
+                          px: "2rem",
+                          py: "1.25rem",
+                          pointerEvents: "auto",
+                        },
+                      }}
+                      transformOrigin={{ horizontal: "left", vertical: "top" }}
+                      anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
+                      disableAutoFocusItem
+                      disableEnforceFocus
+                    >
                   <Box>
                     <Typography
                       sx={{
                         color: "primary.normal",
-                        fontWeight: 600,
                         lineHeight: "1.125rem",
                         mb: 2,
                         fontSize: "1rem",
+                        fontWeight: 600,
                       }}
                     >
                       Explore Services
@@ -690,7 +767,9 @@ export default function Header({
                       </Box>
                     )}
                   </Box>
-                </Menu>
+                    </Menu>
+                  </Box>
+                )}
 
                 {/* My Requests Link - Only show when authenticated and not on professional dashboard */}
                 {!isProfessionalDashboard &&
@@ -700,6 +779,8 @@ export default function Header({
                       component={Link}
                       href={ROUTES.MY_REQUESTS}
                       sx={{
+                        fontSize: "1rem",
+                        lineHeight:"1.125rem",
                         color:
                           pathname === ROUTES.MY_REQUESTS
                             ? "primary.main"
@@ -712,7 +793,6 @@ export default function Header({
                             : "none",
                         borderColor: "primary.main",
                         borderRadius: 0,
-                        pb: 1,
                         "&:hover": {
                           bgcolor: "transparent",
                           color: "primary.main",

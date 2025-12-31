@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { toast } from "sonner";
 import { apiPost } from "@/lib/api";
 import { buildInputData } from "@/utils/validation";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -115,7 +116,7 @@ export default function ProfessionalEnterContactPage() {
           sessionStorage.setItem("professional_contact", formData.emailOrMobile);
           router.push(ROUTES.SIGNUP_PROFESSIONAL_ADD_DETAILS);
         } else {
-          setErrors({ emailOrMobile: errorMsg });
+          toast.error(errorMsg);
         }
       }
     }
@@ -205,8 +206,8 @@ export default function ProfessionalEnterContactPage() {
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: 140,
+                  height: 140,
                   borderRadius: '50%',
                   // bgcolor: 'primary.main',
                   display: 'flex',
@@ -270,8 +271,8 @@ export default function ProfessionalEnterContactPage() {
                 placeholder="Enter Email/ Mobile No"
                 value={formData.emailOrMobile}
                 onChange={handleChange}
-                error={!!errors.emailOrMobile}
-                helperText={errors.emailOrMobile}
+                error={false}
+                helperText=""
                 margin="normal"
               />
               <Button
