@@ -121,8 +121,7 @@ const addDetailsSchema = Yup.object().shape({
 export default function SignupPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  // const [step, setStep] = useState<SignupStep>("select-profile");
-  const [step, setStep] = useState<SignupStep>("create-password");
+  const [step, setStep] = useState<SignupStep>("select-profile");
   const [userType, setUserType] = useState<UserType>(null);
   const [formData, setFormData] = useState({
     emailOrMobile: "",
