@@ -14,8 +14,6 @@ import {
   Paper,
 } from '@mui/material';
 import Link from 'next/link';
-import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { Formik, Form, Field, FieldProps } from 'formik';
@@ -360,7 +358,19 @@ export default function LoginPage() {
                                         onClick={() => setShowPassword(!showPassword)}
                                         edge="end"
                                       >
-                                        {showPassword ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
+                                        {showPassword ? (
+                                          <img 
+                                            src="/icons/EyeOpen.svg" 
+                                            alt="Hide password" 
+                                            style={{ width: 24, height: 24 }}
+                                          />
+                                        ) : (
+                                          <img 
+                                            src="/icons/EyeClose.svg" 
+                                            alt="Show password" 
+                                            style={{ width: 24, height: 24 }}
+                                          />
+                                        )}
                                       </IconButton>
                                     </InputAdornment>
                                   ),

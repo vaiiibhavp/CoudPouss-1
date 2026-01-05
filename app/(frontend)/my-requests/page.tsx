@@ -163,6 +163,10 @@ export default function MyRequestsPage() {
         return "pending";
       case "Validation":
         return "accepted"; // Assuming this is the status for validation
+      case "Completed":
+        return "completed";
+      case "Cancelled":
+        return "cancelled";
       case "All":
       default:
         return "all";
@@ -276,7 +280,7 @@ export default function MyRequestsPage() {
     }
   }, [selectedRequest, fetchServiceDetail]);
 
-  const filters = ["All", "Open Proposal", "Responses", "Validation"];
+  const filters = ["All", "Open Proposal", "Responses", "Validation", "Completed", "Cancelled"];
 
   // Requests are already filtered by API based on activeFilter
   const filteredRequests = requests;

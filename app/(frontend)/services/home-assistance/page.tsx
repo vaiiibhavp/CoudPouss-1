@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import StarIcon from "@mui/icons-material/Star";
 import Image from "next/image";
@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import CreateServiceRequestModal from "@/components/CreateServiceRequestModal";
 
 interface Category {
   id: string;
@@ -70,6 +71,16 @@ export default function HomeAssistancePage() {
   const [subcategoriesLoading, setSubcategoriesLoading] = useState<
     Record<string, boolean>
   >({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
+
+  // Memoized function to handle modal close
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedCategoryId("");
+    setSelectedSubcategoryId("");
+  }, []);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -640,6 +651,11 @@ export default function HomeAssistancePage() {
                           <Button
                             variant="contained"
                             size="small"
+                            onClick={() => {
+                              setSelectedCategoryId(category.id);
+                              setSelectedSubcategoryId(subcategory.id);
+                              setIsModalOpen(true);
+                            }}
                             sx={{
                               bgcolor: "primary.normal",
                               color: "white",
@@ -851,6 +867,14 @@ export default function HomeAssistancePage() {
           </Box>
         </Box>
       </Box>
+
+      {/* Create Service Request Modal */}
+      <CreateServiceRequestModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        preSelectedCategoryId={selectedCategoryId}
+        preSelectedSubcategoryId={selectedSubcategoryId}
+      />
     </Box>
   );
 }

@@ -15,10 +15,8 @@ export const ROUTES = {
   SIGNUP_PROFESSIONAL_CREATE_PASSWORD: '/signup-professional/create-password',
   SIGNUP_PROFESSIONAL_ADD_DETAILS: '/signup-professional/add-details',
   
-  // Professional Reset Password Routes
-  RESET_PASSWORD_PROFESSIONAL_ENTER_EMAIL: '/reset-password-professional/enter-email',
-  RESET_PASSWORD_PROFESSIONAL_VERIFY_OTP: '/reset-password-professional/verify-otp',
-  RESET_PASSWORD_PROFESSIONAL_SET_PASSWORD: '/reset-password-professional/set-password',
+  // Professional Reset Password Route
+  RESET_PASSWORD_PROFESSIONAL: '/reset-password-professional',
   
   // Professional Onboarding Routes (after signup)
   PROFESSIONAL_ONBOARDING_SELECT_PLAN: '/professional-onboarding/select-plan',
@@ -43,7 +41,8 @@ export const ROUTES = {
   PERSONAL_CARE: '/services/personal-care',
   TECH_SUPPORT: '/services/tech-support',
   CHAT: '/chat',
-  Favorite:"/favorites"
+  Favorite: "/favorites",
+  HELP_CENTER: '/help-center',
 } as const;
 
 export type Route = typeof ROUTES[keyof typeof ROUTES];

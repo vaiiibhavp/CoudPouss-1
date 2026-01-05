@@ -493,7 +493,7 @@ export default function BookServiceModal({
   }, [open, fetchCategories]);
 
   // Reset all form state to initial values
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setCurrentStep(1);
     setServiceProvider("professional");
     setSelectedCategory("");
@@ -512,36 +512,38 @@ export default function BookServiceModal({
     setCategoryId("");
     setSubCategoryId("");
     setSubcategories([]);
-  };
+  }, []);
 
   // Reset form when modal is closed
   useEffect(() => {
     if (!open) {
       resetForm();
     }
-  }, [open]);
+  }, [open, resetForm]);
+
+  // Auto-close success modal after 2 seconds
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => {
+        setShowSuccess(false);
+        resetForm();
+        onClose();
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess, onClose, resetForm]);
 
   // Calculate progress based on current step and total steps
   const getProgress = () => {
     if (serviceProvider === "non-professional") {
-      const progressMap: { [key: number]: number } = {
-        1: 15,
-        2: 20,
-        3: 70,
-        4: 80,
-        5: 85, // Barter Product Details
-        6: 100, // Preview
-      };
-      return progressMap[currentStep] || 0;
+      // Non-professional has 6 steps total
+      const totalSteps = 6;
+      return Math.round((currentStep / totalSteps) * 100);
     } else {
-      const progressMap: { [key: number]: number } = {
-        1: 15,
-        2: 20,
-        3: 70,
-        4: 80,
-        5: 100, // Preview
-      };
-      return progressMap[currentStep] || 0;
+      // Professional has 5 steps total
+      const totalSteps = 5;
+      return Math.round((currentStep / totalSteps) * 100);
     }
   };
 
@@ -1400,43 +1402,47 @@ export default function BookServiceModal({
               {steps[3].title}
             </Typography>
             <Typography sx={{ mb: 3, color: "#939393", lineHeight: "150%" }}>
-              Great, you&apos;re almost done. Please add the job valuation.
+              {serviceProvider === "professional" 
+                ? "Great, you're almost done. Please add the job valuation."
+                : "Great, you're almost done. Please choose the date and time for your service."}
             </Typography>
 
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                sx={{
-                  mb: 1,
-                  fontSize: "1.125rem",
-                  lineHeight: "100%",
-                  letterSpacing: "0%",
-                  color: "#555555",
-                }}
-              >
-                Enter Valuation
-              </Typography>
-              <TextField
-                fullWidth
-                value={`€ ${valuation}`}
-                onChange={(e) => {
-                  const value = e.target.value.replace("€ ", "").replace(",", "");
-                  setValuation(value);
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "grey.300",
+            {serviceProvider === "professional" && (
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  sx={{
+                    mb: 1,
+                    fontSize: "1.125rem",
+                    lineHeight: "100%",
+                    letterSpacing: "0%",
+                    color: "#555555",
+                  }}
+                >
+                  Enter Valuation
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={`€ ${valuation}`}
+                  onChange={(e) => {
+                    const value = e.target.value.replace("€ ", "").replace(",", "");
+                    setValuation(value);
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "grey.300",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "grey.400",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#2F6B8E",
+                      },
                     },
-                    "&:hover fieldset": {
-                      borderColor: "grey.400",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#2F6B8E",
-                    },
-                  },
-                }}
-              />
-            </Box>
+                  }}
+                />
+              </Box>
+            )}
 
             <Typography
               sx={{
@@ -2678,7 +2684,14 @@ export default function BookServiceModal({
           sx={{ 
             p: "2.5rem", 
             position: "relative",
-            overflow: currentStep == 1 ? "hidden" : "scroll"
+            overflowY: "auto",
+            maxHeight: "calc(90vh - 64px)",
+            // Hide scrollbar but keep scrolling functionality
+            scrollbarWidth: "none", // Firefox
+            "&::-webkit-scrollbar": {
+              display: "none", // Chrome, Safari, Edge
+            },
+            "-ms-overflow-style": "none", // IE and Edge
           }}
         >
           {
@@ -2782,6 +2795,7 @@ export default function BookServiceModal({
             }}
           >
             {
+              currentStep === 1 ? null :
               (serviceProvider == "non-professional" && currentStep != 6) || (serviceProvider != "non-professional" && currentStep != 5) ?
                 <Button
                   variant="outlined"

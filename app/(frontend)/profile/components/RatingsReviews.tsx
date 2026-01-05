@@ -323,11 +323,11 @@ export default function RatingsReviews() {
             >
               <Box sx={{ display: "flex" }}>
                 <IconButton size="small" sx={{ color: "text.secondary" }}>
-                  <ThumbUpOffAltIcon fontSize="small" />
+                  <ThumbDownOffAltIcon fontSize="small" />
                   ###
                 </IconButton>
                 <IconButton size="small" sx={{ color: "text.secondary" }}>
-                  <ThumbDownOffAltIcon fontSize="small" />
+                  <ThumbUpOffAltIcon fontSize="small" />
                   ###
                 </IconButton>
               </Box>

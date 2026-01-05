@@ -314,12 +314,12 @@ export default function AuthenticatedHomePage() {
 
       <Box sx={{ bgcolor: "#DFE8ED", height: "0.063rem" }} />
       {/* Hero Section */}
-      <Box sx={{ pt: "3.563rem", px: "5rem", pb: "5rem" }}>
+      <Box sx={{ pt: { xs: "2rem", sm: "2.5rem", md: "3.563rem" }, px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" }, pb: { xs: "2rem", sm: "3rem", md: "5rem" } }}>
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-            gap: 4,
+            gap: { xs: 2, sm: 3, md: 4 },
             alignItems: "center",
           }}
         >
@@ -327,11 +327,11 @@ export default function AuthenticatedHomePage() {
           >
             <Typography
               sx={{
-                fontSize: { xs: "2rem", md: "2.5rem" },
+                fontSize: { xs: "1.5rem", sm: "1.875rem", md: "2rem", lg: "2.5rem" },
                 lineHeight: "150%",
                 color: "#323232",
                 fontWeight: 600,
-                mb: 2,
+                mb: { xs: 1.5, md: 2 },
               }}
             >
               Home Services At Your Doorstep
@@ -340,8 +340,8 @@ export default function AuthenticatedHomePage() {
               variant="body1"
               color="secondary.naturalGray"
               sx={{
-                mb: 8,
-                fontSize: "1.1rem",
+                mb: { xs: 3, sm: 4, md: 8 },
+                fontSize: { xs: "0.875rem", sm: "1rem", md: "1.1rem" },
                 lineHeight: 1.6,
               }}
             >
@@ -349,24 +349,27 @@ export default function AuthenticatedHomePage() {
             </Typography>
 
             {/* Blue Card - 10 Professionals Connected Today */}
-            <Box sx={{ position: "relative", mb: 3, overflow: "visible", ml: "1.188rem" }}>
+            <Box sx={{ position: "relative", mb: { xs: 2, md: 3 }, overflow: "visible", ml: { xs: 0, md: "1.188rem" } }}>
               <Box
                 sx={{
                   bgcolor: "#2F6B8E",
                   color: "white",
-                  minHeight: "12.5rem",
-                  borderRadius: "1.242rem",
+                  minHeight: { xs: "10rem", sm: "11rem", md: "12.5rem" },
+                  borderRadius: { xs: "0.75rem", md: "1.242rem" },
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.977rem",
+                  gap: { xs: "0.5rem", sm: "0.75rem", md: "0.977rem" },
                   position: "relative",
                   overflow: "visible",
+                  px: { xs: "1rem", sm: "1.5rem", md: "1.977rem" },
+                  pt: { xs: "1rem", sm: "1.5rem", md: "2rem" },
                 }}
               >
                 {/* Floating Image */}
                 <Box
                   sx={{
-                    mt: "-5.625rem",
+                    mt: { xs: "-3rem", sm: "-4rem", md: "-5.625rem" },
+                    display: { xs: "none", sm: "block" },
                   }}
                 >
                   <Image
@@ -380,12 +383,12 @@ export default function AuthenticatedHomePage() {
                     height={137}
                   />
                 </Box>
-                <Box >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 1 }, mb: 1, flexWrap: "wrap" }}>
                     <Typography
                       sx={{
-                        fontSize: { xs: "2rem", sm: "3rem", md: "3.276rem" },
-                        lineHeight: "2.184rem",
+                        fontSize: { xs: "1.5rem", sm: "2.5rem", md: "3rem", lg: "3.276rem" },
+                        lineHeight: { xs: "1.5rem", sm: "2rem", md: "2.184rem" },
                         fontWeight: "600"
                       }}
                     >
@@ -393,8 +396,8 @@ export default function AuthenticatedHomePage() {
                     </Typography>
                     <Typography
                       sx={{
-                        fontSize: { xs: "1rem", sm: "1.1rem", md: "1.365rem" },
-                        lineHeight: "1.638rem",
+                        fontSize: { xs: "0.875rem", sm: "1rem", md: "1.365rem" },
+                        lineHeight: { xs: "1.2rem", sm: "1.4rem", md: "1.638rem" },
                       }}
                     >
                       Professionals <br />Connected Today
@@ -404,8 +407,8 @@ export default function AuthenticatedHomePage() {
                     variant="body2"
                     sx={{
                       opacity: 0.9,
-                      fontSize: { xs: "0.675rem", sm: "0.775rem", md: "0.875rem" },
-                      lineHeight: "1.125rem",
+                      fontSize: { xs: "0.625rem", sm: "0.75rem", md: "0.875rem" },
+                      lineHeight: { xs: "0.875rem", sm: "1rem", md: "1.125rem" },
                     }}
                   >
                     Lorem ipsum a pharetra mattis dilt pulvinar tortor amet vulputate.
@@ -423,12 +426,12 @@ export default function AuthenticatedHomePage() {
                   component={Link}
                   href={route}
                   sx={{
-                    borderTopLeftRadius: "0.75rem",
-                    borderTopRightRadius: "2.5rem",
-                    borderBottomLeftRadius: "2.5rem",
-                    borderBottomRightRadius: "0.75rem",
+                    borderTopLeftRadius: { xs: "0.5rem", md: "0.75rem" },
+                    borderTopRightRadius: { xs: "1.5rem", md: "2.5rem" },
+                    borderBottomLeftRadius: { xs: "1.5rem", md: "2.5rem" },
+                    borderBottomRightRadius: { xs: "0.5rem", md: "0.75rem" },
                     bgcolor: "#FDBE12",
-                    mb: "1.563rem",
+                    mb: { xs: "1rem", md: "1.563rem" },
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -441,30 +444,32 @@ export default function AuthenticatedHomePage() {
                   }}
                 >
                   <Box sx={{
-                    px: "3.75rem",
-                    py: "2.75rem",
-                    ml: "1.188rem",
+                    px: { xs: "1.5rem", sm: "2.5rem", md: "3.75rem" },
+                    py: { xs: "1.5rem", sm: "2rem", md: "2.75rem" },
+                    ml: { xs: 0, md: "1.188rem" },
+                    flex: 1,
                   }} >
                     <Typography
                       sx={{
                         color: "#323232",
-                        fontSize: "2rem",
+                        fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem", lg: "2rem" },
                         fontWeight: 600,
-                        lineHeight: "1.75rem"
+                        lineHeight: { xs: "1.5rem", md: "1.75rem" }
                       }}
                     >
                       {firstService.name}
                     </Typography>
 
                   </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", mr: "0.5rem" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mr: { xs: "0.25rem", md: "0.5rem" }, flexShrink: 0 }}>
                     {firstService.services_type_photos_url ? (
                       <Image
                         src={firstService.services_type_photos_url}
                         alt={firstService.name}
                         width={98}
                         height={95}
-                        style={{ objectFit: "contain" }}
+                        style={{ objectFit: "contain", width: "auto", height: "auto", maxWidth: "60px", maxHeight: "60px" }}
+                        sizes="(max-width: 768px) 60px, 98px"
                       />
                     ) : (
                       <Image
@@ -472,7 +477,8 @@ export default function AuthenticatedHomePage() {
                         alt={firstService.name}
                         width={98}
                         height={95}
-                        style={{ objectFit: "contain" }}
+                        style={{ objectFit: "contain", width: "auto", height: "auto", maxWidth: "60px", maxHeight: "60px" }}
+                        sizes="(max-width: 768px) 60px, 98px"
                       />
                     )}
                   </Box>
@@ -482,27 +488,27 @@ export default function AuthenticatedHomePage() {
             {servicesLoading && (
               <Box
                 sx={{
-                  borderTopLeftRadius: "0.75rem",
-                  borderTopRightRadius: "2.5rem",
-                  borderBottomLeftRadius: "2.5rem",
-                  borderBottomRightRadius: "0.75rem",
+                  borderTopLeftRadius: { xs: "0.5rem", md: "0.75rem" },
+                  borderTopRightRadius: { xs: "1.5rem", md: "2.5rem" },
+                  borderBottomLeftRadius: { xs: "1.5rem", md: "2.5rem" },
+                  borderBottomRightRadius: { xs: "0.5rem", md: "0.75rem" },
                   bgcolor: "#FDBE12",
-                  mb: "1.563rem",
+                  mb: { xs: "1rem", md: "1.563rem" },
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                   overflow: "hidden",
-                  px: "3.75rem",
-                  py: "2.75rem",
-                  ml: "1.188rem",
+                  px: { xs: "1.5rem", sm: "2.5rem", md: "3.75rem" },
+                  py: { xs: "1.5rem", sm: "2rem", md: "2.75rem" },
+                  ml: { xs: 0, md: "1.188rem" },
                 }}
               >
                 <Typography
                   sx={{
                     color: "#323232",
-                    fontSize: "2rem",
+                    fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem", lg: "2rem" },
                     fontWeight: 600,
-                    lineHeight: "1.75rem"
+                    lineHeight: { xs: "1.5rem", md: "1.75rem" }
                   }}
                 >
                   Loading...
@@ -515,7 +521,7 @@ export default function AuthenticatedHomePage() {
               <Box
                 sx={{
                   display: "flex",
-                  gap: 3,
+                  gap: { xs: 1.5, sm: 2, md: 3 },
                   flexWrap: "wrap",
                 }}
               >
@@ -530,13 +536,13 @@ export default function AuthenticatedHomePage() {
                       component={Link}
                       href={route}
                       sx={{
-                        flex: 1,
-                        minWidth: { xs: "100%", sm: 120 },
-                        p: 3,
+                        flex: { xs: "1 1 calc(50% - 0.75rem)", sm: "1 1 calc(33.333% - 1.33rem)", md: 1 },
+                        minWidth: { xs: "calc(50% - 0.75rem)", sm: 120, md: "auto" },
+                        p: { xs: 1.5, sm: 2, md: 3 },
                         cursor: "pointer",
-                        borderRadius: "12.17px",
-                        borderTopLeftRadius: isFirst ? "2.535rem" : "12.17px",
-                        borderTopRightRadius: isLast ? "2.535rem" : "12.17px",
+                        borderRadius: { xs: "0.5rem", md: "12.17px" },
+                        borderTopLeftRadius: isFirst ? { xs: "1rem", md: "2.535rem" } : { xs: "0.5rem", md: "12.17px" },
+                        borderTopRightRadius: isLast ? { xs: "1rem", md: "2.535rem" } : { xs: "0.5rem", md: "12.17px" },
                         textAlign: "center",
                         bgcolor: "grey.100",
                         border: "none",
@@ -551,8 +557,8 @@ export default function AuthenticatedHomePage() {
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
-                          mb: 1.5,
-                          height: 64,
+                          mb: { xs: 1, md: 1.5 },
+                          height: { xs: 48, sm: 56, md: 64 },
                         }}
                       >
                         {service.services_type_photos_url ? (
@@ -561,7 +567,8 @@ export default function AuthenticatedHomePage() {
                             alt={service.name}
                             width={64}
                             height={64}
-                            style={{ objectFit: "contain" }}
+                            style={{ objectFit: "contain", width: "auto", height: "auto", maxWidth: "100%", maxHeight: "100%" }}
+                            sizes="(max-width: 600px) 48px, (max-width: 960px) 56px, 64px"
                           />
                         ) : (
                           <Image
@@ -569,14 +576,18 @@ export default function AuthenticatedHomePage() {
                             alt={service.name}
                             width={64}
                             height={64}
-                            style={{ objectFit: "contain" }}
+                            style={{ objectFit: "contain", width: "auto", height: "auto", maxWidth: "100%", maxHeight: "100%" }}
+                            sizes="(max-width: 600px) 48px, (max-width: 960px) 56px, 64px"
                           />
                         )}
                       </Box>
                       <Typography
                         variant="body1"
                         fontWeight="500"
-                        sx={{ color: "text.primary" }}
+                        sx={{ 
+                          color: "text.primary",
+                          fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" }
+                        }}
                       >
                         {service.name}
                       </Typography>
@@ -589,7 +600,7 @@ export default function AuthenticatedHomePage() {
               <Box
                 sx={{
                   display: "flex",
-                  gap: 3,
+                  gap: { xs: 1.5, sm: 2, md: 3 },
                   flexWrap: "wrap",
                 }}
               >
@@ -597,10 +608,10 @@ export default function AuthenticatedHomePage() {
                   <Box
                     key={index}
                     sx={{
-                      flex: 1,
-                      minWidth: { xs: "100%", sm: 120 },
-                      p: 3,
-                      borderRadius: "12.17px",
+                      flex: { xs: "1 1 calc(50% - 0.75rem)", sm: "1 1 calc(33.333% - 1.33rem)", md: 1 },
+                      minWidth: { xs: "calc(50% - 0.75rem)", sm: 120, md: "auto" },
+                      p: { xs: 1.5, sm: 2, md: 3 },
+                      borderRadius: { xs: "0.5rem", md: "12.17px" },
                       textAlign: "center",
                       bgcolor: "grey.100",
                       border: "none",
@@ -608,7 +619,7 @@ export default function AuthenticatedHomePage() {
                   >
                     <Typography
                       variant="body2"
-                      sx={{ color: "text.secondary" }}
+                      sx={{ color: "text.secondary", fontSize: { xs: "0.875rem", md: "1rem" } }}
                     >
                       Loading...
                     </Typography>
@@ -619,7 +630,7 @@ export default function AuthenticatedHomePage() {
           </Box>
           <Box
             sx={{
-              display: "flex",
+              display: { xs: "none", md: "flex" },
               width: "100%",
               alignItems: "center",
               gap: "0.75rem",
@@ -724,15 +735,23 @@ export default function AuthenticatedHomePage() {
       </Box>
 
       {/* Explore All Services Section */}
-      <Box sx={{ bgcolor: "white", py: 8 }}>
+      <Box sx={{ bgcolor: "white", py: { xs: 4, sm: 6, md: 8 } }}>
         <Box>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 6, px: "5rem" }}>
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: { xs: "flex-start", sm: "center" }, 
+            mb: { xs: 3, sm: 4, md: 6 }, 
+            px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" },
+            flexDirection: { xs: "column", sm: "row" },
+            gap: { xs: 2, sm: 0 }
+          }}>
             <Typography
               variant="h3"
               fontWeight="bold"
               sx={{
                 color: "#2F6B8E",
-                fontSize: { xs: "2rem", md: "2.5rem" },
+                fontSize: { xs: "1.5rem", sm: "1.875rem", md: "2rem", lg: "2.5rem" },
               }}
             >
               Explore All Services
@@ -745,7 +764,10 @@ export default function AuthenticatedHomePage() {
                 textTransform: "none",
                 borderColor: "#2F6B8E",
                 color: "#2F6B8E",
-                display: { xs: "none", md: "block" },
+                display: { xs: "block", md: "block" },
+                fontSize: { xs: "0.875rem", md: "1rem" },
+                px: { xs: 2, md: 3 },
+                py: { xs: 0.75, md: 1 },
                 "&:hover": {
                   borderColor: "#25608A",
                   bgcolor: "rgba(47, 107, 142, 0.1)",
@@ -759,10 +781,10 @@ export default function AuthenticatedHomePage() {
           {/* Service Cards Grid */}
           <Box
             sx={{
-              px: "5rem",
+              px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" },
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" },
-              gap: 3,
+              gap: { xs: 2, sm: 2.5, md: 3 },
               gridAutoRows: "auto",
             }}
           >
@@ -775,27 +797,29 @@ export default function AuthenticatedHomePage() {
                     overflow: "hidden",
                     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                     display: "flex",
-                    flexDirection: "row",
-                    borderRadius: "1.25rem",
-                    minHeight: 200,
+                    flexDirection: { xs: "column", sm: "row" },
+                    borderRadius: { xs: "0.75rem", md: "1.25rem" },
+                    minHeight: { xs: 250, sm: 200, md: 200 },
                     bgcolor: "grey.100",
                   }}
                 >
                   <Box
                     sx={{
-                      flex: "0 0 50%",
+                      flex: { xs: "1 1 auto", sm: "0 0 50%" },
                       bgcolor: "grey.200",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      minHeight: { xs: 150, sm: 200 },
                     }}
                   >
-                    <Typography sx={{ color: "grey.400" }}>Loading...</Typography>
+                    <Typography sx={{ color: "grey.400", fontSize: { xs: "0.875rem", md: "1rem" } }}>Loading...</Typography>
                   </Box>
                   <Box
                     sx={{
-                      flex: "0 0 50%",
+                      flex: { xs: "1 1 auto", sm: "0 0 50%" },
                       bgcolor: "grey.200",
+                      minHeight: { xs: 100, sm: 200 },
                     }}
                   />
                 </Box>
@@ -812,8 +836,8 @@ export default function AuthenticatedHomePage() {
                   overflow: "hidden",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                   display: "flex",
-                  flexDirection: "row",
-                  borderRadius: "1.25rem",
+                  flexDirection: { xs: "column", sm: "row" },
+                  borderRadius: { xs: "0.75rem", md: "1.25rem" },
                   flexShrink: 0,
                   scrollSnapAlign: "start",
                   userSelect: "none",
@@ -823,23 +847,34 @@ export default function AuthenticatedHomePage() {
                 <Box
                   sx={{
                     bgcolor: card.bgColor,
-                    py: "2.188rem",
-                    px: "1.438rem",
+                    py: { xs: "1.5rem", sm: "1.75rem", md: "2.188rem" },
+                    px: { xs: "1rem", sm: "1.25rem", md: "1.438rem" },
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
-                    flex: "0 0 50%",
+                    flex: { xs: "1 1 auto", sm: "0 0 50%" },
                     color: "white",
+                    minHeight: { xs: "auto", sm: "200px" },
                   }}
                 >
                   <Box>
                     <Typography
-                      sx={{ fontSize: "2rem", color: "white", fontWeight: 500, lineHeight: "1.75rem" }}
+                      sx={{ 
+                        fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem", lg: "2rem" }, 
+                        color: "white", 
+                        fontWeight: 500, 
+                        lineHeight: { xs: "1.5rem", md: "1.75rem" } 
+                      }}
                     >
                       {card.title}
                     </Typography>
                     <Typography
-                      sx={{ fontSize: "0.75rem", lineHeight: "150%", mb: "1.25rem", mt: "0.375rem", }}
+                      sx={{ 
+                        fontSize: { xs: "0.625rem", sm: "0.6875rem", md: "0.75rem" }, 
+                        lineHeight: "150%", 
+                        mb: { xs: "1rem", md: "1.25rem" }, 
+                        mt: { xs: "0.25rem", md: "0.375rem" },
+                      }}
                     >
                       {card.description}
                     </Typography>
@@ -851,10 +886,11 @@ export default function AuthenticatedHomePage() {
                       color: "white",
                       marginRight: "auto",
                       lineHeight: "150%",
-                      fontSize: "0.875rem",
+                      fontSize: { xs: "0.75rem", md: "0.875rem" },
                       borderRadius: "6.25rem ",
-                      py: "0.375rem",
-                      px: "0.813rem",
+                      py: { xs: "0.25rem", md: "0.375rem" },
+                      px: { xs: "0.625rem", md: "0.813rem" },
+                      mt: { xs: 1, md: 0 },
                     }}
                   >
                     Book Now
@@ -863,8 +899,9 @@ export default function AuthenticatedHomePage() {
                 <Box
                   sx={{
                     position: "relative",
-                    flex: "0 0 50%",
-                    minHeight: { xs: 200, md: "100%" },
+                    flex: { xs: "1 1 auto", sm: "0 0 50%" },
+                    minHeight: { xs: 200, sm: 200, md: "100%" },
+                    width: { xs: "100%", sm: "auto" },
                   }}
                 >
                   <Image
@@ -872,7 +909,7 @@ export default function AuthenticatedHomePage() {
                     alt={card.alt}
                     fill
                     style={{ objectFit: "cover" }}
-                    sizes="(max-width: 768px) 85vw, 33vw"
+                    sizes="(max-width: 600px) 100vw, (max-width: 960px) 50vw, 33vw"
                     draggable={false}
                   />
                 </Box>
@@ -884,13 +921,13 @@ export default function AuthenticatedHomePage() {
       </Box>
 
       {/* App Download Section */}
-      <Box sx={{ bgcolor: '#F8F8F8', py: 8 }}>
-        <Container maxWidth="lg">
+      <Box sx={{ bgcolor: '#F8F8F8', py: { xs: 4, sm: 6, md: 8 } }}>
+        <Container maxWidth="lg" sx={{ px: { xs: "1rem", sm: "2rem", md: "3rem" } }}>
           <Box
             sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: 6,
+              gap: { xs: 3, sm: 4, md: 6 },
               alignItems: 'center',
             }}
           >
@@ -901,15 +938,15 @@ export default function AuthenticatedHomePage() {
                 justifyContent: 'center',
                 alignItems: 'center',
                 position: 'relative',
-
+                order: { xs: 2, md: 1 },
               }}
             >
               {/* Left Phone */}
               <Box
                 sx={{
                   position: 'relative',
-                  width: { xs: 150, md: "29.75rem" },
-                  height: { xs: 300, md: "44.5rem" },
+                  width: { xs: 150, sm: 200, md: "29.75rem" },
+                  height: { xs: 300, sm: 400, md: "44.5rem" },
                   zIndex: 2,
                 }}
               >
@@ -923,14 +960,14 @@ export default function AuthenticatedHomePage() {
             </Box>
 
             {/* Right Side - Text and Download Links */}
-            <Box>
+            <Box sx={{ order: { xs: 1, md: 2 } }}>
               <Typography
                 sx={{
                   color: '#222222',
                   fontWeight: 600,
                   lineHeight: "100%",
-                  mb: "1.75rem",
-                  fontSize: { xs: '2rem', md: '3.125rem' }
+                  mb: { xs: "1rem", md: "1.75rem" },
+                  fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem', lg: '3.125rem' }
                 }}
               >
                 Download the new CoudPouss app
@@ -941,8 +978,8 @@ export default function AuthenticatedHomePage() {
                 variant="body1"
                 color="secondary.naturalGray"
                 sx={{
-                  mb: 4,
-                  fontSize: "1.1rem",
+                  mb: { xs: 2, sm: 3, md: 4 },
+                  fontSize: { xs: "0.875rem", sm: "1rem", md: "1.1rem" },
                   lineHeight: 1.6,
                 }}
               >
@@ -957,11 +994,12 @@ export default function AuthenticatedHomePage() {
 
 
                 <Box sx={{
-                  alignItems: "center",
+                  alignItems: { xs: "flex-start", sm: "center" },
                   display: "flex",
-                  gap: "0.75rem"
+                  gap: { xs: "0.5rem", sm: "0.75rem" },
+                  flexDirection: { xs: "column", sm: "row" },
+                  flexWrap: "wrap",
                 }}  >
-
 
                   <Button
                     variant="contained"
@@ -970,12 +1008,12 @@ export default function AuthenticatedHomePage() {
                       color: 'white',
                       textTransform: 'none',
                       borderRadius: 2,
-                      px: 4,
-                      py: 1.5,
-                      fontSize: '1rem',
+                      px: { xs: 3, md: 4 },
+                      py: { xs: 1, md: 1.5 },
+                      fontSize: { xs: '0.875rem', md: '1rem' },
                       fontWeight: 'bold',
                       lineHeight: "1.125rem",
-
+                      width: { xs: "100%", sm: "auto" },
                       '&:hover': {
                         bgcolor: '#D97706',
                       },
@@ -984,23 +1022,26 @@ export default function AuthenticatedHomePage() {
                     Download For Free
                   </Button>
                   <Box
+                    sx={{
+                      display: "flex",
+                      gap: { xs: "0.5rem", sm: "0.75rem" },
+                      width: { xs: "100%", sm: "auto" },
+                    }}
                   >
                     <Image
                       alt="download"
                       width={118}
                       height={36}
                       src={"/icons/downloadAppStoreButton.png"}
+                      style={{ width: "auto", height: "auto", maxWidth: "100px", maxHeight: "30px" }}
                     />
-                  </Box>
 
-
-                  <Box
-                  >
                     <Image
                       alt="download"
                       width={118}
                       height={36}
                       src={"/icons/googlePlayDownloadButton.png"}
+                      style={{ width: "auto", height: "auto", maxWidth: "100px", maxHeight: "30px" }}
                     />
                   </Box>
                 </Box>
@@ -1013,13 +1054,21 @@ export default function AuthenticatedHomePage() {
 
       {/* Favorite Professionals Section */}
       {(favoriteProfessionalsLoading || favoriteProfessionals.length > 0) && (
-        <Box sx={{ bgcolor: "white", p: "5rem" }}>
+        <Box sx={{ bgcolor: "white", p: { xs: "1.5rem", sm: "2.5rem", md: "3rem", lg: "5rem" } }}>
           <Box >
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: "2rem" }}>
+            <Box sx={{ 
+              display: "flex", 
+              justifyContent: "space-between", 
+              alignItems: { xs: "flex-start", sm: "center" }, 
+              mb: { xs: "1.5rem", md: "2rem" },
+              flexDirection: { xs: "column", sm: "row" },
+              gap: { xs: 1.5, sm: 0 }
+            }}>
               <Typography
                 sx={{
                   color: "text.primary",
-                  fontSize: { xs: "1.2rem", md: "1.688rem", fontWeight: 700 },
+                  fontSize: { xs: "1.2rem", sm: "1.4rem", md: "1.688rem" },
+                  fontWeight: 700,
                 }}
               >
                 Favorite Professionals
@@ -1033,9 +1082,10 @@ export default function AuthenticatedHomePage() {
                     m: 0,
                     textTransform: "none",
                     color: "#2F6B8E",
-                    px: "1.25rem",
-                    py: "0.5rem",
-                    display: { xs: "none", md: "block" },
+                    px: { xs: "1rem", md: "1.25rem" },
+                    py: { xs: "0.375rem", md: "0.5rem" },
+                    display: { xs: "block", md: "block" },
+                    fontSize: { xs: "0.875rem", md: "1rem" },
                     borderColor: "#2F6B8E",
                     "&:hover": {
                       borderColor: "#2F6B8E",
@@ -1059,12 +1109,13 @@ export default function AuthenticatedHomePage() {
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseLeave}
               sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
-                gap: 2,
-                overflowX: "hidden",
+                display: { xs: "flex", sm: "grid" },
+                gridTemplateColumns: { xs: "none", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
+                flexDirection: { xs: "row", sm: "unset" },
+                gap: { xs: 1.5, sm: 2 },
+                overflowX: { xs: "auto", sm: "hidden" },
                 overflowY: "hidden",
-                scrollSnapType: "x mandatory",
+                scrollSnapType: { xs: "x mandatory", sm: "none" },
                 scrollBehavior: "smooth",
                 WebkitOverflowScrolling: "touch",
                 pb: 2,
@@ -1094,11 +1145,12 @@ export default function AuthenticatedHomePage() {
                     <Box
                       key={professional.id}
                       sx={{
-                        minWidth: { xs: "85%", md: 200 },
+                        minWidth: { xs: "calc(85vw - 2rem)", sm: "calc(50% - 1rem)", md: 200 },
+                        maxWidth: { xs: "calc(85vw - 2rem)", sm: "none", md: "none" },
                         flexShrink: 0,
                         scrollSnapAlign: "start",
-                        borderRadius: "1.125rem",
-                        p: "0.875rem",
+                        borderRadius: { xs: "0.75rem", md: "1.125rem" },
+                        p: { xs: "0.75rem", md: "0.875rem" },
                         textAlign: "center",
                         position: "relative",
                         border: "1px solid #DFE8ED",
@@ -1111,20 +1163,20 @@ export default function AuthenticatedHomePage() {
                       <IconButton
                         sx={{
                           position: "absolute",
-                          top: 8,
-                          right: 8,
+                          top: { xs: 4, md: 8 },
+                          right: { xs: 4, md: 8 },
                           color: "#2C6587",
                           p: 0.5,
                         }}
                       >
-                        <FavoriteIcon sx={{ fontSize: 20 }} />
+                        <FavoriteIcon sx={{ fontSize: { xs: 18, md: 20 } }} />
                       </IconButton>
 
                       {/* Profile Picture */}
                       <Box
                         sx={{
-                          width: 80,
-                          height: 80,
+                          width: { xs: 60, sm: 70, md: 80 },
+                          height: { xs: 60, sm: 70, md: 80 },
                           borderRadius: "50%",
                           bgcolor: "grey.300",
                           margin: "0 auto 12px",
@@ -1143,15 +1195,23 @@ export default function AuthenticatedHomePage() {
                             style={{
                               objectFit: "cover",
                               borderRadius: "50%",
+                              width: "100%",
+                              height: "100%",
                             }}
                           />
                         ) : (
-                          <AccountCircleIcon sx={{ fontSize: 80, color: "grey.500" }} />
+                          <AccountCircleIcon sx={{ fontSize: { xs: 60, sm: 70, md: 80 }, color: "grey.500" }} />
                         )}
                       </Box>
 
                       {/* Name */}
-                      <Typography sx={{ mb: 1, textAlign: 'left', color: "#323232", fontSize: "1.125rem", fontWeight: 500 }}>
+                      <Typography sx={{ 
+                        mb: { xs: 0.75, md: 1 }, 
+                        textAlign: 'left', 
+                        color: "#323232", 
+                        fontSize: { xs: "0.9375rem", sm: "1rem", md: "1.125rem" }, 
+                        fontWeight: 500 
+                      }}>
                         {fullName}
                       </Typography>
                       <Box sx={{
@@ -1164,16 +1224,16 @@ export default function AuthenticatedHomePage() {
                           <Typography sx={{
                             textAlign: 'left',
                             color: "secondary.naturalGray",
-                            fontSize: "1.063rem"
+                            fontSize: { xs: "0.9375rem", sm: "1rem", md: "1.063rem" }
                           }}>
                             {rating > 0 ? rating.toFixed(1) : "0.0"}
                           </Typography>
-                          <StarIcon sx={{ fontSize: 16, color: "#F59E0B" }} />
+                          <StarIcon sx={{ fontSize: { xs: 14, md: 16 }, color: "#F59E0B" }} />
                         </Box>
 
                         {/* Reviews */}
                         <Typography variant="caption" color="#999999" sx={{
-                          fontSize: "0.688rem",
+                          fontSize: { xs: "0.625rem", md: "0.688rem" },
                           lineHeight: "1rem"
                         }} >
                           ({reviews} {reviews === 1 ? "Review" : "Reviews"})

@@ -24,22 +24,17 @@ import Image from "next/image";
 import { apiPost, apiPostFormData } from "@/lib/api";
 import {
   buildInputData,
-  emailRegex,
   isValidEmailOrMobile,
-  isValidPassword,
   parseMobile,
 } from "@/utils/validation";
-import ResponseCache from "next/dist/server/response-cache";
 import { API_ENDPOINTS } from "@/constants/api";
 import PhoneInputWrapper from "@/components/PhoneInputWrapper";
 
 type SignupStep =
-  | "select-profile"
   | "enter-contact"
   | "verify-otp"
   | "create-password"
   | "add-details";
-type UserType = "elderly_user" | "professional" | null;
 
 interface SignUpApiError {
   [key: string]: string;
@@ -108,9 +103,8 @@ const addDetailsSchema = Yup.object().shape({
     .required("Mobile number is required")
     .test("is-valid-phone", "Please enter a valid phone number", (value) => {
       if (!value) return false;
-      // Basic check - phone should have at least country code + some digits
       const cleaned = value.replace(/\s/g, "");
-      return cleaned.length >= 10; // Minimum reasonable phone number length
+      return cleaned.length >= 10;
     }),
   email: Yup.string()
     .required("Email is required")
@@ -118,12 +112,10 @@ const addDetailsSchema = Yup.object().shape({
   address: Yup.string().required("Address is required"),
 });
 
-export default function SignupPage() {
+export default function ProfessionalSignupPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  // const [step, setStep] = useState<SignupStep>("select-profile");
-  const [step, setStep] = useState<SignupStep>("create-password");
-  const [userType, setUserType] = useState<UserType>(null);
+  const [step, setStep] = useState<SignupStep>("enter-contact");
   const [formData, setFormData] = useState({
     emailOrMobile: "",
     otp: ["", "", "", ""],
@@ -140,7 +132,6 @@ export default function SignupPage() {
   const [phoneError, setPhoneError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showReEnterPassword, setShowReEnterPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
@@ -160,19 +151,15 @@ export default function SignupPage() {
         setFormData((prev) => {
           const updates: any = {};
           
-          // Only populate email if it's not already set
           if (validData.email && !prev.email) {
             updates.email = validData.email;
           }
           
-          // Only populate mobile if it's not already set
           if (validData.mobile && validData.phone_country_code && !prev.mobileNo) {
-            // Format: country code + mobile number (e.g., "+1234567890")
             updates.mobileNo = `${validData.phone_country_code}${validData.mobile}`;
             updates.phoneCountryCode = validData.phone_country_code;
           }
           
-          // Only update if there are changes
           if (Object.keys(updates).length > 0) {
             return { ...prev, ...updates };
           }
@@ -180,7 +167,6 @@ export default function SignupPage() {
           return prev;
         });
       } catch (error) {
-        // If buildInputData fails, just continue without auto-populating
         console.log("Could not auto-populate from emailOrMobile:", error);
       }
     }
@@ -198,9 +184,7 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({ ...prev, [name]: value }));
-
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -212,7 +196,6 @@ export default function SignupPage() {
     newOtp[index] = value;
     setFormData((prev) => ({ ...prev, otp: newOtp }));
 
-    // Auto-focus next input
     if (value && index < 3) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
@@ -229,41 +212,25 @@ export default function SignupPage() {
     }
   };
 
-  const handleProfileSelect = (type: "elderly_user" | "professional") => {
-    setUserType(type);
-    if (type === "professional") {
-      // Redirect to unified professional signup flow
-      router.push("/signup-professional");
-    } else {
-      // For elder, continue with current flow
-      setStep("enter-contact");
-    }
-  };
-
   const handleContinue = async () => {
     setLoading(true);
     if (step === "enter-contact") {
       let { data, error } = await apiCallToSignUpUser("");
-      // Extract nested data from response
-      // Response structure: { status: "error", data: { is_otp_verified: true, ... } }
       const responseData: any = data?.data || data;
       const nestedData = responseData?.data || responseData;
 
-      // Check if OTP is already verified in the response data
       if (nestedData && nestedData.is_otp_verified === true) {
         setStep("create-password");
         setLoading(false);
         return;
       }
 
-      // Check if password is already set
       if (nestedData && nestedData.is_password_set === true) {
         setStep("add-details");
         setLoading(false);
         return;
       }
 
-      // If no redirect flags, proceed with normal flow
       if (data && !error) {
         setStep("verify-otp");
       } else if (error) {
@@ -293,28 +260,24 @@ export default function SignupPage() {
     } else if (step === "verify-otp") {
       let { data, error } = await apiCallToSignUpUser("");
 
-      // Extract nested data from response
       const responseData: any = data?.data || data;
       const nestedData = responseData?.data || responseData;
 
-      // Check if OTP is already verified in the response data
       if (nestedData && nestedData.is_otp_verified === true) {
         setStep("create-password");
         setLoading(false);
         return;
       }
 
-      // Check if password is already set
       if (nestedData && nestedData.is_password_set === true) {
         setStep("add-details");
         setLoading(false);
         return;
       }
-      // If no redirect flags, proceed with normal flow
+
       if (data && !error) {
-        // Show success toast if status is success
         if (data?.status === "success") {
-          const successMsg = data?.message ;
+          const successMsg = data?.message;
           toast.success(successMsg);
         }
         setStep("create-password");
@@ -341,18 +304,15 @@ export default function SignupPage() {
     } else if (step === "create-password") {
       let { data, error } = await apiCallToSignUpUser("");
 
-      // Extract nested data from response
       const responseData: any = data?.data || data;
       const nestedData = responseData?.data || responseData;
 
-      // Check if password is already set in the response data
       if (nestedData && nestedData.is_password_set === true) {
         setStep("add-details");
         setLoading(false);
         return;
       }
 
-      // If no redirect flags, proceed with normal flow
       if (data && !error) {
         setStep("add-details");
       } else if (error) {
@@ -383,7 +343,7 @@ export default function SignupPage() {
       const { data, error } = await apiCallToSignUpUser("resendOTP");
       if (data && !error) {
         toast.success("OTP has been resent successfully");
-        setOtpCountdown(60); // Restart countdown
+        setOtpCountdown(60);
       } else if (error) {
         const errorMsg = error.message || error.msg || error.general || "Failed to resend OTP. Please try again.";
         toast.error(errorMsg);
@@ -399,15 +359,11 @@ export default function SignupPage() {
   const apiCallToSignUpUser = async (
     submit: string
   ): Promise<SignUpApiResponse> => {
-
-
     try {
       let payload = {};
       let url = "";
       let validData: any = {};
 
-      // Only call buildInputData for steps that use emailOrMobile
-      // Skip it only for "add-details" step when submitting final form
       if (!(step === "add-details" && submit === "submit") && formData.emailOrMobile) {
         try {
           validData = buildInputData(formData.emailOrMobile);
@@ -425,13 +381,13 @@ export default function SignupPage() {
         if (validData.email) {
           payload = {
             email: validData.email || "",
-            role: userType,
+            role: "service_provider",
           };
         } else {
           payload = {
             mobile: validData.mobile || "",
             phone_country_code: validData.phone_country_code || "",
-            role: userType,
+            role: "service_provider",
           };
         }
       } else if (step === "verify-otp") {
@@ -471,14 +427,10 @@ export default function SignupPage() {
       if (submit == "submit") {
         url = API_ENDPOINTS.AUTH.CREATE_ACCOUNT;
 
-        // Extract country code and mobile number from phone input
-        // PhoneInput provides full number with country code (e.g., "+1234567890")
         let phoneCountryCode = formData.phoneCountryCode;
         let mobile = formData.mobileNo;
 
-        // If phoneCountryCode is set, remove it from the mobile number
         if (phoneCountryCode && mobile) {
-          // Remove the country code prefix from the phone number
           const countryCodeWithPlus = phoneCountryCode.startsWith("+")
             ? phoneCountryCode
             : `+${phoneCountryCode}`;
@@ -487,7 +439,6 @@ export default function SignupPage() {
           }
         }
 
-        // If phoneCountryCode is not set, try to parse from mobileNo
         if (!phoneCountryCode && mobile) {
           const mobileData = parseMobile(mobile);
           if (mobileData) {
@@ -500,7 +451,7 @@ export default function SignupPage() {
           email: formData.email || "",
           address: formData.address,
           name: formData.name,
-          role: userType,
+          role: "service_provider",
           mobile: mobile || "",
           phone_country_code: phoneCountryCode || "",
         };
@@ -523,23 +474,11 @@ export default function SignupPage() {
 
       let response = await apiPost(url, payload);
 
-
-      console.log({response},"this is the response")
-
-      // API response structure can be:
-      // 1. HTTP 200 with { status: "error", message: "...", data: { is_otp_verified: true, ... } }
-      //    -> response = { success: true, data: { status: "error", data: { is_otp_verified: true } } }
-      // 2. HTTP 200 with { status: "success", data: { ... } }
-      //    -> response = { success: true, data: { status: "success", data: { ... } } }
-      // 3. HTTP error status
-      //    -> response = { success: false, error: { message: "..." }, data: undefined }
+      console.log({response},"this is the response");
 
       let responseData: any = response.data;
-
-      // Extract nested data if it exists (for case 1 and 2)
       const nestedData = responseData?.data;
 
-      // Check for redirect flags in the response (check both nested data and top level)
       const isOtpVerified =
         nestedData?.is_otp_verified === true ||
         responseData?.is_otp_verified === true;
@@ -548,7 +487,6 @@ export default function SignupPage() {
         responseData?.is_password_set === true;
       const hasRedirectFlags = isOtpVerified || isPasswordSet;
 
-      // If we have redirect flags, return the data without error even if status is "error"
       if (hasRedirectFlags) {
         return {
           data: responseData,
@@ -556,7 +494,6 @@ export default function SignupPage() {
         };
       }
 
-      // Check if there's an error message in the response
       let errorObj: SignUpApiError | null = null;
       if (response?.error) {
         errorObj = {};
@@ -566,19 +503,16 @@ export default function SignupPage() {
           };
         } else if (step === "verify-otp") {
           errorObj = { otp: response.error.message || "Something went wrong." };
-        }
-         else if (step === "create-password") {
+        } else if (step === "create-password") {
           errorObj = {
             password: response.error.message || "Something went wrong.",
           };
-        }
-         else if (step === "add-details") {
+        } else if (step === "add-details") {
           errorObj = {
             message: response.error.message || "Something went wrong.",
           };
         }
 
-        // Also check if response.data has status: "error" (HTTP 200 but JSON has error status)
         if (
           responseData &&
           responseData.status === "error" &&
@@ -622,32 +556,23 @@ export default function SignupPage() {
     try {
       let { data, error } = await apiCallToSignUpUser("submit");
       
-      // Check if response is successful with tokens
       if (data && data.status === "success" && data.data) {
         const responseData = data.data;
         
-        // Extract tokens and user data
         const accessToken = responseData.access_token;
         const refreshToken = responseData.refresh_token;
         const accessTokenExpire = responseData.access_token_expire;
         const refreshTokenExpire = responseData.refresh_token_expire;
         const userData = responseData.user_data || {};
         
-        // Store tokens in cookies and localStorage (similar to login flow)
         if (typeof window !== "undefined") {
-          // Store refresh token in cookie (7 days expiry)
           document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${7*24*60*60}`;
-          
-          // Store access token in localStorage
           localStorage.setItem("token", accessToken);
-          
-          // Store user data in localStorage
           localStorage.setItem("userEmail", userData.email || "");
           localStorage.setItem("userInitial", (userData.name?.charAt(0) || "U").toUpperCase());
           localStorage.setItem("role", userData.role || "");
         }
         
-        // Update Redux state with tokens and user data (so API calls work immediately)
         const user = {
           email: userData.email || "",
           initial: (userData.name?.charAt(0) || "U").toUpperCase(),
@@ -662,17 +587,14 @@ export default function SignupPage() {
           user,
         }));
         
-        // Show success toast
-        toast.success("Account created success");
+        toast.success("Account created successfully");
         
-        // Redirect to home page
-        router.push(ROUTES.AUTH_HOME);
+        // Redirect to professional onboarding instead of home
+        router.push(ROUTES.PROFESSIONAL_ONBOARDING_SELECT_PLAN);
       } else if (data && data.status === "success") {
-        // If status is success but no data structure, still show success
-        toast.success("Account created success"); 
-        router.push(ROUTES.AUTH_HOME);
+        toast.success("Account created successfully"); 
+        router.push(ROUTES.PROFESSIONAL_ONBOARDING_SELECT_PLAN);
       } else {
-        // Handle errors
         if (error) {
           const errorMsg = error.general || error.msg || error.message || "Something Went Wrong";
           toast.error(errorMsg);
@@ -706,7 +628,6 @@ export default function SignupPage() {
       const url = API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC;
       const validData = buildInputData(formData.emailOrMobile);
       
-      // Create FormData for file upload
       const formDataPayload = new FormData();
       
       if (validData.email) {
@@ -716,7 +637,6 @@ export default function SignupPage() {
         formDataPayload.append("phone_country_code", validData.phone_country_code || "");
       }
       
-      // Append the file - use the file parameter directly, not formData.profilePicture
       formDataPayload.append("file", file);
 
       const response: ProfilePhotoApi = await apiPostFormData(url, formDataPayload);
@@ -734,112 +654,6 @@ export default function SignupPage() {
 
   const renderStepContent = () => {
     switch (step) {
-      case "select-profile":
-        return (
-          <Box>
-            <Typography
-              sx={{
-                fontWeight: `700`,
-                fontSize: `1.5rem`,
-                color: `primary.normal`,
-                mb: "0.75rem",
-                lineHeight: "1.75rem",
-                textAlign: "center",
-              }}
-            >
-              Welcome To CoudPouss!
-            </Typography>
-            <Typography
-              sx={{
-                fontWeight: 400,
-                fontSize: "1rem",
-                textAlign: "center",
-                lineHeight: "140%",
-                mb: "2.5rem",
-                color: "secondary.neutralWhiteDark",
-              }}
-            >
-              Empowering seniors with easy access to trusted help, care, and
-              companionship whenever needed.
-            </Typography>
-
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              onClick={() => handleProfileSelect("elderly_user")}
-              sx={{
-                bgcolor: "#214C65",
-                color: "white",
-                py: { xs: 1.25, md: 1.5 },
-                mb: { xs: 1.5, md: 2 },
-                textTransform: "none",
-                fontWeight: 700,
-                fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
-                "&:hover": {
-                  bgcolor: "#25608A",
-                },
-              }}
-            >
-              Sign up as Elder
-            </Button>
-            <Box
-              sx={{
-                textAlign: "center",
-                my: 2,
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <Box
-                sx={{
-                  flex: 1,
-                  height: "1px",
-                  bgcolor: "rgba(0,0,0,0.3)",
-                  border: "1px solid #F2F3F3",
-                }}
-              />
-              <Typography
-                sx={{
-                  fontSize: { xs: "1rem", md: "1.125rem" },
-                  color: "#818285",
-                  mx: { xs: 2, md: 4 },
-                }}
-              >
-                OR
-              </Typography>
-              <Box
-                sx={{
-                  flex: 1,
-                  height: "1px",
-                  bgcolor: "rgba(0,0,0,0.3)",
-                  border: "1px solid #F2F3F3",
-                }}
-              />
-            </Box>
-            <Button
-              fullWidth
-              variant="outlined"
-              size="large"
-              onClick={() => handleProfileSelect("professional")}
-              sx={{
-                borderColor: "primary.dark",
-                color: "primary.dark",
-                py: { xs: 1.25, md: 1.5 },
-                fontWeight: 700,
-                fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
-                textTransform: "none",
-                "&:hover": {
-                  borderColor: "#25608A",
-                  bgcolor: "rgba(47, 107, 142, 0.04)",
-                },
-              }}
-            >
-              Sign up as Professional
-            </Button>
-          </Box>
-        );
-
       case "enter-contact":
         return (
           <Formik
@@ -1033,7 +847,6 @@ export default function SignupPage() {
                   index: number,
                   value: string
                 ) => {
-                  // Only allow numeric digits (0-9)
                   const numericValue = value.replace(/[^0-9]/g, "");
                   if (numericValue.length > 1) return;
                   const newOtp = [...values.otp];
@@ -1041,7 +854,6 @@ export default function SignupPage() {
                   setFieldValue("otp", newOtp);
                   setFormData((prev) => ({ ...prev, otp: newOtp }));
 
-                  // Auto-focus next input
                   if (numericValue && index < 3) {
                     const nextInput = document.getElementById(
                       `otp-${index + 1}`
@@ -1067,7 +879,7 @@ export default function SignupPage() {
                 };
 
                 return (
-                  <Form  >
+                  <Form>
                     <Typography
                       sx={{
                         fontSize: { xs: "16px", md: "18px" },
@@ -1077,7 +889,6 @@ export default function SignupPage() {
                         margin: "0 auto",
                         mb: { xs: 1.5, md: 2 },
                         // maxWidth: "382px",
-                        
                       }}
                     >
                       Code
@@ -1087,8 +898,8 @@ export default function SignupPage() {
                         display: "flex",
                         gap: "20px",
                         justifyContent: "space-between",
-                      maxWidth: "382px",
-                      margin: "0 auto",
+                        // maxWidth: "382px",
+                        margin: "0 auto",
                         mb: formikErrors.otp && submitCount > 0 ? 1 : 2,
                       }}
                     >
@@ -1506,7 +1317,6 @@ export default function SignupPage() {
                     width: { xs: 100, sm: 120, md: 140 },
                     height: { xs: 100, sm: 120, md: 140 },
                     borderRadius: "50%",
-                    // bgcolor: 'primary.main',
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "left",
@@ -1580,7 +1390,6 @@ export default function SignupPage() {
                       justifyContent: "center",
                       mb: 1,
                       overflow: "hidden",
-                      // border: "3px solid",
                       borderColor: "primary.dark",
                     }}
                   >
@@ -1638,17 +1447,12 @@ export default function SignupPage() {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        // Create preview URL so you can display the image visually
                         const previewURL = URL.createObjectURL(file);
-
-                        // Update UI instantly
                         setFormData((prev) => ({
                           ...prev,
                           profilePicture: file,
                           profilePicturePreview: previewURL,
                         }));
-
-                        // Call API to upload image
                         await uploadProfileImage(file);
                       }
                     }}
@@ -1745,7 +1549,6 @@ export default function SignupPage() {
                                 }));
                                 form.setFieldValue("mobileNo", phone);
                                 form.setFieldTouched("mobileNo", true);
-                                // Clear phone error when user starts typing
                                 if (phoneError && phone) {
                                   setPhoneError(false);
                                 }
@@ -1926,31 +1729,6 @@ export default function SignupPage() {
         bgcolor: "background.default",
       }}
     >
-      {/* Header Bar */}
-      {/* {step !== "select-profile" && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bgcolor: "#374151",
-            color: "white",
-            py: 1.5,
-            px: 3,
-            zIndex: 1000,
-            display: { xs: "none", md: "block" },
-          }}
-        >
-          <Typography variant="body1" fontWeight="500">
-            {step === "enter-contact" && "01_Select Profile"}
-            {step === "verify-otp" && "02_Enter Contact"}
-            {step === "create-password" && "03_Verify OTP"}
-            {step === "add-details" && "04_Create Password"}
-          </Typography>
-        </Box>
-      )} */}
-
       {/* Left side - Image Section */}
       <Box
         sx={{
@@ -1991,7 +1769,7 @@ export default function SignupPage() {
           justifyContent: "center",
           padding: { xs: 2, sm: 3, md: 4 },
           overflowY: "auto",
-          pt: step !== "select-profile" ? { xs: 2, sm: 4, md: 10 } : { xs: 2, md: 4 },
+          pt: step !== "enter-contact" ? { xs: 2, sm: 4, md: 10 } : { xs: 2, md: 4 },
         }}
       >
         <Container maxWidth="sm">
@@ -2010,7 +1788,6 @@ export default function SignupPage() {
                     width: { xs: 100, sm: 120, md: 140 },
                     height: { xs: 100, sm: 120, md: 140 },
                     borderRadius: "50%",
-                    // bgcolor: 'primary.main',
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -2037,7 +1814,7 @@ export default function SignupPage() {
             {renderStepContent()}
 
             {/* Login Link */}
-            {(step == "select-profile" || step == "enter-contact") && (
+            {step == "enter-contact" && (
               <Box sx={{ textAlign: "center", mt: { xs: 2, md: 3 } }}>
                 <Typography
                   sx={{
@@ -2081,3 +1858,4 @@ export default function SignupPage() {
     </Box>
   );
 }
+

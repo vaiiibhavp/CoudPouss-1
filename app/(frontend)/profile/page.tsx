@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Box, Container, Typography, Button } from "@mui/material";
+import { Box, Container, Typography, Button, Divider } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Footer from "@/components/Footer";
@@ -105,7 +105,7 @@ export default function ProfilePage() {
         <Box
           sx={{
             display: "flex",
-            gap: "2rem",
+            gap: "2.25rem",
             flexDirection: { xs: "column", md: "row" },
             flex: 1,
           }}
@@ -115,13 +115,15 @@ export default function ProfilePage() {
             sx={{
               width: { xs: "100%", md: "17.5rem" },
               flexShrink: 0,
+              borderRight:"0.063rem solid #E7E7E7",
+              paddingRight: "1.438rem",
             }}
           >
             <Typography
               variant="h4"
               fontWeight={600}
               sx={{
-                color: "text.primary",
+                color: "#2C6587",
                 mb: "1.875rem",
                 fontSize: { xs: "1.5rem", md: "2rem" },
               }}
@@ -129,61 +131,67 @@ export default function ProfilePage() {
               Account Setting
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
-              {menuItems.map((item) => (
-                <Button
-                  key={item.id}
-                  onClick={() => {
-                    if (item.action) {
-                      item.action();
-                    } else {
-                      setActiveMenuItem(item.id);
-                    }
-                  }}
-                  sx={{
-                    justifyContent: "flex-start",
-                    textTransform: "none",
-                    px: activeMenuItem === item.id ? "1.25rem" : item.id === "Sign Out" ? "1rem" : "1.25rem",
-                    py: activeMenuItem === item.id ? "0.625rem" : item.id === "Sign Out" ? "0.75rem" : "0.625rem",
-                    borderRadius: activeMenuItem === item.id ? "6.25rem" : item.id === "Sign Out" ? "1rem" : "6.25rem",
-                    fontSize: "1rem",
-                    fontFamily: activeMenuItem === item.id ? "Lato, sans-serif" : item.id === "Sign Out" ? "inherit" : "Lato, sans-serif",
-                    fontWeight: activeMenuItem === item.id ? 400 : item.id === "Sign Out" ? "inherit" : 400,
-                    lineHeight: activeMenuItem === item.id ? "140%" : item.id === "Sign Out" ? "inherit" : "140%",
-                    letterSpacing: activeMenuItem === item.id ? "0%" : item.id === "Sign Out" ? "inherit" : "0%",
-                    border: activeMenuItem === item.id ? "none" : item.id === "Sign Out" ? "none" : "0.0625rem solid #EAF0F3",
-                    color:
-                      activeMenuItem === item.id
-                        ? "#FFFFFF"
-                        : item.id === "Sign Out"
-                        ? "primary.main"
-                        : "#6D6D6D",
-                    bgcolor:
-                      activeMenuItem === item.id ? "#2C6587" : "transparent",
-                    "&:hover": {
-                      bgcolor:
+              {menuItems.map((item, index) => (
+                <React.Fragment key={item.id}>
+                  <Button
+                    onClick={() => {
+                      if (item.action) {
+                        item.action();
+                      } else {
+                        setActiveMenuItem(item.id);
+                      }
+                    }}
+                    sx={{
+                      justifyContent: "flex-start",
+                      textTransform: "none",
+                      px: activeMenuItem === item.id ? "1.25rem" : item.id === "Sign Out" ? "1rem" : "1.25rem",
+                      py: activeMenuItem === item.id ? "0.625rem" : item.id === "Sign Out" ? "0.75rem" : "0.625rem",
+                      borderRadius: activeMenuItem === item.id ? "6.25rem" : item.id === "Sign Out" ? "1rem" : "6.25rem",
+                      fontSize: item.id === "Sign Out" ? "1rem" : "1rem", // 16px
+                      fontFamily: "Lato, sans-serif",
+                      fontWeight: 400,
+                      lineHeight: item.id === "Sign Out" ? "1.125rem" : activeMenuItem === item.id ? "140%" : "140%", // 18px for Sign Out
+                      letterSpacing: "0%",
+                      border: activeMenuItem === item.id ? "none" : item.id === "Sign Out" ? "none" : "0.0625rem solid #EAF0F3",
+                      color:
                         activeMenuItem === item.id
-                          ? "#2C6587"
+                          ? "#FFFFFF"
                           : item.id === "Sign Out"
-                          ? "transparent"
-                          : "grey.50",
-                    },
-                  }}
-                >
-                  {item.label}
-                </Button>
+                          ? "#2C6587"
+                          : "#6D6D6D",
+                      bgcolor:
+                        activeMenuItem === item.id ? "#2C6587" : "transparent",
+                      "&:hover": {
+                        bgcolor:
+                          activeMenuItem === item.id
+                            ? "#2C6587"
+                            : item.id === "Sign Out"
+                            ? "transparent"
+                            : "grey.50",
+                      },
+                    }}
+                  >
+                    {item.label}
+                  </Button>
+                  {item.id === "Ratings & Reviews" && (
+                    <Divider sx={{ borderColor: "#E7E7E7", my: "0.5rem" }} />
+                  )}
+                </React.Fragment>
               ))}
-              <Button
+              <Typography
                 onClick={handleDeleteProfile}
                 sx={{
-                  justifyContent: "flex-start",
+
+                  textAlign: "left",
+                  cursor: "pointer",
                   textTransform: "none",
                   px: "1rem",
                   py: 0,
                   minWidth: "auto",
-                  fontSize: "1rem",
+                  fontSize: "1rem", // 16px
                   fontFamily: "Lato, sans-serif",
-                  fontWeight: 400,
-                  lineHeight: "140%",
+                  fontWeight: 600, // SemiBold
+                  lineHeight: "100%",
                   letterSpacing: "0%",
                   border: "none",
                   color: "#D32F2F",
@@ -194,7 +202,7 @@ export default function ProfilePage() {
                 }}
               >
                 Delete Profile
-              </Button>
+              </Typography>
             </Box>
           </Box>
 

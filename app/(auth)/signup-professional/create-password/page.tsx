@@ -12,7 +12,6 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
@@ -329,7 +328,19 @@ export default function ProfessionalCreatePasswordPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                        {showPassword ? (
+                          <img 
+                            src="/icons/EyeOpen.svg" 
+                            alt="Hide password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        ) : (
+                          <img 
+                            src="/icons/EyeClose.svg" 
+                            alt="Show password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -363,7 +374,19 @@ export default function ProfessionalCreatePasswordPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        {showConfirmPassword ? (
+                          <img 
+                            src="/icons/EyeOpen.svg" 
+                            alt="Hide password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        ) : (
+                          <img 
+                            src="/icons/EyeClose.svg" 
+                            alt="Show password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -397,7 +420,19 @@ export default function ProfessionalCreatePasswordPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={() => setShowReEnterPassword(!showReEnterPassword)} edge="end">
-                        {showReEnterPassword ? <VisibilityOff /> : <Visibility />}
+                        {showReEnterPassword ? (
+                          <img 
+                            src="/icons/EyeOpen.svg" 
+                            alt="Hide password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        ) : (
+                          <img 
+                            src="/icons/EyeClose.svg" 
+                            alt="Show password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
