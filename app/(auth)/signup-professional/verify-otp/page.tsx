@@ -13,6 +13,7 @@ import {
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { toast } from "sonner";
 import { apiPost } from "@/lib/api";
 import { buildInputData } from "@/utils/validation";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -162,7 +163,7 @@ export default function ProfessionalVerifyOtpPage() {
         } else if (errorMsg.includes("Password already set")) {
           router.push(ROUTES.SIGNUP_PROFESSIONAL_ADD_DETAILS);
         } else {
-          setErrors({ otp: errorMsg });
+          toast.error(errorMsg);
         }
       }
     }
@@ -252,8 +253,8 @@ export default function ProfessionalVerifyOtpPage() {
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: 140,
+                  height: 140,
                   borderRadius: '50%',
                   // bgcolor: 'primary.main',
                   display: 'flex',
@@ -341,11 +342,6 @@ export default function ProfessionalVerifyOtpPage() {
                   />
                 ))}
               </Box>
-              {errors.otp && (
-                <Typography color="error" variant="body2" sx={{ mb: 2, textAlign: "center" }}>
-                  {errors.otp}
-                </Typography>
-              )}
               <Link
                 href="#"
                 onClick={(e) => {

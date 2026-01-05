@@ -99,6 +99,18 @@ export const loginUser = createAsyncThunk<
 
       const response = await apiPost<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN,apiPayload);
 
+      // Check if API returned an error
+      if (!response.success || response.error) {
+        const errorMessage = response.error?.message || "Login failed. Please try again.";
+        return rejectWithValue(errorMessage);
+      }
+
+      // Check if the response data indicates an error status
+      if (response.data && (response.data as any).status === "error") {
+        const errorMessage = (response.data as any).message || "Login failed. Please try again.";
+        return rejectWithValue(errorMessage);
+      }
+
       const data = response.data?.data;
       if (!data) return rejectWithValue("Invalid login response");
 

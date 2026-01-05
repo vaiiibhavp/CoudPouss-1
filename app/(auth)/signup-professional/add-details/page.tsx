@@ -13,6 +13,7 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { toast } from "sonner";
 import { apiPost } from "@/lib/api";
 import { parseMobile, buildInputData } from "@/utils/validation";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -40,6 +41,7 @@ export default function ProfessionalAddDetailsPage() {
   const [loading, setLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
+  const [profilePictureUploaded, setProfilePictureUploaded] = useState(false);
 
   useEffect(() => {
     // Get emailOrMobile from sessionStorage
@@ -51,6 +53,30 @@ export default function ProfessionalAddDetailsPage() {
       router.push(ROUTES.SIGNUP_PROFESSIONAL_ENTER_CONTACT);
     }
   }, [router]);
+
+  // Auto-upload profile picture when email becomes available (if picture was selected first)
+  useEffect(() => {
+    const uploadIfNeeded = async () => {
+      // Only upload if we have a picture, email is available, not currently uploading, and hasn't been uploaded yet
+      if (formData.profilePicture && !uploadingPhoto && !profilePictureUploaded) {
+        let email = formData.email;
+        if (!email && formData.emailOrMobile) {
+          const validData = buildInputData(formData.emailOrMobile);
+          if (validData.email) {
+            email = validData.email;
+          }
+        }
+
+        // If email is now available, upload the picture
+        if (email) {
+          await uploadProfileImage(formData.profilePicture, email);
+        }
+      }
+    };
+
+    uploadIfNeeded();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.email, formData.emailOrMobile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -77,8 +103,29 @@ export default function ProfessionalAddDetailsPage() {
         });
       }
 
-      // Note: Upload will happen on form submit when email is available
-      // This allows user to select photo first, then enter email
+      // Get email from form or emailOrMobile
+      let email = formData.email;
+      if (!email && formData.emailOrMobile) {
+        const validData = buildInputData(formData.emailOrMobile);
+        if (validData.email) {
+          email = validData.email;
+        }
+      }
+
+      // Reset upload status when new file is selected
+      setProfilePictureUploaded(false);
+
+      // Upload immediately if email is available
+      if (email) {
+        await uploadProfileImage(file, email);
+      } else {
+        // If email is not available yet, show warning but keep the file
+        // It will auto-upload when email is entered
+        setErrors((prev) => ({
+          ...prev,
+          profilePicture: "Email is required. Picture will upload automatically when you enter your email.",
+        }));
+      }
     }
   };
 
@@ -90,7 +137,7 @@ export default function ProfessionalAddDetailsPage() {
       formData.append("email", email);
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
-      const url = `${API_BASE_URL}${API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC}`;
+      const url = API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC;
 
       // Get access token from Redux (lazy import to avoid circular dependency)
       let storeInstance: any = null;
@@ -119,14 +166,22 @@ export default function ProfessionalAddDetailsPage() {
 
       if (!response.ok) {
         const errorMsg = data?.message || `HTTP error! status: ${response.status}`;
-        setErrors({ profilePicture: errorMsg });
+        toast.error(errorMsg);
+        setProfilePictureUploaded(false);
         return false;
       }
 
+      setProfilePictureUploaded(true);
+      // Clear any previous errors
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.profilePicture;
+        return newErrors;
+      });
       return true;
     } catch (error: any) {
       console.error("Profile photo upload error:", error);
-      setErrors({ profilePicture: error.message || "Failed to upload profile picture" });
+      toast.error(error.message || "Failed to upload profile picture");
       return false;
     } finally {
       setUploadingPhoto(false);
@@ -174,22 +229,11 @@ export default function ProfessionalAddDetailsPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Get email from form or emailOrMobile
-      let email = formData.email;
-      if (!email && formData.emailOrMobile) {
-        const validData = buildInputData(formData.emailOrMobile);
-        if (validData.email) {
-          email = validData.email;
-        }
-      }
-
-      // Upload profile picture if it exists and email is available
-      if (formData.profilePicture && email) {
-        const uploadSuccess = await uploadProfileImage(formData.profilePicture, email);
-        if (!uploadSuccess) {
-          setLoading(false);
-          return;
-        }
+      // Check if profile picture is still uploading
+      if (uploadingPhoto) {
+        toast.error("Please wait for profile picture upload to complete");
+        setLoading(false);
+        return;
       }
 
       let { data, error } = await apiCallToCreateAccount();
@@ -210,22 +254,12 @@ export default function ProfessionalAddDetailsPage() {
       } else {
         if (error) {
           const errorMsg = error.general || error.msg || "Something Went Wrong";
-          if (errorMsg.includes("Name is required")) {
-            setErrors({ name: errorMsg });
-          } else if (errorMsg.includes("Address")) {
-            setErrors({ address: errorMsg });
-          } else if (errorMsg.includes("country code") || errorMsg.includes("Mobile")) {
-            setErrors({ mobileNo: errorMsg });
-          } else if (errorMsg.includes("email")) {
-            setErrors({ email: errorMsg });
-          } else {
-            setErrors({ submit: errorMsg });
-          }
+          toast.error(errorMsg);
         }
       }
     } catch (error) {
       console.error("Signup error:", error);
-      setErrors({ submit: "Something went wrong. Please try again." });
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -314,8 +348,8 @@ export default function ProfessionalAddDetailsPage() {
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: 140,
+                  height: 140,
                   borderRadius: '50%',
                   // bgcolor: 'primary.main',
                   display: 'flex',
@@ -400,11 +434,6 @@ export default function ProfessionalAddDetailsPage() {
                     </Typography>
                   )}
                 </Box>
-                {errors.profilePicture && (
-                  <Typography color="error" variant="body2" sx={{ mt: 1, textAlign: "center" }}>
-                    {errors.profilePicture}
-                  </Typography>
-                )}
                 {uploadingPhoto && (
                   <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
                     Uploading...
@@ -460,8 +489,8 @@ export default function ProfessionalAddDetailsPage() {
                     placeholder="Enter Name"
                     value={formData.name}
                     onChange={handleChange}
-                    error={!!errors.name}
-                    helperText={errors.name}
+                    error={false}
+                    helperText=""
                     margin="normal"
                     sx={{
                       m: 0
@@ -486,8 +515,8 @@ export default function ProfessionalAddDetailsPage() {
                     placeholder="Enter Mobile No."
                     value={formData.mobileNo}
                     onChange={handleChange}
-                    error={!!errors.mobileNo}
-                    helperText={errors.mobileNo}
+                    error={false}
+                    helperText=""
                     margin="normal" sx={{
                       m: 0
                     }}
@@ -513,8 +542,8 @@ export default function ProfessionalAddDetailsPage() {
                     placeholder="Enter Email"
                     value={formData.email}
                     onChange={handleChange}
-                    error={!!errors.email}
-                    helperText={errors.email}
+                    error={false}
+                    helperText=""
                     margin="normal"
                     sx={{
                       m: 0
@@ -540,8 +569,8 @@ export default function ProfessionalAddDetailsPage() {
                     placeholder="Enter Address"
                     value={formData.address}
                     onChange={handleChange}
-                    error={!!errors.address}
-                    helperText={errors.address}
+                    error={false}
+                    helperText=""
                     margin="normal"
                     multiline
                     rows={3}
@@ -551,11 +580,6 @@ export default function ProfessionalAddDetailsPage() {
                   />
                 </Box>
               </Box>
-              {errors.submit && (
-                <Typography color="error" variant="body2" sx={{ mb: 2 }}>
-                  {errors.submit}
-                </Typography>
-              )}
               <Button
                 type="submit"
                 fullWidth
@@ -576,30 +600,6 @@ export default function ProfessionalAddDetailsPage() {
               >
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
-            </Box>
-
-            {/* Login Link */}
-            <Box sx={{ textAlign: "center", mt: 3 }}>
-              <Typography sx={{
-                color: 'secondary.naturalGray',
-                fontSize: "18px",
-                lineHeight: "20px"
-              }}>
-                Already have an account?{" "}
-                <Link
-                  href={ROUTES.LOGIN}
-                  sx={{
-                    color: 'primary.normal',
-                    textDecoration: 'none',
-                    offset: "3%",
-                    fontWeight: 600,
-                    fontSize: "20px",
-                    lineHeight: "24px"
-                  }}
-                >
-                  Log In
-                </Link>
-              </Typography>
             </Box>
           </Paper>
         </Container>

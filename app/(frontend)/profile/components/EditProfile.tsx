@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -11,37 +11,200 @@ import {
   MenuItem,
   FormControl,
   InputAdornment,
+  CircularProgress,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { apiGet, apiPatch } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+
+interface UserData {
+  id: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  first_name: string;
+  phone_country_code: string;
+  last_name: string;
+  profile_photo_url: string | null;
+}
+
+interface GetUserApiResponse {
+  status: string;
+  message: string;
+  data: {
+    user: UserData;
+  };
+}
 
 interface EditProfileProps {
   onCancel?: () => void;
+  onSuccess?: () => void;
 }
 
-export default function EditProfile({ onCancel }: EditProfileProps) {
-  const [formData, setFormData] = useState({
-    fullName: "Bessie Cooper",
-    email: "michael.mitc@example.com",
-    countryCode: "+91",
-    mobileNumber: "(480) 555-0103",
-    address: "4517 Washington Ave. Manchester, Kentucky 39495",
+// Helper function to upload file with FormData
+async function uploadProfilePhoto(file: File, email: string): Promise<any> {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+  const url = `${API_BASE_URL}userService/auth/upload-profile-photo`;
+  
+  // Get access token from Redux
+  const storeModule = require('@/lib/redux/store');
+  const store = storeModule.store;
+  const { accessToken } = store.getState().auth;
+  
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('email', email);
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: formData,
   });
+  
+  const data = await response.json().catch(() => ({}));
+  
+  if (!response.ok) {
+    throw new Error(data?.message || `HTTP error! status: ${response.status}`);
+  }
+  
+  return data;
+}
+
+export default function EditProfile({ onCancel, onSuccess }: EditProfileProps) {
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    countryCode: "+91",
+    mobileNumber: "",
+    address: "",
+  });
+
+  // Fetch user data on mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setLoading(true);
+      try {
+        const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
+        
+        if (response.success && response.data?.data?.user) {
+          const user = response.data.data.user;
+          setUserData(user);
+          setFormData({
+            fullName: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+            email: user.email || "",
+            countryCode: user.phone_country_code || "+91",
+            mobileNumber: user.phone_number || "",
+            address: user.address || "",
+          });
+          if (user.profile_photo_url) {
+            setPreviewUrl(user.profile_photo_url);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, []);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form submitted:", formData);
-    // After successful submission, you can call onCancel to go back
-    // onCancel?.();
+    setSubmitting(true);
+    
+    try {
+      // Split full name into first and last name
+      const nameParts = formData.fullName.trim().split(/\s+/);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      
+      // Prepare profile update payload
+      const updatePayload = {
+        user_data: {
+          name: formData.fullName.trim(),
+          address: formData.address.trim(),
+        },
+      };
+      
+      // Update profile
+      const updateResponse = await apiPatch(API_ENDPOINTS.PROFILE.UPDATE_PROFILE, updatePayload);
+      
+      if (!updateResponse.success) {
+        throw new Error(updateResponse.error?.message || "Failed to update profile");
+      }
+      
+      // Upload profile photo if a new file is selected
+      if (selectedFile && formData.email) {
+        setUploadingPhoto(true);
+        try {
+          await uploadProfilePhoto(selectedFile, formData.email);
+        } catch (photoError) {
+          console.error("Error uploading profile photo:", photoError);
+          // Don't throw - profile update succeeded, photo upload failed
+        } finally {
+          setUploadingPhoto(false);
+        }
+      }
+      
+      // Call success callback to refresh data
+      onSuccess?.();
+      onCancel?.();
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      alert(error.message || "Failed to update profile. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
     onCancel?.();
   };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -59,7 +222,6 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
           borderRadius: "0.75rem",
           border: "0.0625rem solid #EAF5F4",
           bgcolor: "#FFFFFF",
-          boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
         }}
       >
         {/* Title */}
@@ -84,7 +246,6 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
             alignContent:"center",
             border: "0.0625rem solid #EAF5F4",
             bgcolor: "#FFFFFF",
-            boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
           }}
         >
           <Box
@@ -95,6 +256,7 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
             }}
           >
             <Avatar
+              src={previewUrl || undefined}
               sx={{
                 width: "5rem",
                 height: "5rem",
@@ -104,25 +266,45 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
                 fontWeight: 500,
               }}
             >
-              BC
+              {previewUrl ? null : (
+                formData.fullName
+                  ? formData.fullName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)
+                  : "U"
+              )}
             </Avatar>
-            <Typography
-              component="button"
-              type="button"
-              sx={{
-                color: "#2F6B8E",
-                fontSize: "1rem",
-                fontWeight: 600,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                "&:hover": {
-                  textDecoration: "underline",
-                },
-              }}
-            >
-              Edit picture or avatar
-            </Typography>
+            <Box sx={{
+                display:"flex",
+                alignItems:"center",
+            }} >
+              <input
+                accept="image/*"
+                style={{ display: "none" }}
+                id="profile-photo-upload"
+                type="file"
+                onChange={handleFileChange}
+              />
+              <label htmlFor="profile-photo-upload">
+                <Typography
+                  component="span"
+                  sx={{
+                    color: "#2F6B8E",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  {uploadingPhoto ? "Uploading..." : "Edit picture or avatar"}
+                </Typography>
+              </label>
+            </Box>
           </Box>
         </Box>
 
@@ -137,7 +319,6 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
             alignContent:"center",
             border: "0.0625rem solid #EAF5F4",
             bgcolor: "#FFFFFF",
-            boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
           }}
         >
           <Box sx={{width:"100%"}} component="form" onSubmit={handleSubmit}>
@@ -204,12 +385,12 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
                   fullWidth
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
+                  disabled
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "0.25rem",
                       border: "0.0625rem solid #DCDDDD",
-                      backgroundColor: "#FFFFFF",
+                      backgroundColor: "#F5F5F5",
                       "& fieldset": {
                         border: "none",
                       },
@@ -241,7 +422,7 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
                 <Box sx={{ display: "flex", gap: 1 }}>
                   <FormControl
                     sx={{
-                      minWidth: 80,
+                      minWidth: 100,
                       "& .MuiOutlinedInput-root": {
                         borderRadius: "0.25rem",
                         border: "0.0625rem solid #DCDDDD",
@@ -259,9 +440,16 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
                     }}
                   >
                     <Select
-                      value={formData.countryCode}
+                      value={formData.countryCode || ""}
                       onChange={(e) => handleChange("countryCode", e.target.value)}
+                      displayEmpty
                       IconComponent={KeyboardArrowDownIcon}
+                      renderValue={(selected) => {
+                        if (!selected || selected === "") {
+                          return <Typography sx={{ color: "#858686" }}>+...</Typography>;
+                        }
+                        return selected;
+                      }}
                       sx={{
                         "& .MuiSelect-icon": {
                           color: "#131313",
@@ -272,6 +460,10 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
                       <MenuItem value="+91">+91</MenuItem>
                       <MenuItem value="+1">+1</MenuItem>
                       <MenuItem value="+44">+44</MenuItem>
+                      <MenuItem value="+33">+33</MenuItem>
+                      <MenuItem value="+49">+49</MenuItem>
+                      <MenuItem value="+86">+86</MenuItem>
+                      <MenuItem value="+81">+81</MenuItem>
                     </Select>
                   </FormControl>
                   <TextField
@@ -366,6 +558,7 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
               </Button>
               <Button
                 type="submit"
+                disabled={submitting || uploadingPhoto}
                 sx={{
                   backgroundColor: "#214C65",
                   border: "none",
@@ -378,9 +571,13 @@ export default function EditProfile({ onCancel }: EditProfileProps) {
                   "&:hover": {
                     backgroundColor: "#2F6B8E",
                   },
+                  "&:disabled": {
+                    backgroundColor: "#CCCCCC",
+                    color: "#666666",
+                  },
                 }}
               >
-                Update
+                {submitting || uploadingPhoto ? "Updating..." : "Update"}
               </Button>
             </Box>
           </Box>

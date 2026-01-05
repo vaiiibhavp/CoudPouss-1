@@ -7,16 +7,15 @@ import {
   Container,
   TextField,
   Typography,
-  // Link,
+  Link,
   Paper,
   InputAdornment,
   IconButton,
 } from '@mui/material';
-import Link from 'next/link';
 import { ArrowBack } from '@mui/icons-material';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Formik, Form, Field, FieldProps } from 'formik';
 import * as Yup from 'yup';
 import { ROUTES } from '@/constants/routes';
@@ -27,7 +26,6 @@ import { API_ENDPOINTS } from '@/constants/api';
 import { ApiResponse } from '@/types';
 
 type ResetStep = 'enter-email' | 'verify-otp' | 'set-password';
-type UserType = 'elder' | 'professional';
 
 interface SignUpApiError {
   [key: string]: string;
@@ -86,12 +84,10 @@ const setPasswordSchema = Yup.object().shape({
     .oneOf([Yup.ref('newPassword')], 'Please make sure your passwords match'),
 });
 
-export default function ResetPasswordPage() {
+export default function ProfessionalResetPasswordPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const userType: UserType = (searchParams.get('type') as UserType) || 'elder';
-  // const [step, setStep] = useState<ResetStep>('enter-email');
-  const [step, setStep] = useState<ResetStep>('verify-otp');
+  const userType = 'professional';
+  const [step, setStep] = useState<ResetStep>('enter-email');
   const [formData, setFormData] = useState({
     emailOrMobile: '',
     otp: ['', '', '', ''],
@@ -137,8 +133,8 @@ export default function ResetPasswordPage() {
       let error = {}
       setErrors({})
 
-      // Add user_type to payload if professional
-      const basePayload = userType === 'professional' ? { user_type: 'professional' } : {};
+      // Add user_type to payload for professional
+      const basePayload = { user_type: 'professional' };
 
       if (step === "enter-email") {
         url = API_ENDPOINTS.AUTH.RESET_PASSWORD_START
@@ -371,15 +367,18 @@ export default function ResetPasswordPage() {
                 </Button>
                 <Link
                   href={ROUTES.LOGIN}
-                  style={{
+                  sx={{
                     display: 'flex',
                     alignItems: 'center',
                     lineHeight: "140%",
-                    fontWeight: 400,
+                    fontWeight:400,
                     justifyContent: 'center',
                     color: '#424242',
                     textDecoration: 'none',
                     fontSize: "1rem",
+                    '&:hover': {
+                      textDecoration: 'underline',
+                    },
                   }}
                 >
                   <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
@@ -398,19 +397,6 @@ export default function ResetPasswordPage() {
             </Typography>
             <Typography sx={{ mb: 3, color: "#787878", lineHeight: "1.5rem", fontSize: "1.125rem", fontWeight: 500 }}>
               To continue Please enter the 4 Digit OTP sent to your Email or Phone Number.
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: { xs: "16px", md: "18px" },
-                fontWeight: "500",
-                lineHeight: "100%",
-                color: "#555555",
-                margin: "0 auto",
-                mb: { xs: 1.5, md: 2 },
-                
-              }}
-            >
-              Code
             </Typography>
             <Formik
               initialValues={{ otp: formData.otp || ["", "", "", ""] }}
@@ -469,16 +455,7 @@ export default function ResetPasswordPage() {
 
                 return (
                   <Form>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: "20px",
-                        justifyContent: "space-between",
-                        // maxWidth: "382px",
-                        margin: "0 auto",
-                        mb: formikErrors.otp && submitCount > 0 ? 1 : 2,
-                      }}
-                    >
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-between', mb: formikErrors.otp && submitCount > 0 ? 1 : 2 }}>
                       {values.otp.map((digit, index) => (
                         <TextField
                           key={index}
@@ -495,31 +472,22 @@ export default function ResetPasswordPage() {
                             pattern: "[0-9]*",
                             style: {
                               textAlign: "center",
-                              fontSize: "1.25rem",
+                              fontSize: "1.5rem",
                               fontWeight: "bold",
                             },
                           }}
-                          InputProps={{
-                            sx: {
-                              "& input": {
-                                fontSize: { xs: "1.125rem", sm: "1.25rem", md: "1.5rem" },
-                              },
-                            },
-                          }}
                           sx={{
-                            borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
-                            width: "80.5px",
-                            "& .MuiOutlinedInput-root": {
-                              height: "54px",
+                            width: 60,
+                            '& .MuiOutlinedInput-root': {
+                              height: 60,
+                              width: "5.03125rem",
                               borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
-                              width: "80.5px",
-                              borderRadius: "12px",
                             },
                           }}
                         />
                       ))}
                     </Box>
-                    {formikErrors.otp && submitCount > 0 && (
+                    {(formikErrors.otp && submitCount > 0) || errors.otp ? (
                       <Typography
                         sx={{
                           fontWeight: 400,
@@ -532,40 +500,27 @@ export default function ResetPasswordPage() {
                           textAlign: "center",
                         }}
                       >
-                        Please enter valid code
+                        {formikErrors.otp || errors.otp || "Please enter valid code"}
                       </Typography>
-                    )}
-                    {errors.otp && !formikErrors.otp && (
-                      <Typography
-                        sx={{
-                          fontWeight: 400,
-                          fontSize: "16px",
-                          lineHeight: "140%",
-                          letterSpacing: "0%",
-                          color: "#EF5350",
-                          mb: 2,
-                          mt: "12px",
-                          textAlign: "center",
-                        }}
-                      >
-                        {errors.otp}
-                      </Typography>
-                    )}
+                    ) : null}
                     <Link
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
                         apiCallToResetPassword("resendOTP");   
                       }}
-                      style={{
+                      sx={{
                         display: 'block',
                         textAlign: 'center',
-                        marginBottom: "2.4375rem",
-                        color: '#2C6587',
+                        mb: "2.4375rem",
+                        color: 'primary.normal',
                         textDecoration: 'none',
                         fontSize: '1.25rem',
                         lineHeight: '1.5rem',
                         fontWeight: 600,
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
                       }}
                     >
                       Resend code
@@ -577,14 +532,12 @@ export default function ResetPasswordPage() {
                       size="large"
                       disabled={loading}
                       sx={{
-                        bgcolor: '#214C65',
+                        bgcolor: '#2F6B8E',
                         color: 'white',
                         py: 1.5,
-                        fontWeight: 700,
-
                         mb: 2,
                         textTransform: 'none',
-                        fontSize: '1.188rem',
+                        fontSize: '1rem',
                         '&:hover': {
                           bgcolor: '#25608A',
                         },
@@ -594,7 +547,7 @@ export default function ResetPasswordPage() {
                     </Button>
                     <Link
                       href={ROUTES.LOGIN}
-                      style={{
+                      sx={{
                         display: 'flex',
                         alignItems: 'center',
                         lineHeight: "140%",
@@ -602,6 +555,9 @@ export default function ResetPasswordPage() {
                         color: '#424242',
                         textDecoration: 'none',
                         fontSize: "1rem",
+                        '&:hover': {
+                          textDecoration: 'underline',
+                        },
                       }}
                     >
                       <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
@@ -817,7 +773,7 @@ export default function ResetPasswordPage() {
                 </Button>
                 <Link
                   href={ROUTES.LOGIN}
-                  style={{
+                  sx={{
                     display: 'flex',
                     alignItems: 'center',
                     lineHeight: "140%",
@@ -825,6 +781,9 @@ export default function ResetPasswordPage() {
                     color: '#424242',
                     textDecoration: 'none',
                     fontSize: "1rem",
+                    '&:hover': {
+                      textDecoration: 'underline',
+                    },
                   }}
                 >
                   <ArrowBack sx={{ fontSize: "1.25rem", mr: "0.75rem" }} />
@@ -934,3 +893,4 @@ export default function ResetPasswordPage() {
     </Box>
   );
 }
+

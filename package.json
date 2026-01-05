@@ -15,13 +15,19 @@
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
     "@reduxjs/toolkit": "^2.11.0",
+    "formik": "^2.4.9",
+    "google-libphonenumber": "^3.2.43",
     "next": "^16.0.7",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "react-redux": "^9.2.0"
+    "react-international-phone": "^4.6.1",
+    "react-redux": "^9.2.0",
+    "sonner": "^2.0.7",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/google-libphonenumber": "^7.4.30",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

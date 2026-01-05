@@ -45,12 +45,15 @@ const getCategoryIconKey = (categoryName: string): string => {
   const normalized = categoryName.toLowerCase();
   if (normalized.includes("diy") || normalized === "diy") return "diy";
   if (normalized.includes("garden")) return "gardening";
-  if (normalized.includes("move") || normalized.includes("transport")) return "moving";
-  if (normalized.includes("housekeep") || normalized.includes("clean")) return "housekeeping";
+  if (normalized.includes("move") || normalized.includes("transport"))
+    return "moving";
+  if (normalized.includes("housekeep") || normalized.includes("clean"))
+    return "housekeeping";
   if (normalized.includes("child")) return "childcare";
   if (normalized.includes("pet")) return "pets";
   if (normalized.includes("tech") || normalized.includes("it")) return "it";
-  if (normalized.includes("homecare") || normalized.includes("care")) return "homecare";
+  if (normalized.includes("homecare") || normalized.includes("care"))
+    return "homecare";
   if (normalized.includes("personal care")) return "homecare";
   return "diy"; // Default fallback
 };
@@ -60,17 +63,22 @@ const getServiceKey = (categoryName: string): string => {
   const normalized = categoryName.toLowerCase();
   if (normalized.includes("diy") || normalized === "diy") return "diy";
   if (normalized.includes("garden")) return "gardening";
-  if (normalized.includes("move") || normalized.includes("transport")) return "moving";
-  if (normalized.includes("housekeep") || normalized.includes("clean")) return "housekeeping";
+  if (normalized.includes("move") || normalized.includes("transport"))
+    return "moving";
+  if (normalized.includes("housekeep") || normalized.includes("clean"))
+    return "housekeeping";
   if (normalized.includes("child")) return "childcare";
   if (normalized.includes("pet")) return "pets";
   if (normalized.includes("tech") || normalized.includes("it")) return "it";
-  if (normalized.includes("homecare") || normalized.includes("care")) return "homecare";
+  if (normalized.includes("homecare") || normalized.includes("care"))
+    return "homecare";
   if (normalized.includes("personal care")) return "homecare";
   return "diy"; // Default fallback
 };
 
-const services: { [key: string]: { id: number; name: string; image: string }[] } = {
+const services: {
+  [key: string]: { id: number; name: string; image: string }[];
+} = {
   diy: [
     { id: 1, name: "Furniture Assembly", image: "/image/main.png" },
     { id: 2, name: "Interior Painting", image: "/image/main.png" },
@@ -299,7 +307,6 @@ const CategoryIcon = ({
   return cloneElementWithColor(icon, isSelected);
 };
 
-
 export default function SelectCategoryPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -465,23 +472,27 @@ export default function SelectCategoryPage() {
           >
             {/* Logo Section */}
             <Box sx={{ mb: 4 }}>
-              <Box sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.526875rem"
-              }} >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.526875rem",
+                }}
+              >
                 <Image
-                  alt='logo'
+                  alt="logo"
                   width={80}
                   height={80}
                   src={"/icons/appLogo.png"}
                 />
-                <Typography sx={{
-                  color: "primary.normal",
-                  fontSize: "1.25rem",
-                  lineHeight: "1.5rem",
-                  fontWeight: 600
-                }}>
+                <Typography
+                  sx={{
+                    color: "primary.normal",
+                    fontSize: "1.25rem",
+                    lineHeight: "1.5rem",
+                    fontWeight: 600,
+                  }}
+                >
                   CoudPouss
                 </Typography>
               </Box>
@@ -491,19 +502,19 @@ export default function SelectCategoryPage() {
             <Box>
               <Typography
                 sx={{
-                  fontWeight: 500,
-                  fontSize: `1.5rem`,
-                  color: `primary.normal`,
+                  fontWeight: 600,
+                  fontSize: `20px`,
+                  lineHeight: "24px",
+                  color: `#323232`,
                   mb: "0.75rem",
-                  lineHeight: "1.75rem",
-                  textAlign: "left"
+                  textAlign: "left",
                 }}
               >
                 Select A Category
               </Typography>
               <Typography
                 sx={{
-                  fontWeight: 500,
+                  fontWeight: 600,
                   fontSize: "1rem",
                   textAlign: "left",
                   lineHeight: "150%",
@@ -512,17 +523,18 @@ export default function SelectCategoryPage() {
                   color: "#939393",
                 }}
               >
-                Choose a category that best matches your services. This helps us connect you with the right clients.
+                Choose a category that best matches your services. This helps us
+                connect you with the right clients.
               </Typography>
 
               {/* Category Dropdown */}
               <Typography
                 sx={{
                   fontWeight: 500,
-                  fontSize: "1.0625rem",
-                  lineHeight: "1.25rem",
+                  fontSize: "17px",
+                  lineHeight: "20px",
                   color: "#424242",
-                  mb: "0.5rem"
+                  mb: "0.5rem",
                 }}
               >
                 Select a category
@@ -550,7 +562,9 @@ export default function SelectCategoryPage() {
                     }
 
                     const cat = categories.find(
-                      (c) => normalizeCategoryValue(c.category_name) === selected || c.id === selected
+                      (c) =>
+                        normalizeCategoryValue(c.category_name) === selected ||
+                        c.id === selected
                     );
 
                     if (!cat) {
@@ -601,7 +615,14 @@ export default function SelectCategoryPage() {
                 >
                   {loading && (
                     <MenuItem disabled>
-                      <Box sx={{ display: "flex", justifyContent: "center", width: "100%", py: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          width: "100%",
+                          py: 2,
+                        }}
+                      >
                         <CircularProgress size={24} />
                       </Box>
                     </MenuItem>
@@ -622,8 +643,12 @@ export default function SelectCategoryPage() {
                   )}
                   {!loading &&
                     categories.map((cat) => {
-                      const categoryValue = normalizeCategoryValue(cat.category_name);
-                      const isSelected = selectedCategory === categoryValue || selectedCategory === cat.id;
+                      const categoryValue = normalizeCategoryValue(
+                        cat.category_name
+                      );
+                      const isSelected =
+                        selectedCategory === categoryValue ||
+                        selectedCategory === cat.id;
                       const iconKey = getCategoryIconKey(cat.category_name);
 
                       return (
@@ -682,94 +707,95 @@ export default function SelectCategoryPage() {
               </FormControl>
 
               {/* Service Selection */}
-              {selectedCategory && (() => {
-                // Find the category from API to get the category name
-                const apiCategory = categories.find(
-                  (c) =>
-                    normalizeCategoryValue(c.category_name) === selectedCategory ||
-                    c.id === selectedCategory
-                );
-                const serviceKey = apiCategory
-                  ? getServiceKey(apiCategory.category_name)
-                  : selectedCategory;
-                const categoryServices = services[serviceKey] || [];
+              {selectedCategory &&
+                (() => {
+                  // Find the category from API to get the category name
+                  const apiCategory = categories.find(
+                    (c) =>
+                      normalizeCategoryValue(c.category_name) ===
+                        selectedCategory || c.id === selectedCategory
+                  );
+                  const serviceKey = apiCategory
+                    ? getServiceKey(apiCategory.category_name)
+                    : selectedCategory;
+                  const categoryServices = services[serviceKey] || [];
 
-                return categoryServices.length > 0 ? (
-                  <Box sx={{ mb: 3 }}>
-                    {categoryServices.map((service) => (
-                      <Paper
-                        key={service.id}
-                        elevation={0}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 2,
-                          p: 2,
-                          mb: 2,
-                          border: "1px solid #e5e7eb",
-                          borderRadius: 2,
-                          cursor: "pointer",
-                          bgcolor:
-                            selectedServices[selectedCategory]?.includes(
-                              service.id
-                            ) ?? false
-                              ? "#f9fafb"
-                              : "white",
-                          "&:hover": {
-                            bgcolor: "#f9fafb",
-                          },
-                        }}
-                        onClick={() => handleServiceToggle(service.id)}
-                      >
-                        <Box
+                  return categoryServices.length > 0 ? (
+                    <Box sx={{ mb: 3 }}>
+                      {categoryServices.map((service) => (
+                        <Paper
+                          key={service.id}
+                          elevation={0}
                           sx={{
-                            width: 100,
-                            height: 80,
-                            borderRadius: 1,
-                            overflow: "hidden",
-                            bgcolor: "#f3f4f6",
-                            flexShrink: 0,
-                            position: "relative",
-                          }}
-                        >
-                          <Image
-                            src={service.image}
-                            alt={service.name}
-                            fill
-                            style={{ objectFit: "cover" }}
-                          />
-                        </Box>
-                        <Typography
-                          sx={{
-                            flex: 1,
-                            fontWeight: 600,
-                            fontSize: "1.125rem",
-                            lineHeight: "1.25rem",
-                            letterSpacing: "0%",
-                            color: "#323232",
-                            ml: "0.875rem", // 14px
-                          }}
-                        >
-                          {service.name}
-                        </Typography>
-                        <Checkbox
-                          checked={
-                            selectedServices[selectedCategory]?.includes(
-                              service.id
-                            ) ?? false
-                          }
-                          sx={{
-                            color: "#d1d5db",
-                            "&.Mui-checked": {
-                              color: "#2F6B8E",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            p: 2,
+                            mb: 2,
+                            border: "1px solid #e5e7eb",
+                            borderRadius: 2,
+                            cursor: "pointer",
+                            bgcolor:
+                              selectedServices[selectedCategory]?.includes(
+                                service.id
+                              ) ?? false
+                                ? "#f9fafb"
+                                : "white",
+                            "&:hover": {
+                              bgcolor: "#f9fafb",
                             },
                           }}
-                        />
-                      </Paper>
-                    ))}
-                  </Box>
-                ) : null;
-              })()}
+                          onClick={() => handleServiceToggle(service.id)}
+                        >
+                          <Box
+                            sx={{
+                              width: 100,
+                              height: 80,
+                              borderRadius: 1,
+                              overflow: "hidden",
+                              bgcolor: "#f3f4f6",
+                              flexShrink: 0,
+                              position: "relative",
+                            }}
+                          >
+                            <Image
+                              src={service.image}
+                              alt={service.name}
+                              fill
+                              style={{ objectFit: "cover" }}
+                            />
+                          </Box>
+                          <Typography
+                            sx={{
+                              flex: 1,
+                              fontWeight: 600,
+                              fontSize: "1.125rem",
+                              lineHeight: "1.25rem",
+                              letterSpacing: "0%",
+                              color: "#323232",
+                              ml: "0.875rem", // 14px
+                            }}
+                          >
+                            {service.name}
+                          </Typography>
+                          <Checkbox
+                            checked={
+                              selectedServices[selectedCategory]?.includes(
+                                service.id
+                              ) ?? false
+                            }
+                            sx={{
+                              color: "#d1d5db",
+                              "&.Mui-checked": {
+                                color: "#2F6B8E",
+                              },
+                            }}
+                          />
+                        </Paper>
+                      ))}
+                    </Box>
+                  ) : null;
+                })()}
 
               {/* Selected Services Display - across all categories */}
               {Object.values(selectedServices).some(
@@ -804,8 +830,8 @@ export default function SelectCategoryPage() {
                             category={getCategoryIconKey(
                               categories.find(
                                 (c) =>
-                                  normalizeCategoryValue(c.category_name) === cat ||
-                                  c.id === cat
+                                  normalizeCategoryValue(c.category_name) ===
+                                    cat || c.id === cat
                               )?.category_name || cat
                             )}
                             isSelected={true}
@@ -819,13 +845,11 @@ export default function SelectCategoryPage() {
                               color: "#2C6587",
                             }}
                           >
-                            {
-                              categories.find(
-                                (c) =>
-                                  normalizeCategoryValue(c.category_name) === cat ||
-                                  c.id === cat
-                              )?.category_name || cat
-                            }
+                            {categories.find(
+                              (c) =>
+                                normalizeCategoryValue(c.category_name) ===
+                                  cat || c.id === cat
+                            )?.category_name || cat}
                           </Typography>
                         </Box>
 
@@ -840,8 +864,9 @@ export default function SelectCategoryPage() {
                             ? getServiceKey(apiCategory.category_name)
                             : cat;
                           const categoryServices = services[serviceKey] || [];
-                          const filteredServices = categoryServices.filter((service) =>
-                            selectedServices[cat]?.includes(service.id)
+                          const filteredServices = categoryServices.filter(
+                            (service) =>
+                              selectedServices[cat]?.includes(service.id)
                           );
 
                           return filteredServices.map((service) => (
@@ -891,7 +916,9 @@ export default function SelectCategoryPage() {
                                 {service.name}
                               </Typography>
                               <IconButton
-                                onClick={() => handleRemoveService(cat, service.id)}
+                                onClick={() =>
+                                  handleRemoveService(cat, service.id)
+                                }
                                 sx={{
                                   "&:hover": {
                                     bgcolor: "rgba(239, 68, 68, 0.1)",
@@ -924,9 +951,11 @@ export default function SelectCategoryPage() {
                   sx={{
                     borderColor: "primary.dark",
                     color: "primary.dark",
-                    py: 1.5,
                     textTransform: "none",
-                    fontSize: "1rem",
+                    py: "18px",
+                    lineHeight: "20px",
+                    fontWeight: 700,
+                    fontSize: "19px",
                     "&:hover": {
                       borderColor: "#25608A",
                       bgcolor: "rgba(47, 107, 142, 0.04)",
@@ -954,9 +983,11 @@ export default function SelectCategoryPage() {
                   sx={{
                     bgcolor: "primary.dark",
                     color: "white",
-                    py: 1.5,
                     textTransform: "none",
-                    fontSize: "1rem",
+                    py: "18px",
+                    lineHeight: "20px",
+                    fontWeight: 700,
+                    fontSize: "19px",
                     "&:hover": {
                       bgcolor: "#25608A",
                     },

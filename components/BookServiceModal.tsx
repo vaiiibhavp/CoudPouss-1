@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import Image from "next/image";
+import { apiGet, apiPost, apiPostFormData } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 interface BookServiceModalProps {
   open: boolean;
@@ -382,63 +384,7 @@ const steps = [
   { id: 5, title: "Preview", progress: 100 },
 ];
 
-const categories = [
-  { value: "diy", label: "DIY", icon: "/icons/hammerWith.png" },
-  { value: "gardening", label: "Gardening", icon: "/icons/gardening-icon.png" },
-  { value: "moving", label: "Moving", icon: "/icons/moving-icon.png" },
-  {
-    value: "housekeeping",
-    label: "Housekeeping",
-    icon: "/icons/housekeeping-icon.png",
-  },
-  { value: "childcare", label: "Childcare", icon: "/icons/childcare-icon.png" },
-  { value: "pets", label: "Pets", icon: "/icons/pets-icon.png" },
-  { value: "it", label: "IT", icon: "/icons/it-icon.png" },
-  { value: "homecare", label: "Homecare", icon: "/icons/gardeningMenu.png" },
-];
-
-const services = {
-  diy: [
-    { id: 1, name: "Furniture Assembly", image: "/image/service-image-1.png" },
-    { id: 2, name: "Interior Painting", image: "/image/service-image-2.png" },
-    { id: 3, name: "TV Installation", image: "/image/service-image-3.png" },
-  ],
-  gardening: [
-    { id: 1, name: "Lawn Mowing", image: "/image/service-image-1.png" },
-    { id: 2, name: "Garden Maintenance", image: "/image/service-image-2.png" },
-  ],
-  moving: [
-    { id: 1, name: "Moving Help", image: "/image/service-image-1.png" },
-    { id: 2, name: "Packing Service", image: "/image/service-image-2.png" },
-  ],
-  housekeeping: [
-    { id: 1, name: "House Cleaning", image: "/image/service-image-1.png" },
-    { id: 2, name: "Deep Cleaning", image: "/image/service-image-2.png" },
-  ],
-  childcare: [
-    { id: 1, name: "Babysitting", image: "/image/service-image-1.png" },
-    { id: 2, name: "Child Care", image: "/image/service-image-2.png" },
-  ],
-  pets: [
-    { id: 1, name: "Pet Sitting", image: "/image/service-image-1.png" },
-    { id: 2, name: "Dog Walking", image: "/image/service-image-2.png" },
-  ],
-  it: [
-    { id: 1, name: "Computer Repair", image: "/image/service-image-1.png" },
-    { id: 2, name: "IT Support", image: "/image/service-image-2.png" },
-  ],
-  homecare: [
-    { id: 1, name: "House Cleaning", image: "/image/service-image-1.png" },
-    { id: 2, name: "Kitchen Cleaning", image: "/image/service-image-2.png" },
-  ],
-  transport: [
-    { id: 1, name: "Moving Help", image: "/image/service-image-1.png" },
-    { id: 2, name: "Delivery Service", image: "/image/service-image-2.png" },
-  ],
-  "personal-care": [
-    { id: 1, name: "Personal Care", image: "/image/service-image-1.png" },
-  ],
-};
+// Categories and services will be fetched from API
 
 export default function BookServiceModal({
   open,
@@ -447,7 +393,7 @@ export default function BookServiceModal({
   const [currentStep, setCurrentStep] = useState(1);
   const [serviceProvider, setServiceProvider] = useState("professional");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedService, setSelectedService] = useState<number | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
   const [serviceDescription, setServiceDescription] = useState("");
   const [valuation, setValuation] = useState("449.00");
   const [selectedDate, setSelectedDate] = useState("16");
@@ -461,28 +407,143 @@ export default function BookServiceModal({
   const [productName, setProductName] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [descriptionFiles, setDescriptionFiles] = useState<File[]>([]);
+  const [barterPhotoFiles, setBarterPhotoFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [categoryId, setCategoryId] = useState<string>("");
+  const [subCategoryId, setSubCategoryId] = useState<string>("");
+  const [apiCategories, setApiCategories] = useState<Array<{
+    id: string;
+    category_name: string;
+    category_logo: string;
+  }>>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [subcategories, setSubcategories] = useState<Array<{
+    id: string;
+    subcategory_name: string;
+    image: string | null;
+  }>>([]);
+  const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
+
+  // Fetch categories from API
+  const fetchCategories = useCallback(async () => {
+    setCategoriesLoading(true);
+    try {
+      const response = await apiGet<{
+        message: string;
+        data: Array<{
+          id: string;
+          category_name: string;
+          category_logo: string;
+        }>;
+        success: boolean;
+        status_code: number;
+      }>(API_ENDPOINTS.HOME.ALL_CATEGORIES);
+
+      if (response.success && response.data?.data) {
+        setApiCategories(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, []);
+
+  // Fetch subcategories for selected category
+  const fetchSubcategories = useCallback(async (catId: string) => {
+    setSubcategoriesLoading(true);
+    try {
+      const endpoint = `${API_ENDPOINTS.HOME.HOME}/${catId}`;
+      const response = await apiGet<{
+        message: string;
+        data: {
+          Banner: {
+            url: string | null;
+            category_name: string;
+            file_name: string | null;
+            file_type: string | null;
+          };
+          subcategories: Array<{
+            id: string;
+            subcategory_name: string;
+            image: string | null;
+          }>;
+        };
+        success: boolean;
+        status_code: number;
+      }>(endpoint);
+
+      if (response.success && response.data?.data) {
+        setSubcategories(response.data.data.subcategories || []);
+      }
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      setSubcategories([]);
+    } finally {
+      setSubcategoriesLoading(false);
+    }
+  }, []);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    if (open) {
+      fetchCategories();
+    }
+  }, [open, fetchCategories]);
+
+  // Reset all form state to initial values
+  const resetForm = useCallback(() => {
+    setCurrentStep(1);
+    setServiceProvider("professional");
+    setSelectedCategory("");
+    setSelectedService(null);
+    setServiceDescription("");
+    setValuation("449.00");
+    setSelectedDate("16");
+    setCurrentMonth(new Date().getMonth());
+    setCurrentYear(new Date().getFullYear());
+    setSelectedTime({ hour: "10", minute: "00", period: "AM" });
+    setProductName("");
+    setQuantity(1);
+    setShowSuccess(false);
+    setDescriptionFiles([]);
+    setBarterPhotoFiles([]);
+    setCategoryId("");
+    setSubCategoryId("");
+    setSubcategories([]);
+  }, []);
+
+  // Reset form when modal is closed
+  useEffect(() => {
+    if (!open) {
+      resetForm();
+    }
+  }, [open, resetForm]);
+
+  // Auto-close success modal after 2 seconds
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => {
+        setShowSuccess(false);
+        resetForm();
+        onClose();
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccess, onClose, resetForm]);
 
   // Calculate progress based on current step and total steps
   const getProgress = () => {
     if (serviceProvider === "non-professional") {
-      const progressMap: { [key: number]: number } = {
-        1: 15,
-        2: 20,
-        3: 70,
-        4: 80,
-        5: 85, // Barter Product Details
-        6: 100, // Preview
-      };
-      return progressMap[currentStep] || 0;
+      // Non-professional has 6 steps total
+      const totalSteps = 6;
+      return Math.round((currentStep / totalSteps) * 100);
     } else {
-      const progressMap: { [key: number]: number } = {
-        1: 15,
-        2: 20,
-        3: 70,
-        4: 80,
-        5: 100, // Preview
-      };
-      return progressMap[currentStep] || 0;
+      // Professional has 5 steps total
+      const totalSteps = 5;
+      return Math.round((currentStep / totalSteps) * 100);
     }
   };
 
@@ -503,30 +564,158 @@ export default function BookServiceModal({
     }
   };
 
-  const handleSubmit = () => {
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      onClose();
-      // Reset form
-      setCurrentStep(1);
-      setServiceProvider("professional");
-      setSelectedCategory("");
-      setSelectedService(null);
-      setServiceDescription("");
-      setValuation("449.00");
-      setSelectedDate("16");
-      setCurrentMonth(new Date().getMonth());
-      setCurrentYear(new Date().getFullYear());
-      setSelectedTime({ hour: "10", minute: "00", period: "AM" });
-      setProductName("");
-      setQuantity(1);
-    }, 3000);
+  // Upload a single file and return storage key
+  const uploadFile = async (file: File): Promise<string | null> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const response = await apiPostFormData<{ storage_key: string }>(
+        API_ENDPOINTS.SERVICE_REQUEST.UPLOAD_FILE,
+        formData
+      );
+
+      if (response.success && response.data?.storage_key) {
+        return response.data.storage_key;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      return null;
+    }
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setSelectedService(null);
+  // Upload multiple files and return array of storage keys
+  const uploadFiles = async (files: File[]): Promise<Array<{ storage_key: string }>> => {
+    const uploadPromises = files.map((file) => uploadFile(file));
+    const storageKeys = await Promise.all(uploadPromises);
+    return storageKeys
+      .filter((key): key is string => key !== null)
+      .map((key) => ({ storage_key: key }));
+  };
+
+  // Format datetime for API (ISO 8601 format)
+  const formatDateTime = (): string => {
+    const date = new Date(
+      currentYear,
+      currentMonth,
+      parseInt(selectedDate),
+      selectedTime.period === "AM" 
+        ? parseInt(selectedTime.hour) === 12 ? 0 : parseInt(selectedTime.hour)
+        : parseInt(selectedTime.hour) === 12 ? 12 : parseInt(selectedTime.hour) + 12,
+      parseInt(selectedTime.minute)
+    );
+    return date.toISOString();
+  };
+
+  const handleSubmit = async () => {
+    if (!categoryId || !subCategoryId) {
+      alert("Please select a category and service");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Upload description files first
+      const descriptionFileKeys = await uploadFiles(descriptionFiles);
+      
+      // Upload barter photo files if non-professional
+      let barterPhotoKeys: Array<{ storage_key: string }> = [];
+      if (serviceProvider === "non-professional" && barterPhotoFiles.length > 0) {
+        barterPhotoKeys = await uploadFiles(barterPhotoFiles);
+      }
+
+      // Build request body
+      const isProfessional = serviceProvider === "professional";
+      const chosenDateTime = formatDateTime();
+
+      const requestBody: any = {
+        is_professional: isProfessional,
+        category_id: categoryId,
+        sub_category_id: subCategoryId,
+        description: serviceDescription,
+        description_files: descriptionFileKeys,
+        chosen_datetime: chosenDateTime,
+      };
+
+      if (isProfessional) {
+        // Professional service request
+        const validationAmount = parseFloat(valuation.replace(",", ""));
+        const platformFees = validationAmount * 0.032; // 3.2% platform fee
+        const tax = validationAmount * 0.072; // 7.2% tax
+
+        requestBody.validation_amount = validationAmount;
+        requestBody.platform_fees = parseFloat(platformFees.toFixed(2));
+        requestBody.tax = parseFloat(tax.toFixed(2));
+        requestBody.task_status = "open";
+      } else {
+        // Non-professional service request (barter)
+        if (productName && barterPhotoKeys.length > 0) {
+          requestBody.barter_product = {
+            product_name: productName,
+            quantity: quantity,
+            barter_photo_files: barterPhotoKeys,
+          };
+        }
+      }
+
+      // Create service request
+      const response = await apiPost(API_ENDPOINTS.SERVICE_REQUEST.CREATE, requestBody);
+
+      if (response.success) {
+        setShowSuccess(true);
+      } else {
+        alert(response.error?.message || "Failed to create service request");
+      }
+    } catch (error) {
+      console.error("Error creating service request:", error);
+      alert("An error occurred while creating the service request");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    const category = apiCategories.find((c) => c.id === categoryId);
+    if (category) {
+      setSelectedCategory(categoryId);
+      setCategoryId(categoryId);
+      setSelectedService(null);
+      setSubCategoryId("");
+      setSubcategories([]);
+      // Fetch subcategories for selected category
+      fetchSubcategories(categoryId);
+    }
+  };
+
+  const handleServiceSelect = (subcategoryId: string) => {
+    const subcategory = subcategories.find((s) => s.id === subcategoryId);
+    if (subcategory) {
+      setSelectedService(subcategoryId);
+      setSubCategoryId(subcategoryId);
+    }
+  };
+
+  const handleDescriptionFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setDescriptionFiles((prev) => {
+        const newFiles = [...prev];
+        newFiles[index] = file;
+        return newFiles;
+      });
+    }
+  };
+
+  const handleBarterPhotoChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBarterPhotoFiles((prev) => {
+        const newFiles = [...prev];
+        newFiles[index] = file;
+        return newFiles;
+      });
+    }
   };
 
   // Calendar helper functions
@@ -704,8 +893,16 @@ export default function BookServiceModal({
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 displayEmpty
                 IconComponent={KeyboardArrowDownIcon}
+                disabled={categoriesLoading}
                 renderValue={(selected) => {
-                  const cat = categories.find((c) => c.value === selected);
+                  if (categoriesLoading) {
+                    return (
+                      <Typography color="text.secondary">
+                        Loading categories...
+                      </Typography>
+                    );
+                  }
+                  const cat = apiCategories.find((c) => c.id === selected);
                   if (!cat)
                     return (
                       <Typography color="text.secondary">
@@ -714,13 +911,23 @@ export default function BookServiceModal({
                     );
                   return (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CategoryIcon category={cat.value} isSelected={true} />
+                      {cat.category_logo ? (
+                        <Image
+                          src={cat.category_logo}
+                          alt={cat.category_name}
+                          width={24}
+                          height={24}
+                          style={{ objectFit: "contain" }}
+                        />
+                      ) : (
+                        <CategoryIcon category={cat.category_name.toLowerCase()} isSelected={true} />
+                      )}
                       <Typography
                         sx={{
                           color: "primary.normal",
                         }}
                       >
-                        {cat.label}
+                        {cat.category_name}
                       </Typography>
                     </Box>
                   );
@@ -737,9 +944,9 @@ export default function BookServiceModal({
                   PaperProps: {
                     elevation: 3,
                     sx: {
-                      maxHeight: 250,     // adjust as needed
+                      maxHeight: 250,
                       overflowY: "auto",
-                      mt: 1, // small gap if you want
+                      mt: 1,
                     },
                   },
                 }}
@@ -754,131 +961,171 @@ export default function BookServiceModal({
                   },
                 }}
               >
-                {categories.map((cat) => {
-                  const isSelected = selectedCategory === cat.value;
-                  return (
-                    <MenuItem
-                      key={cat.value}
-                      value={cat.value}
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        fontWeight: 400,
-                        fontSize: "1rem",
-                        lineHeight: "140%",
-                        letterSpacing: "0%",
-                        color: isSelected ? "primary.normal" : "text.primary",
-                      }}
-                    >
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                {categoriesLoading ? (
+                  <MenuItem disabled>
+                    <Typography color="text.secondary">Loading categories...</Typography>
+                  </MenuItem>
+                ) : apiCategories.length === 0 ? (
+                  <MenuItem disabled>
+                    <Typography color="text.secondary">No categories available</Typography>
+                  </MenuItem>
+                ) : (
+                  apiCategories.map((cat) => {
+                    const isSelected = selectedCategory === cat.id;
+                    return (
+                      <MenuItem
+                        key={cat.id}
+                        value={cat.id}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          fontWeight: 400,
+                          fontSize: "1rem",
+                          lineHeight: "140%",
+                          letterSpacing: "0%",
+                          color: isSelected ? "primary.normal" : "text.primary",
+                        }}
                       >
-                        <CategoryIcon
-                          category={cat.value}
-                          isSelected={isSelected}
-                        />
-                        <Typography
-                          sx={{
-                            fontWeight: 400,
-                            fontSize: "1rem",
-                            lineHeight: "140%",
-                            letterSpacing: "0%",
-                            color: isSelected
-                              ? "primary.normal"
-                              : "text.primary",
-                          }}
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
-                          {cat.label}
-                        </Typography>
-                      </Box>
-                      <Radio checked={isSelected} />
-                    </MenuItem>
-                  );
-                })}
+                          {cat.category_logo ? (
+                            <Image
+                              src={cat.category_logo}
+                              alt={cat.category_name}
+                              width={24}
+                              height={24}
+                              style={{ objectFit: "contain" }}
+                            />
+                          ) : (
+                            <CategoryIcon
+                              category={cat.category_name.toLowerCase()}
+                              isSelected={isSelected}
+                            />
+                          )}
+                          <Typography
+                            sx={{
+                              fontWeight: 400,
+                              fontSize: "1rem",
+                              lineHeight: "140%",
+                              letterSpacing: "0%",
+                              color: isSelected
+                                ? "primary.normal"
+                                : "text.primary",
+                            }}
+                          >
+                            {cat.category_name}
+                          </Typography>
+                        </Box>
+                        <Radio checked={isSelected} />
+                      </MenuItem>
+                    );
+                  })
+                )}
               </Select>
             </FormControl>
 
-            {selectedCategory &&
-              services[selectedCategory as keyof typeof services] && (
-                <Box sx={{ mt: 3 }}>
-                  {services[selectedCategory as keyof typeof services].map(
-                    (service) => {
-                      const isServiceSelected = selectedService === service.id;
-                      return (
-                        <Card
-                          key={service.id}
+            {selectedCategory && (
+              <Box sx={{ mt: 3 }}>
+                {subcategoriesLoading ? (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography color="text.secondary">Loading services...</Typography>
+                  </Box>
+                ) : subcategories.length === 0 ? (
+                  selectedCategory && (
+                    <Box sx={{ textAlign: "center", py: 4 }}>
+                      <Typography color="text.secondary">No services available for this category</Typography>
+                    </Box>
+                  )
+                ) : (
+                  subcategories.map((subcategory) => {
+                    const isServiceSelected = selectedService === subcategory.id;
+                    return (
+                      <Card
+                        key={subcategory.id}
+                        sx={{
+                          p: 2,
+                          mb: 2,
+                          cursor: "pointer",
+                          bgcolor: "#F2F2F2",
+                          borderRadius: "0.75rem",
+                          border: "none",
+                          boxShadow: "none",
+                          "&:hover": {
+                            bgcolor: "#E8E8E8",
+                          },
+                        }}
+                        onClick={() => handleServiceSelect(subcategory.id)}
+                      >
+                        <Box
                           sx={{
-                            p: 2,
-                            mb: 2,
-                            cursor: "pointer",
-                            bgcolor: "#F2F2F2",
-                            borderRadius: "0.75rem",
-                            border: "none",
-                            boxShadow: "none",
-                            "&:hover": {
-                              bgcolor: "#E8E8E8",
-                            },
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
                           }}
-                          onClick={() => setSelectedService(service.id)}
                         >
                           <Box
                             sx={{
+                              width: 60,
+                              height: 60,
+                              borderRadius: 1,
+                              overflow: "hidden",
+                              position: "relative",
+                              bgcolor: "white",
                               display: "flex",
                               alignItems: "center",
-                              gap: 2,
+                              justifyContent: "center",
                             }}
                           >
-                            <Box
-                              sx={{
-                                width: 60,
-                                height: 60,
-                                borderRadius: 1,
-                                overflow: "hidden",
-                                position: "relative",
-                                bgcolor: "white",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
+                            {subcategory.image ? (
                               <Image
-                                src={service.image}
-                                alt={service.name}
+                                src={subcategory.image}
+                                alt={subcategory.subcategory_name}
                                 fill
                                 style={{ objectFit: "cover" }}
                               />
-                            </Box>
-                            <Typography
-                              variant="body1"
-                              fontWeight="500"
-                              sx={{
-                                flex: 1,
-                                color: isServiceSelected
-                                  ? "primary.normal"
-                                  : "#939393",
-                              }}
-                            >
-                              {service.name}
-                            </Typography>
-                            <Radio
-                              checked={isServiceSelected}
-                              sx={{
-                                color: isServiceSelected
-                                  ? "primary.normal"
-                                  : "#939393",
-                                "&.Mui-checked": {
-                                  color: "primary.normal",
-                                },
-                              }}
-                            />
+                            ) : (
+                              <Typography
+                                sx={{
+                                  color: "text.secondary",
+                                  fontSize: "0.875rem",
+                                }}
+                              >
+                                {subcategory.subcategory_name.charAt(0)}
+                              </Typography>
+                            )}
                           </Box>
-                        </Card>
-                      );
-                    }
-                  )}
-                </Box>
-              )}
+                          <Typography
+                            variant="body1"
+                            fontWeight="500"
+                            sx={{
+                              flex: 1,
+                              color: isServiceSelected
+                                ? "primary.normal"
+                                : "#939393",
+                            }}
+                          >
+                            {subcategory.subcategory_name}
+                          </Typography>
+                          <Radio
+                            checked={isServiceSelected}
+                            sx={{
+                              color: isServiceSelected
+                                ? "primary.normal"
+                                : "#939393",
+                              "&.Mui-checked": {
+                                color: "primary.normal",
+                              },
+                            }}
+                          />
+                        </Box>
+                      </Card>
+                    );
+                  })
+                )}
+              </Box>
+            )}
           </Box>
         );
 
@@ -909,16 +1156,27 @@ export default function BookServiceModal({
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        {selectedCategory && (
-                          <CategoryIcon
-                            category={selectedCategory}
-                            isSelected={true}
-                          />
-                        )}
-                        {
-                          categories.find((c) => c.value === selectedCategory)
-                            ?.label
-                        }
+                        {(() => {
+                          const cat = apiCategories.find((c) => c.id === selectedCategory);
+                          if (cat?.category_logo) {
+                            return (
+                              <Image
+                                src={cat.category_logo}
+                                alt={cat.category_name}
+                                width={24}
+                                height={24}
+                                style={{ objectFit: "contain" }}
+                              />
+                            );
+                          }
+                          return cat ? (
+                            <CategoryIcon
+                              category={cat.category_name.toLowerCase()}
+                              isSelected={true}
+                            />
+                          ) : null;
+                        })()}
+                        {apiCategories.find((c) => c.id === selectedCategory)?.category_name}
                       </Box>
                     </MenuItem>
                   </Select>
@@ -943,30 +1201,41 @@ export default function BookServiceModal({
                           overflow: "hidden",
                           position: "relative",
                           bgcolor: "#FFFFFF",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
-                        <Image
-                          src={
-                            services[
-                              selectedCategory as keyof typeof services
-                            ].find((s) => s.id === selectedService)?.image ||
-                            "/image/service-image-1.png"
+                        {(() => {
+                          const subcat = subcategories.find((s) => s.id === selectedService);
+                          if (subcat?.image) {
+                            return (
+                              <Image
+                                src={subcat.image}
+                                alt={subcat.subcategory_name}
+                                fill
+                                style={{ objectFit: "cover" }}
+                              />
+                            );
                           }
-                          alt="Selected Service"
-                          fill
-                          style={{ objectFit: "cover" }}
-                        />
+                          return (
+                            <Typography
+                              sx={{
+                                color: "text.secondary",
+                                fontSize: "0.875rem",
+                              }}
+                            >
+                              {subcat?.subcategory_name.charAt(0) || "?"}
+                            </Typography>
+                          );
+                        })()}
                       </Box>
                       <Typography
                         variant="body1"
                         fontWeight="500"
                         sx={{ color: "primary.normal" }}
                       >
-                        {
-                          services[
-                            selectedCategory as keyof typeof services
-                          ].find((s) => s.id === selectedService)?.name
-                        }
+                        {subcategories.find((s) => s.id === selectedService)?.subcategory_name}
                       </Typography>
                     </Box>
                   </Card>
@@ -1021,14 +1290,16 @@ export default function BookServiceModal({
               Upload Photos of a Job
             </Typography>
             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              {[1, 2].map((index) => (
+              {[0, 1].map((index) => (
                 <Box
                   key={index}
+                  component="label"
+                  htmlFor={`description-file-${index}`}
                   sx={{
                     width: "100%",
                     height: "9rem",
                     border: "0.125rem dashed",
-                    borderColor: "#D1D5DB",
+                    borderColor: descriptionFiles[index] ? "#2F6B8E" : "#D1D5DB",
                     borderRadius: 2,
                     display: "flex",
                     flexDirection: "column",
@@ -1036,30 +1307,68 @@ export default function BookServiceModal({
                     justifyContent: "center",
                     cursor: "pointer",
                     bgcolor: "#FFFFFF",
+                    position: "relative",
                     "&:hover": {
                       borderColor: "#9CA3AF",
                     },
                   }}
                 >
-                  <Box sx={{ position: "relative", mb: 0.5 }}>
-                    <Image
-                      src="/icons/folder-upload-line.png"
-                      alt="cloud upload"
-                      width={24}
-                      height={24}
-                    />
-                  </Box>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: "0.75rem",
-                      lineHeight: "100%",
-                      letterSpacing: "0%",
-                      color: "#818285",
-                    }}
-                  >
-                    upload from device
-                  </Typography>
+                  <input
+                    id={`description-file-${index}`}
+                    type="file"
+                    hidden
+                    accept="image/*,video/*,.pdf"
+                    onChange={(e) => handleDescriptionFileChange(e, index)}
+                  />
+                  {descriptionFiles[index] ? (
+                    <>
+                      <Box sx={{ position: "relative", mb: 0.5 }}>
+                        <Image
+                          src="/icons/folder-upload-line.png"
+                          alt="file uploaded"
+                          width={24}
+                          height={24}
+                        />
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: "0.75rem",
+                          lineHeight: "100%",
+                          letterSpacing: "0%",
+                          color: "#2F6B8E",
+                          textAlign: "center",
+                          px: 1,
+                        }}
+                      >
+                        {descriptionFiles[index].name.length > 20
+                          ? `${descriptionFiles[index].name.substring(0, 20)}...`
+                          : descriptionFiles[index].name}
+                      </Typography>
+                    </>
+                  ) : (
+                    <>
+                      <Box sx={{ position: "relative", mb: 0.5 }}>
+                        <Image
+                          src="/icons/folder-upload-line.png"
+                          alt="cloud upload"
+                          width={24}
+                          height={24}
+                        />
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: "0.75rem",
+                          lineHeight: "100%",
+                          letterSpacing: "0%",
+                          color: "#818285",
+                        }}
+                      >
+                        upload from device
+                      </Typography>
+                    </>
+                  )}
                 </Box>
               ))}
             </Box>
@@ -1093,43 +1402,47 @@ export default function BookServiceModal({
               {steps[3].title}
             </Typography>
             <Typography sx={{ mb: 3, color: "#939393", lineHeight: "150%" }}>
-              Great, you&apos;re almost done. Please add the job valuation.
+              {serviceProvider === "professional" 
+                ? "Great, you're almost done. Please add the job valuation."
+                : "Great, you're almost done. Please choose the date and time for your service."}
             </Typography>
 
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                sx={{
-                  mb: 1,
-                  fontSize: "1.125rem",
-                  lineHeight: "100%",
-                  letterSpacing: "0%",
-                  color: "#555555",
-                }}
-              >
-                Enter Valuation
-              </Typography>
-              <TextField
-                fullWidth
-                value={`€ ${valuation}`}
-                onChange={(e) => {
-                  const value = e.target.value.replace("€ ", "").replace(",", "");
-                  setValuation(value);
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: "grey.300",
+            {serviceProvider === "professional" && (
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  sx={{
+                    mb: 1,
+                    fontSize: "1.125rem",
+                    lineHeight: "100%",
+                    letterSpacing: "0%",
+                    color: "#555555",
+                  }}
+                >
+                  Enter Valuation
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={`€ ${valuation}`}
+                  onChange={(e) => {
+                    const value = e.target.value.replace("€ ", "").replace(",", "");
+                    setValuation(value);
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "grey.300",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "grey.400",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#2F6B8E",
+                      },
                     },
-                    "&:hover fieldset": {
-                      borderColor: "grey.400",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#2F6B8E",
-                    },
-                  },
-                }}
-              />
-            </Box>
+                  }}
+                />
+              </Box>
+            )}
 
             <Typography
               sx={{
@@ -1786,14 +2099,16 @@ export default function BookServiceModal({
                 Upload Photos of Product
               </Typography>
               <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                {[1, 2].map((index) => (
+                {[0, 1].map((index) => (
                   <Box
                     key={index}
+                    component="label"
+                    htmlFor={`barter-photo-${index}`}
                     sx={{
                       width: "100%",
                       height: "9rem",
                       border: "0.125rem dashed",
-                      borderColor: "#D1D5DB",
+                      borderColor: barterPhotoFiles[index] ? "#2F6B8E" : "#D1D5DB",
                       borderRadius: 2,
                       display: "flex",
                       flexDirection: "column",
@@ -1801,31 +2116,70 @@ export default function BookServiceModal({
                       justifyContent: "center",
                       cursor: "pointer",
                       bgcolor: "#FFFFFF",
+                      position: "relative",
                       "&:hover": {
                         borderColor: "#9CA3AF",
                       },
                     }}
                   >
-                    <Box sx={{ position: "relative", mb: 0.5 }}>
-                      <Image
-                        src="/icons/folder-upload-line.png"
-                        alt="cloud upload"
-                        width={24}
-                        height={24}
-                      />
-                    </Box>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 300,
-                        fontSize: "0.75rem",
-                        lineHeight: "100%",
-                        letterSpacing: "0%",
-                        color: "#818285",
-                      }}
-                    >
-                      upload from device
-                    </Typography>
+                    <input
+                      id={`barter-photo-${index}`}
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) => handleBarterPhotoChange(e, index)}
+                    />
+                    {barterPhotoFiles[index] ? (
+                      <>
+                        <Box sx={{ position: "relative", mb: 0.5 }}>
+                          <Image
+                            src="/icons/folder-upload-line.png"
+                            alt="file uploaded"
+                            width={24}
+                            height={24}
+                          />
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 300,
+                            fontSize: "0.75rem",
+                            lineHeight: "100%",
+                            letterSpacing: "0%",
+                            color: "#2F6B8E",
+                            textAlign: "center",
+                            px: 1,
+                          }}
+                        >
+                          {barterPhotoFiles[index].name.length > 20
+                            ? `${barterPhotoFiles[index].name.substring(0, 20)}...`
+                            : barterPhotoFiles[index].name}
+                        </Typography>
+                      </>
+                    ) : (
+                      <>
+                        <Box sx={{ position: "relative", mb: 0.5 }}>
+                          <Image
+                            src="/icons/folder-upload-line.png"
+                            alt="cloud upload"
+                            width={24}
+                            height={24}
+                          />
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 300,
+                            fontSize: "0.75rem",
+                            lineHeight: "100%",
+                            letterSpacing: "0%",
+                            color: "#818285",
+                          }}
+                        >
+                          upload from device
+                        </Typography>
+                      </>
+                    )}
                   </Box>
                 ))}
               </Box>
@@ -1860,7 +2214,7 @@ export default function BookServiceModal({
             fontWeight: 600,
           }}
         >
-          {categories.find((c) => c.value === selectedCategory)?.label} Service
+          {apiCategories.find((c) => c.id === selectedCategory)?.category_name} Service
         </Typography>
         <Box
           sx={{
@@ -1886,7 +2240,7 @@ export default function BookServiceModal({
         >
           <Image
               src={
-                services[selectedCategory as keyof typeof services]?.find(
+                subcategories.find(
                   (s) => s.id === selectedService
                 )?.image || "/image/service-image-5.png"
               }
@@ -1917,9 +2271,9 @@ export default function BookServiceModal({
               noWrap
             >
               {
-                services[selectedCategory as keyof typeof services]?.find(
+                subcategories.find(
                   (s) => s.id === selectedService
-                )?.name
+                )?.subcategory_name
               }
             </Typography>
           </Box>
@@ -2065,7 +2419,7 @@ export default function BookServiceModal({
                   fontWeight: 500,
                 }}
               >
-                {selectedDate} Aug
+                {selectedDate} {getMonthName(currentMonth).substring(0, 3)}
               </Typography>
             </Box>
             <Box
@@ -2127,12 +2481,7 @@ export default function BookServiceModal({
             color: "#939393",
           }}
         >
-          { 
-            serviceProvider == "non-professional" ?
-              "Transform your space with our expert furniture assembly services. Our skilled team will handle everything from unpacking to setup, ensuring your new pieces are perfectly assembled and ready for use. We specialize in a wide range of furniture types, including flat-pack items, complex modular systems, and custom installations. Enjoy a hassle-free experience as we take care of the details, allowing you to focus on enjoying your newly furnished area. Schedule your assembly today and let us help you create the perfect environment!" 
-              :
-              serviceDescription || "Expert furniture assembly services..."
-          }
+          {serviceDescription || "No description provided"}
         </Typography>
 
         
@@ -2154,27 +2503,50 @@ export default function BookServiceModal({
                   Job photos
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2 }}>
-                  {[1, 2].map((index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        width: "100%",
-                        height: "10.438rem",
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        position: "relative",
-                        border: "0.0625rem solid",
-                        borderColor: "grey.300",
-                      }}
-                    >
-                      <Image
-                        src={`/image/service-image-1.png`}
-                        alt={`Job photo ${index}`}
-                        fill
-                        style={{ objectFit: "cover" }}
-                      />
-                    </Box>
-                  ))}
+                  {descriptionFiles.length > 0 ? (
+                    descriptionFiles.map((file, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          width: "100%",
+                          height: "10.438rem",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          position: "relative",
+                          border: "0.0625rem solid",
+                          borderColor: "grey.300",
+                        }}
+                      >
+                        {file.type.startsWith("image/") ? (
+                          <Image
+                            src={URL.createObjectURL(file)}
+                            alt={`Job photo ${index + 1}`}
+                            fill
+                            style={{ objectFit: "cover" }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              bgcolor: "grey.100",
+                            }}
+                          >
+                            <Typography sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
+                              {file.name}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography sx={{ color: "text.secondary", py: 2 }}>
+                      No photos uploaded
+                    </Typography>
+                  )}
                 </Box>
               </div>
               <div className="d-flex">
@@ -2191,33 +2563,57 @@ export default function BookServiceModal({
                   Product Images
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2 }}>
-                  {[1, 2].map((index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        width: "100%",
-                        height: "10.438rem",
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        position: "relative",
-                        border: "0.0625rem solid",
-                        borderColor: "grey.300",
-                      }}
-                    >
-                      <Image
-                        src={`/image/shoes.png`}
-                        alt={`Job photo ${index}`}
-                        fill
-                        style={{ objectFit: "cover" }}
-                      />
-                    </Box>
-                  ))}
+                  {barterPhotoFiles.length > 0 ? (
+                    barterPhotoFiles.map((file, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          width: "100%",
+                          height: "10.438rem",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          position: "relative",
+                          border: "0.0625rem solid",
+                          borderColor: "grey.300",
+                        }}
+                      >
+                        {file.type.startsWith("image/") ? (
+                          <Image
+                            src={URL.createObjectURL(file)}
+                            alt={`Product photo ${index + 1}`}
+                            fill
+                            style={{ objectFit: "cover" }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              bgcolor: "grey.100",
+                            }}
+                          >
+                            <Typography sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
+                              {file.name}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography sx={{ color: "text.secondary", py: 2 }}>
+                      No product photos uploaded
+                    </Typography>
+                  )}
                 </Box>
               </div>
             </div>
           :
             <Box sx={{ display: "flex", gap: 2 }}>
-                {[1, 2].map((index) => (
+              {descriptionFiles.length > 0 ? (
+                descriptionFiles.map((file, index) => (
                   <Box
                     key={index}
                     sx={{
@@ -2230,14 +2626,36 @@ export default function BookServiceModal({
                       borderColor: "grey.300",
                     }}
                   >
-                    <Image
-                      src={`/image/service-image-1.png`}
-                      alt={`Job photo ${index}`}
-                      fill
-                      style={{ objectFit: "cover" }}
-                    />
+                    {file.type.startsWith("image/") ? (
+                      <Image
+                        src={URL.createObjectURL(file)}
+                        alt={`Job photo ${index + 1}`}
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "grey.100",
+                        }}
+                      >
+                        <Typography sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
+                          {file.name}
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
-                ))}
+                ))
+              ) : (
+                <Typography sx={{ color: "text.secondary", py: 2 }}>
+                  No photos uploaded
+                </Typography>
+              )}
             </Box>
         }
       </Box>
@@ -2248,7 +2666,10 @@ export default function BookServiceModal({
     <>
       <Dialog
         open={open && !showSuccess}
-        onClose={onClose}
+        onClose={() => {
+          resetForm();
+          onClose();
+        }}
         maxWidth="md"
         fullWidth
         PaperProps={{
@@ -2263,7 +2684,14 @@ export default function BookServiceModal({
           sx={{ 
             p: "2.5rem", 
             position: "relative",
-            overflow: currentStep == 1 ? "hidden" : "scroll"
+            overflowY: "auto",
+            maxHeight: "calc(90vh - 64px)",
+            // Hide scrollbar but keep scrolling functionality
+            scrollbarWidth: "none", // Firefox
+            "&::-webkit-scrollbar": {
+              display: "none", // Chrome, Safari, Edge
+            },
+            "-ms-overflow-style": "none", // IE and Edge
           }}
         >
           {
@@ -2280,17 +2708,18 @@ export default function BookServiceModal({
                 >
                   Create A Service Request
                 </Typography>
-                <IconButton
+                <Box
                   onClick={()=>{
-                    setCurrentStep(1)
-                    onClose()
+                    resetForm();
+                    onClose();
                   }}
                   sx={{
-                    pr:0
+                    pr:0,
+                    cursor: "pointer",
                   }}
                 >
                   <CloseIcon />
-                </IconButton>
+                </Box>
               </Box>
               :
               <Box sx={{ display:"flex",alignItems:"left",justifyContent:"space-between",mb:"2rem" }}>
@@ -2304,17 +2733,18 @@ export default function BookServiceModal({
                   >
                     Preview
                 </Typography>
-                <IconButton
+                <Box
                   onClick={()=>{
-                    setCurrentStep(1)
-                    onClose()
+                    resetForm();
+                    onClose();
                   }}
                   sx={{
-                    pr:0
+                    pr:0,
+                    cursor: "pointer",
                   }}
                 >
                   <CloseIcon />
-                </IconButton>
+                </Box>
               </Box>
 
           }
@@ -2365,6 +2795,7 @@ export default function BookServiceModal({
             }}
           >
             {
+              currentStep === 1 ? null :
               (serviceProvider == "non-professional" && currentStep != 6) || (serviceProvider != "non-professional" && currentStep != 5) ?
                 <Button
                   variant="outlined"
@@ -2402,6 +2833,7 @@ export default function BookServiceModal({
               variant="contained"
               onClick={handleNext}
               disabled={
+                uploading ||
                 (currentStep === 1 && !serviceProvider) ||
                 (currentStep === 2 &&
                   (!selectedCategory || !selectedService)) ||
@@ -2422,7 +2854,9 @@ export default function BookServiceModal({
                 },
               }}
             >
-              {currentStep === (serviceProvider === "non-professional" ? 6 : 5)
+              {uploading
+                ? "Submitting..."
+                : currentStep === (serviceProvider === "non-professional" ? 6 : 5)
                 ? "Submit"
                 : "Next"}
             </Button>
@@ -2433,7 +2867,11 @@ export default function BookServiceModal({
       {/* Success Modal */}
       <Dialog
         open={showSuccess}
-        onClose={() => {}}
+        onClose={() => {
+          setShowSuccess(false);
+          resetForm();
+          onClose();
+        }}
         maxWidth="sm"
         fullWidth
         PaperProps={{

@@ -391,9 +391,11 @@ export default function PaymentModePage() {
                   sx={{
                     borderColor: "primary.dark",
                     color: "primary.dark",
-                    py: 1.5,
                     textTransform: "none",
-                    fontSize: "1rem",
+                    py: "18px",
+                    fontWeight: 700,
+                    lineHeight: "20px",
+                    fontSize: "18px",
                     "&:hover": {
                       borderColor: "#25608A",
                       bgcolor: "rgba(47, 107, 142, 0.04)",
@@ -411,9 +413,11 @@ export default function PaymentModePage() {
                   sx={{
                     bgcolor: "primary.dark",
                     color: "white",
-                    py: 1.5,
+                    py: "18px",
+                    fontWeight: 700,
+                    lineHeight: "20px",
+                    fontSize: "18px",
                     textTransform: "none",
-                    fontSize: "1rem",
                     "&:hover": {
                       bgcolor: "#25608A",
                     },

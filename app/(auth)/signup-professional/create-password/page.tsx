@@ -12,10 +12,10 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
+import { toast } from "sonner";
 import { apiPost } from "@/lib/api";
 import { buildInputData, isValidPassword } from "@/utils/validation";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -152,7 +152,7 @@ export default function ProfessionalCreatePasswordPage() {
         } else if (errorMsg.includes("Password already set")) {
           router.push(ROUTES.SIGNUP_PROFESSIONAL_ADD_DETAILS);
         } else {
-          setErrors({ confirmPassword: errorMsg });
+          toast.error(errorMsg);
         }
       }
     }
@@ -242,8 +242,8 @@ export default function ProfessionalCreatePasswordPage() {
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Box
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: 140,
+                  height: 140,
                   borderRadius: '50%',
                   // bgcolor: 'primary.main',
                   display: 'flex',
@@ -321,14 +321,26 @@ export default function ProfessionalCreatePasswordPage() {
                 placeholder="Enter Password"
                 value={formData.password}
                 onChange={handleChange}
-                error={!!errors.password}
-                helperText={errors.password}
+                error={false}
+                helperText=""
                 margin="normal"
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                        {showPassword ? (
+                          <img 
+                            src="/icons/EyeOpen.svg" 
+                            alt="Hide password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        ) : (
+                          <img 
+                            src="/icons/EyeClose.svg" 
+                            alt="Show password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -362,7 +374,19 @@ export default function ProfessionalCreatePasswordPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                        {showConfirmPassword ? (
+                          <img 
+                            src="/icons/EyeOpen.svg" 
+                            alt="Hide password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        ) : (
+                          <img 
+                            src="/icons/EyeClose.svg" 
+                            alt="Show password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -396,7 +420,19 @@ export default function ProfessionalCreatePasswordPage() {
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={() => setShowReEnterPassword(!showReEnterPassword)} edge="end">
-                        {showReEnterPassword ? <VisibilityOff /> : <Visibility />}
+                        {showReEnterPassword ? (
+                          <img 
+                            src="/icons/EyeOpen.svg" 
+                            alt="Hide password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        ) : (
+                          <img 
+                            src="/icons/EyeClose.svg" 
+                            alt="Show password" 
+                            style={{ width: 24, height: 24 }}
+                          />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
