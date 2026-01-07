@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import CloseIcon from "@mui/icons-material/Close";
 import Image from "next/image";
 import { apiGet, apiPost, apiPostFormData } from "@/lib/api";
@@ -113,13 +113,12 @@ const CategoryIcon = ({
   );
 };
 
-// Steps reordered: Category/Subcategory first, then Professional/Non-professional
+// Steps: Professional/Non-professional, then Service Description, Valuation, and Preview
 const steps = [
-  { id: 1, title: "Select A Category", progress: 20 },
-  { id: 2, title: "Select Your Service Provider", progress: 40 },
-  { id: 3, title: "Describe About Service", progress: 60 },
-  { id: 4, title: "Valuation of Job", progress: 80 },
-  { id: 5, title: "Preview", progress: 100 },
+  { id: 1, title: "Select Your Service Provider", progress: 25 },
+  { id: 2, title: "Describe About Service", progress: 50 },
+  { id: 3, title: "Valuation of Job", progress: 75 },
+  { id: 4, title: "Preview", progress: 100 },
 ];
 
 export default function CreateServiceRequestModal({
@@ -133,7 +132,7 @@ export default function CreateServiceRequestModal({
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [serviceDescription, setServiceDescription] = useState("");
-  const [valuation, setValuation] = useState("449.00");
+  const [valuation, setValuation] = useState("");
   const [selectedDate, setSelectedDate] = useState("16");
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -147,20 +146,26 @@ export default function CreateServiceRequestModal({
   const [showSuccess, setShowSuccess] = useState(false);
   const [descriptionFiles, setDescriptionFiles] = useState<File[]>([]);
   const [barterPhotoFiles, setBarterPhotoFiles] = useState<File[]>([]);
+  const [descriptionFilePreviews, setDescriptionFilePreviews] = useState<(string | null)[]>([]);
+  const [barterPhotoFilePreviews, setBarterPhotoFilePreviews] = useState<(string | null)[]>([]);
   const [uploading, setUploading] = useState(false);
   const [categoryId, setCategoryId] = useState<string>("");
   const [subCategoryId, setSubCategoryId] = useState<string>("");
-  const [apiCategories, setApiCategories] = useState<Array<{
-    id: string;
-    category_name: string;
-    category_logo: string;
-  }>>([]);
+  const [apiCategories, setApiCategories] = useState<
+    Array<{
+      id: string;
+      category_name: string;
+      category_logo: string;
+    }>
+  >([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
-  const [subcategories, setSubcategories] = useState<Array<{
-    id: string;
-    subcategory_name: string;
-    image: string | null;
-  }>>([]);
+  const [subcategories, setSubcategories] = useState<
+    Array<{
+      id: string;
+      subcategory_name: string;
+      image: string | null;
+    }>
+  >([]);
   const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
 
   // Fetch categories from API
@@ -236,26 +241,42 @@ export default function CreateServiceRequestModal({
       // Set the category
       setSelectedCategory(preSelectedCategoryId);
       setCategoryId(preSelectedCategoryId);
-      
+
       // Fetch subcategories for the pre-selected category
       fetchSubcategories(preSelectedCategoryId).then(() => {
         // After subcategories are loaded, select the subcategory if provided
         if (preSelectedSubcategoryId) {
           setSelectedService(preSelectedSubcategoryId);
           setSubCategoryId(preSelectedSubcategoryId);
+
+          // Skip to step 1 if both category and subcategory are pre-selected
+          setCurrentStep(1);
         }
       });
     }
-  }, [open, preSelectedCategoryId, preSelectedSubcategoryId, fetchSubcategories]);
+  }, [
+    open,
+    preSelectedCategoryId,
+    preSelectedSubcategoryId,
+    fetchSubcategories,
+  ]);
 
   // Reset all form state to initial values
   const resetForm = useCallback(() => {
+    // Clean up preview URLs
+    descriptionFilePreviews.forEach((url) => {
+      if (url) URL.revokeObjectURL(url);
+    });
+    barterPhotoFilePreviews.forEach((url) => {
+      if (url) URL.revokeObjectURL(url);
+    });
+    
     setCurrentStep(1);
     setServiceProvider("professional");
     setSelectedCategory("");
     setSelectedService(null);
     setServiceDescription("");
-    setValuation("449.00");
+    setValuation("");
     setSelectedDate("16");
     setCurrentMonth(new Date().getMonth());
     setCurrentYear(new Date().getFullYear());
@@ -265,10 +286,12 @@ export default function CreateServiceRequestModal({
     setShowSuccess(false);
     setDescriptionFiles([]);
     setBarterPhotoFiles([]);
+    setDescriptionFilePreviews([]);
+    setBarterPhotoFilePreviews([]);
     setCategoryId("");
     setSubCategoryId("");
     setSubcategories([]);
-  }, []);
+  }, [descriptionFilePreviews, barterPhotoFilePreviews]);
 
   // Reset form when modal is closed
   useEffect(() => {
@@ -276,6 +299,194 @@ export default function CreateServiceRequestModal({
       resetForm();
     }
   }, [open, resetForm]);
+
+  // Recreate preview URLs if files exist but previews are missing
+  useEffect(() => {
+    if (descriptionFiles.length === 0) {
+      // Clean up all previews if no files
+      setDescriptionFilePreviews((prev) => {
+        if (prev.length === 0) return prev; // No change needed
+        prev.forEach((preview) => {
+          if (preview) URL.revokeObjectURL(preview);
+        });
+        return [];
+      });
+      return;
+    }
+
+    setDescriptionFilePreviews((prev) => {
+      // Ensure array length matches files array
+      const newPreviews: (string | null)[] = new Array(descriptionFiles.length).fill(null);
+      let hasChanges = false;
+
+      // Copy existing valid previews and create new ones if needed
+      descriptionFiles.forEach((file, index) => {
+        if (file && file.type.startsWith("image/")) {
+          const existingPreview = prev[index];
+          
+          // Only create new preview if it doesn't exist
+          // When step changes, we'll recreate on next render when step 2 is visible
+          if (!existingPreview) {
+            const previewURL = URL.createObjectURL(file);
+            newPreviews[index] = previewURL;
+            hasChanges = true;
+          } else {
+            // Keep existing preview if it exists
+            newPreviews[index] = existingPreview;
+          }
+        } else {
+          // Clear preview if file doesn't exist or is not an image
+          const existingPreview = prev[index];
+          if (existingPreview) {
+            URL.revokeObjectURL(existingPreview);
+            hasChanges = true;
+          }
+          newPreviews[index] = null;
+        }
+      });
+
+      // Clean up previews for indices that no longer have files
+      prev.forEach((preview, index) => {
+        if (preview && index >= descriptionFiles.length) {
+          URL.revokeObjectURL(preview);
+          hasChanges = true;
+        }
+      });
+
+      return hasChanges ? newPreviews : prev;
+    });
+  }, [descriptionFiles]);
+
+  // Recreate previews when coming back to step 2 (where images are displayed)
+  useEffect(() => {
+    if (currentStep === 2 && descriptionFiles.length > 0) {
+      setDescriptionFilePreviews((prev) => {
+        const newPreviews: (string | null)[] = [];
+        let hasChanges = false;
+
+        descriptionFiles.forEach((file, index) => {
+          if (file && file.type.startsWith("image/")) {
+            const existingPreview = prev[index];
+            // Only recreate if preview doesn't exist or is invalid
+            if (!existingPreview || !existingPreview.startsWith('blob:')) {
+              // Clean up old preview if it exists
+              if (existingPreview) {
+                URL.revokeObjectURL(existingPreview);
+              }
+              const previewURL = URL.createObjectURL(file);
+              newPreviews[index] = previewURL;
+              hasChanges = true;
+            } else {
+              newPreviews[index] = existingPreview;
+            }
+          } else {
+            newPreviews[index] = prev[index] || null;
+          }
+        });
+
+        return hasChanges ? newPreviews : prev;
+      });
+    }
+  }, [currentStep, descriptionFiles]);
+
+  useEffect(() => {
+    if (barterPhotoFiles.length === 0) {
+      // Clean up all previews if no files
+      setBarterPhotoFilePreviews((prev) => {
+        if (prev.length === 0) return prev; // No change needed
+        prev.forEach((preview) => {
+          if (preview) URL.revokeObjectURL(preview);
+        });
+        return [];
+      });
+      return;
+    }
+
+    setBarterPhotoFilePreviews((prev) => {
+      // Ensure array length matches files array
+      const newPreviews: (string | null)[] = new Array(barterPhotoFiles.length).fill(null);
+      let hasChanges = false;
+
+      // Copy existing valid previews and create new ones if needed
+      barterPhotoFiles.forEach((file, index) => {
+        if (file && file.type.startsWith("image/")) {
+          const existingPreview = prev[index];
+          
+          // Only create new preview if it doesn't exist
+          if (!existingPreview) {
+            const previewURL = URL.createObjectURL(file);
+            newPreviews[index] = previewURL;
+            hasChanges = true;
+          } else {
+            // Keep existing preview if it exists
+            newPreviews[index] = existingPreview;
+          }
+        } else {
+          // Clear preview if file doesn't exist or is not an image
+          const existingPreview = prev[index];
+          if (existingPreview) {
+            URL.revokeObjectURL(existingPreview);
+            hasChanges = true;
+          }
+          newPreviews[index] = null;
+        }
+      });
+
+      // Clean up previews for indices that no longer have files
+      prev.forEach((preview, index) => {
+        if (preview && index >= barterPhotoFiles.length) {
+          URL.revokeObjectURL(preview);
+          hasChanges = true;
+        }
+      });
+
+      return hasChanges ? newPreviews : prev;
+    });
+  }, [barterPhotoFiles]);
+
+  // Recreate previews when coming back to step 4/5 (where barter photos are displayed)
+  useEffect(() => {
+    if ((currentStep === 4 || currentStep === 5) && barterPhotoFiles.length > 0) {
+      setBarterPhotoFilePreviews((prev) => {
+        const newPreviews: (string | null)[] = [];
+        let hasChanges = false;
+
+        barterPhotoFiles.forEach((file, index) => {
+          if (file && file.type.startsWith("image/")) {
+            const existingPreview = prev[index];
+            // Only recreate if preview doesn't exist or is invalid
+            if (!existingPreview || !existingPreview.startsWith('blob:')) {
+              // Clean up old preview if it exists
+              if (existingPreview) {
+                URL.revokeObjectURL(existingPreview);
+              }
+              const previewURL = URL.createObjectURL(file);
+              newPreviews[index] = previewURL;
+              hasChanges = true;
+            } else {
+              newPreviews[index] = existingPreview;
+            }
+          } else {
+            newPreviews[index] = prev[index] || null;
+          }
+        });
+
+        return hasChanges ? newPreviews : prev;
+      });
+    }
+  }, [currentStep, barterPhotoFiles]);
+
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      descriptionFilePreviews.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+      barterPhotoFilePreviews.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+    };
+  }, [descriptionFilePreviews, barterPhotoFilePreviews]);
 
   // Auto-close success modal after 2 seconds
   useEffect(() => {
@@ -293,10 +504,10 @@ export default function CreateServiceRequestModal({
   // Calculate progress based on current step
   const getProgress = () => {
     if (serviceProvider === "non-professional") {
-      const totalSteps = 6;
+      const totalSteps = 5;
       return Math.round((currentStep / totalSteps) * 100);
     } else {
-      const totalSteps = 5;
+      const totalSteps = 4;
       return Math.round((currentStep / totalSteps) * 100);
     }
   };
@@ -304,7 +515,7 @@ export default function CreateServiceRequestModal({
   const progress = getProgress();
 
   const handleNext = () => {
-    const maxStep = serviceProvider === "non-professional" ? 6 : 5;
+    const maxStep = serviceProvider === "non-professional" ? 5 : 4;
     if (currentStep < maxStep) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -323,7 +534,7 @@ export default function CreateServiceRequestModal({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      
+
       const response = await apiPostFormData<{ storage_key: string }>(
         API_ENDPOINTS.SERVICE_REQUEST.UPLOAD_FILE,
         formData
@@ -340,7 +551,9 @@ export default function CreateServiceRequestModal({
   };
 
   // Upload multiple files and return array of storage keys
-  const uploadFiles = async (files: File[]): Promise<Array<{ storage_key: string }>> => {
+  const uploadFiles = async (
+    files: File[]
+  ): Promise<Array<{ storage_key: string }>> => {
     const uploadPromises = files.map((file) => uploadFile(file));
     const storageKeys = await Promise.all(uploadPromises);
     return storageKeys
@@ -354,9 +567,13 @@ export default function CreateServiceRequestModal({
       currentYear,
       currentMonth,
       parseInt(selectedDate),
-      selectedTime.period === "AM" 
-        ? parseInt(selectedTime.hour) === 12 ? 0 : parseInt(selectedTime.hour)
-        : parseInt(selectedTime.hour) === 12 ? 12 : parseInt(selectedTime.hour) + 12,
+      selectedTime.period === "AM"
+        ? parseInt(selectedTime.hour) === 12
+          ? 0
+          : parseInt(selectedTime.hour)
+        : parseInt(selectedTime.hour) === 12
+        ? 12
+        : parseInt(selectedTime.hour) + 12,
       parseInt(selectedTime.minute)
     );
     return date.toISOString();
@@ -368,12 +585,21 @@ export default function CreateServiceRequestModal({
       return;
     }
 
+    // Validate valuation for professional services
+    if (serviceProvider === "professional" && (!valuation || valuation.trim() === "")) {
+      alert("Please enter a valuation amount");
+      return;
+    }
+
     setUploading(true);
     try {
       const descriptionFileKeys = await uploadFiles(descriptionFiles);
-      
+
       let barterPhotoKeys: Array<{ storage_key: string }> = [];
-      if (serviceProvider === "non-professional" && barterPhotoFiles.length > 0) {
+      if (
+        serviceProvider === "non-professional" &&
+        barterPhotoFiles.length > 0
+      ) {
         barterPhotoKeys = await uploadFiles(barterPhotoFiles);
       }
 
@@ -408,7 +634,10 @@ export default function CreateServiceRequestModal({
         }
       }
 
-      const response = await apiPost(API_ENDPOINTS.SERVICE_REQUEST.CREATE, requestBody);
+      const response = await apiPost(
+        API_ENDPOINTS.SERVICE_REQUEST.CREATE,
+        requestBody
+      );
 
       if (response.success) {
         setShowSuccess(true);
@@ -443,24 +672,64 @@ export default function CreateServiceRequestModal({
     }
   };
 
-  const handleDescriptionFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleDescriptionFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Create preview URL for images
+      let previewURL: string | null = null;
+      if (file.type.startsWith('image/')) {
+        previewURL = URL.createObjectURL(file);
+      }
+      
       setDescriptionFiles((prev) => {
         const newFiles = [...prev];
         newFiles[index] = file;
         return newFiles;
       });
+      
+      setDescriptionFilePreviews((prev) => {
+        const newPreviews = [...prev];
+        // Clean up old preview URL if it exists
+        if (newPreviews[index]) {
+          URL.revokeObjectURL(newPreviews[index]!);
+        }
+        newPreviews[index] = previewURL;
+        return newPreviews;
+      });
     }
   };
 
-  const handleBarterPhotoChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+
+
+  const handleBarterPhotoChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Create preview URL for images
+      let previewURL: string | null = null;
+      if (file.type.startsWith('image/')) {
+        previewURL = URL.createObjectURL(file);
+      }
+      
       setBarterPhotoFiles((prev) => {
         const newFiles = [...prev];
         newFiles[index] = file;
         return newFiles;
+      });
+      
+      setBarterPhotoFilePreviews((prev) => {
+        const newPreviews = [...prev];
+        // Clean up old preview URL if it exists
+        if (newPreviews[index]) {
+          URL.revokeObjectURL(newPreviews[index]!);
+        }
+        newPreviews[index] = previewURL;
+        return newPreviews;
       });
     }
   };
@@ -476,8 +745,18 @@ export default function CreateServiceRequestModal({
 
   const getMonthName = (month: number) => {
     const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     return months[month];
   };
@@ -503,7 +782,7 @@ export default function CreateServiceRequestModal({
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        // Step 1: Category and Subcategory Selection
+        // Step 1: Professional/Non-professional Selection
         return (
           <Box>
             <Typography
@@ -515,272 +794,6 @@ export default function CreateServiceRequestModal({
               }}
             >
               {steps[0].title}
-            </Typography>
-            <Typography sx={{ mb: 3, color: "#939393", lineHeight: "150%" }}>
-              Please pick a category to begin. This will help us connect you
-              with the right professional for your needs.
-            </Typography>
-            <Typography
-              fontWeight="700"
-              sx={{ mb: 1, lineHeight: "1.125rem", fontSize: "1rem" }}
-            >
-              Select a category
-            </Typography>
-            <FormControl fullWidth>
-              <Select
-                value={selectedCategory}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                displayEmpty
-                IconComponent={KeyboardArrowDownIcon}
-                disabled={categoriesLoading}
-                renderValue={(selected) => {
-                  if (categoriesLoading) {
-                    return (
-                      <Typography color="text.secondary">
-                        Loading categories...
-                      </Typography>
-                    );
-                  }
-                  const cat = apiCategories.find((c) => c.id === selected);
-                  if (!cat)
-                    return (
-                      <Typography color="text.secondary">
-                        Select a category
-                      </Typography>
-                    );
-                  return (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      {cat.category_logo ? (
-                        <Image
-                          src={cat.category_logo}
-                          alt={cat.category_name}
-                          width={24}
-                          height={24}
-                          style={{ objectFit: "contain" }}
-                        />
-                      ) : (
-                        <CategoryIcon category={cat.category_name.toLowerCase()} isSelected={true} />
-                      )}
-                      <Typography
-                        sx={{
-                          color: "primary.normal",
-                        }}
-                      >
-                        {cat.category_name}
-                      </Typography>
-                    </Box>
-                  );
-                }}
-                MenuProps={{
-                  anchorOrigin: {
-                    vertical: "bottom",
-                    horizontal: "left",
-                  },
-                  transformOrigin: {
-                    vertical: "top",
-                    horizontal: "left",
-                  },
-                  PaperProps: {
-                    elevation: 3,
-                    sx: {
-                      maxHeight: 250,
-                      overflowY: "auto",
-                      mt: 1,
-                    },
-                  },
-                }}
-                sx={{ 
-                  mb: 2,
-                  "& .MuiSelect-icon": {
-                    fontSize: "2rem",
-                    color:"#818285",
-                    right: "16px",
-                    width: "2.2rem",
-                    height: "2rem",
-                  },
-                }}
-              >
-                {categoriesLoading ? (
-                  <MenuItem disabled>
-                    <Typography color="text.secondary">Loading categories...</Typography>
-                  </MenuItem>
-                ) : apiCategories.length === 0 ? (
-                  <MenuItem disabled>
-                    <Typography color="text.secondary">No categories available</Typography>
-                  </MenuItem>
-                ) : (
-                  apiCategories.map((cat) => {
-                    const isSelected = selectedCategory === cat.id;
-                    return (
-                      <MenuItem
-                        key={cat.id}
-                        value={cat.id}
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          fontWeight: 400,
-                          fontSize: "1rem",
-                          lineHeight: "140%",
-                          letterSpacing: "0%",
-                          color: isSelected ? "primary.normal" : "text.primary",
-                        }}
-                      >
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          {cat.category_logo ? (
-                            <Image
-                              src={cat.category_logo}
-                              alt={cat.category_name}
-                              width={24}
-                              height={24}
-                              style={{ objectFit: "contain" }}
-                            />
-                          ) : (
-                            <CategoryIcon
-                              category={cat.category_name.toLowerCase()}
-                              isSelected={isSelected}
-                            />
-                          )}
-                          <Typography
-                            sx={{
-                              fontWeight: 400,
-                              fontSize: "1rem",
-                              lineHeight: "140%",
-                              letterSpacing: "0%",
-                              color: isSelected
-                                ? "primary.normal"
-                                : "text.primary",
-                            }}
-                          >
-                            {cat.category_name}
-                          </Typography>
-                        </Box>
-                        <Radio checked={isSelected} />
-                      </MenuItem>
-                    );
-                  })
-                )}
-              </Select>
-            </FormControl>
-
-            {selectedCategory && (
-              <Box sx={{ mt: 3 }}>
-                {subcategoriesLoading ? (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
-                    <Typography color="text.secondary">Loading services...</Typography>
-                  </Box>
-                ) : subcategories.length === 0 ? (
-                  selectedCategory && (
-                    <Box sx={{ textAlign: "center", py: 4 }}>
-                      <Typography color="text.secondary">No services available for this category</Typography>
-                    </Box>
-                  )
-                ) : (
-                  subcategories.map((subcategory) => {
-                    const isServiceSelected = selectedService === subcategory.id;
-                    return (
-                      <Card
-                        key={subcategory.id}
-                        sx={{
-                          p: 2,
-                          mb: 2,
-                          cursor: "pointer",
-                          bgcolor: "#F2F2F2",
-                          borderRadius: "0.75rem",
-                          border: "none",
-                          boxShadow: "none",
-                          "&:hover": {
-                            bgcolor: "#E8E8E8",
-                          },
-                        }}
-                        onClick={() => handleServiceSelect(subcategory.id)}
-                      >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 2,
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 60,
-                              height: 60,
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              position: "relative",
-                              bgcolor: "white",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            {subcategory.image ? (
-                              <Image
-                                src={subcategory.image}
-                                alt={subcategory.subcategory_name}
-                                fill
-                                style={{ objectFit: "cover" }}
-                              />
-                            ) : (
-                              <Typography
-                                sx={{
-                                  color: "text.secondary",
-                                  fontSize: "0.875rem",
-                                }}
-                              >
-                                {subcategory.subcategory_name.charAt(0)}
-                              </Typography>
-                            )}
-                          </Box>
-                          <Typography
-                            variant="body1"
-                            fontWeight="500"
-                            sx={{
-                              flex: 1,
-                              color: isServiceSelected
-                                ? "primary.normal"
-                                : "#939393",
-                            }}
-                          >
-                            {subcategory.subcategory_name}
-                          </Typography>
-                          <Radio
-                            checked={isServiceSelected}
-                            sx={{
-                              color: isServiceSelected
-                                ? "primary.normal"
-                                : "#939393",
-                              "&.Mui-checked": {
-                                color: "primary.normal",
-                              },
-                            }}
-                          />
-                        </Box>
-                      </Card>
-                    );
-                  })
-                )}
-              </Box>
-            )}
-          </Box>
-        );
-
-      case 2:
-        // Step 2: Professional/Non-professional Selection
-        return (
-          <Box>
-            <Typography
-              sx={{
-                color: "primary.normal",
-                fontSize: "1.25rem",
-                lineHeight: "2rem",
-                fontWeight: 500,
-              }}
-            >
-              {steps[1].title}
             </Typography>
             <Typography sx={{ mb: 3, color: "#939393", lineHeight: "150%" }}>
               To get started, please select a category. This will ensure we
@@ -820,9 +833,9 @@ export default function CreateServiceRequestModal({
                     labelPlacement="start"
                     sx={{
                       m: 0,
-                      fontSize:"1.125rem",
-                      fontWeight:500,
-                      color:"#2C6587",
+                      fontSize: "1.125rem",
+                      fontWeight: 500,
+                      color: "#2C6587",
                       width: "100%",
                       justifyContent: "space-between",
                     }}
@@ -854,9 +867,9 @@ export default function CreateServiceRequestModal({
                     label="Non-professional"
                     labelPlacement="start"
                     sx={{
-                      fontSize:"1.125rem",
-                      fontWeight:500,
-                      color:"#2C6587",
+                      fontSize: "1.125rem",
+                      fontWeight: 500,
+                      color: "#2C6587",
                       m: 0,
                       width: "100%",
                       justifyContent: "space-between",
@@ -868,8 +881,8 @@ export default function CreateServiceRequestModal({
           </Box>
         );
 
-      case 3:
-        // Step 3: Service Description (same as BookServiceModal case 3)
+      case 2:
+        // Step 2: Service Description
         return (
           <Box>
             <Typography
@@ -880,7 +893,7 @@ export default function CreateServiceRequestModal({
                 fontWeight: 500,
               }}
             >
-              {steps[2].title}
+              {steps[1].title}
             </Typography>
             <Typography sx={{ mb: 3, color: "#939393", lineHeight: "150%" }}>
               Great job! You&apos;ve selected your service. Now, please describe
@@ -890,14 +903,43 @@ export default function CreateServiceRequestModal({
 
             {selectedCategory && (
               <Box sx={{ mb: 3 }}>
+                <Typography
+                  sx={{
+                    color: "#424242",
+                    lineHeight: "20px",
+                    fontSize: "1.125rem",
+                    mb: "0.5rem",
+                  }}
+                >
+                  Select a category
+                </Typography>
                 <FormControl fullWidth sx={{ mb: 2 }}>
-                  <Select value={selectedCategory} disabled>
+                  <Select 
+                    value={selectedCategory} 
+                    disabled
+                    sx={{
+                      "& .MuiSelect-select": {
+                        color: "#2C6587 !important",
+                      },
+                      "& .MuiInputBase-input": {
+                        color: "#2C6587 !important",
+                      },
+                      "&.Mui-disabled": {
+                        "& .MuiSelect-select": {
+                          color: "#2C6587 !important",
+                          WebkitTextFillColor: "#2C6587",
+                        },
+                      },
+                    }}
+                  >
                     <MenuItem value={selectedCategory}>
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
                         {(() => {
-                          const cat = apiCategories.find((c) => c.id === selectedCategory);
+                          const cat = apiCategories.find(
+                            (c) => c.id === selectedCategory
+                          );
                           if (cat?.category_logo) {
                             return (
                               <Image
@@ -916,7 +958,16 @@ export default function CreateServiceRequestModal({
                             />
                           ) : null;
                         })()}
-                        {apiCategories.find((c) => c.id === selectedCategory)?.category_name}
+                        <Typography
+                          sx={{
+                            color: "#2C6587",
+                          }}
+                        >
+                          {
+                            apiCategories.find((c) => c.id === selectedCategory)
+                              ?.category_name
+                          }
+                        </Typography>
                       </Box>
                     </MenuItem>
                   </Select>
@@ -947,7 +998,9 @@ export default function CreateServiceRequestModal({
                         }}
                       >
                         {(() => {
-                          const subcat = subcategories.find((s) => s.id === selectedService);
+                          const subcat = subcategories.find(
+                            (s) => s.id === selectedService
+                          );
                           if (subcat?.image) {
                             return (
                               <Image
@@ -975,7 +1028,10 @@ export default function CreateServiceRequestModal({
                         fontWeight="500"
                         sx={{ color: "primary.normal" }}
                       >
-                        {subcategories.find((s) => s.id === selectedService)?.subcategory_name}
+                        {
+                          subcategories.find((s) => s.id === selectedService)
+                            ?.subcategory_name
+                        }
                       </Typography>
                     </Box>
                   </Card>
@@ -1030,37 +1086,55 @@ export default function CreateServiceRequestModal({
               Upload Photos of a Job
             </Typography>
             <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              {[0, 1].map((index) => (
-                <Box
-                  key={index}
-                  component="label"
-                  htmlFor={`description-file-${index}`}
-                  sx={{
-                    width: "100%",
-                    height: "9rem",
-                    border: "0.125rem dashed",
-                    borderColor: descriptionFiles[index] ? "#2F6B8E" : "#D1D5DB",
-                    borderRadius: 2,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    bgcolor: "#FFFFFF",
-                    position: "relative",
-                    "&:hover": {
-                      borderColor: "#9CA3AF",
-                    },
-                  }}
-                >
-                  <input
-                    id={`description-file-${index}`}
-                    type="file"
-                    hidden
-                    accept="image/*,video/*,.pdf"
-                    onChange={(e) => handleDescriptionFileChange(e, index)}
-                  />
-                  {descriptionFiles[index] ? (
+              {/* First Upload Box */}
+              <Box
+                component="label"
+                htmlFor="description-file-0"
+                sx={{
+                  width: "100%",
+                  height: "9rem",
+                  border: "0.125rem dashed",
+                  borderColor: descriptionFiles[0]
+                    ? "#2F6B8E"
+                    : "#D1D5DB",
+                  borderRadius: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  bgcolor: "#FFFFFF",
+                  position: "relative",
+                  "&:hover": {
+                    borderColor: "#9CA3AF",
+                  },
+                }}
+              >
+                <input
+                  id="description-file-0"
+                  type="file"
+                  hidden
+                  accept="image/*,video/*,.pdf"
+                  onChange={(e) => handleDescriptionFileChange(e, 0)}
+                />
+                {descriptionFiles[0] ? (
+                  descriptionFilePreviews[0] && descriptionFiles[0].type.startsWith('image/') ? (
+                    <Box sx={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                      <Image
+                        src={descriptionFilePreviews[0]!}
+                        alt="Preview"
+                        fill
+                        style={{ objectFit: "cover", borderRadius: "8px" }}
+                      />
+                      <Box sx={{ position: "absolute", bottom: 8, left: 8, right: 8, bgcolor: "rgba(0,0,0,0.6)", borderRadius: 1, p: 0.5 }}>
+                        <Typography variant="caption" color="white" sx={{ fontSize: "0.75rem", textAlign: "center" }}>
+                          {descriptionFiles[0].name.length > 20
+                            ? `${descriptionFiles[0].name.substring(0, 20)}...`
+                            : descriptionFiles[0].name}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ) : (
                     <>
                       <Box sx={{ position: "relative", mb: 0.5 }}>
                         <Image
@@ -1081,17 +1155,91 @@ export default function CreateServiceRequestModal({
                           px: 1,
                         }}
                       >
-                        {descriptionFiles[index].name.length > 20
-                          ? `${descriptionFiles[index].name.substring(0, 20)}...`
-                          : descriptionFiles[index].name}
+                        {descriptionFiles[0].name.length > 20
+                          ? `${descriptionFiles[0].name.substring(0, 20)}...`
+                          : descriptionFiles[0].name}
                       </Typography>
                     </>
+                  )
+                ) : (
+                  <>
+                    <Box sx={{ position: "relative", mb: 0.5 }}>
+                      <Image
+                        src="/icons/folder-upload-line.png"
+                        alt="cloud upload"
+                        width={24}
+                        height={24}
+                      />
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: "0.75rem",
+                        lineHeight: "100%",
+                        letterSpacing: "0%",
+                        color: "#818285",
+                      }}
+                    >
+                      upload from device
+                    </Typography>
+                  </>
+                )}
+              </Box>
+
+              {/* Second Upload Box */}
+              <Box
+                component="label"
+                htmlFor="description-file-1"
+                sx={{
+                  width: "100%",
+                  height: "9rem",
+                  border: "0.125rem dashed",
+                  borderColor: descriptionFiles[1]
+                    ? "#2F6B8E"
+                    : "#D1D5DB",
+                  borderRadius: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  bgcolor: "#FFFFFF",
+                  position: "relative",
+                  "&:hover": {
+                    borderColor: "#9CA3AF",
+                  },
+                }}
+              >
+                <input
+                  id="description-file-1"
+                  type="file"
+                  hidden
+                  accept="image/*,video/*,.pdf"
+                  onChange={(e) => handleDescriptionFileChange(e, 1)}
+                />
+                {descriptionFiles[1] ? (
+                  descriptionFilePreviews[1] && descriptionFiles[1].type.startsWith('image/') ? (
+                    <Box sx={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                      <Image
+                        src={descriptionFilePreviews[1]!}
+                        alt="Preview"
+                        fill
+                        style={{ objectFit: "cover", borderRadius: "8px" }}
+                      />
+                      <Box sx={{ position: "absolute", bottom: 8, left: 8, right: 8, bgcolor: "rgba(0,0,0,0.6)", borderRadius: 1, p: 0.5 }}>
+                        <Typography variant="caption" color="white" sx={{ fontSize: "0.75rem", textAlign: "center" }}>
+                          {descriptionFiles[1].name.length > 20
+                            ? `${descriptionFiles[1].name.substring(0, 20)}...`
+                            : descriptionFiles[1].name}
+                        </Typography>
+                      </Box>
+                    </Box>
                   ) : (
                     <>
                       <Box sx={{ position: "relative", mb: 0.5 }}>
                         <Image
                           src="/icons/folder-upload-line.png"
-                          alt="cloud upload"
+                          alt="file uploaded"
                           width={24}
                           height={24}
                         />
@@ -1102,15 +1250,41 @@ export default function CreateServiceRequestModal({
                           fontSize: "0.75rem",
                           lineHeight: "100%",
                           letterSpacing: "0%",
-                          color: "#818285",
+                          color: "#2F6B8E",
+                          textAlign: "center",
+                          px: 1,
                         }}
                       >
-                        upload from device
+                        {descriptionFiles[1].name.length > 20
+                          ? `${descriptionFiles[1].name.substring(0, 20)}...`
+                          : descriptionFiles[1].name}
                       </Typography>
                     </>
-                  )}
-                </Box>
-              ))}
+                  )
+                ) : (
+                  <>
+                    <Box sx={{ position: "relative", mb: 0.5 }}>
+                      <Image
+                        src="/icons/folder-upload-line.png"
+                        alt="cloud upload"
+                        width={24}
+                        height={24}
+                      />
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: "0.75rem",
+                        lineHeight: "100%",
+                        letterSpacing: "0%",
+                        color: "#818285",
+                      }}
+                    >
+                      upload from device
+                    </Typography>
+                  </>
+                )}
+              </Box>
             </Box>
             <Typography
               variant="caption"
@@ -1128,9 +1302,8 @@ export default function CreateServiceRequestModal({
           </Box>
         );
 
-      case 4:
-        // Step 4: Valuation/Date & Time (same as BookServiceModal case 4)
-        // This is a large section - I'll include the key parts
+      case 3:
+        // Step 3: Valuation/Date & Time
         return (
           <Box>
             <Typography
@@ -1141,10 +1314,10 @@ export default function CreateServiceRequestModal({
                 fontWeight: 500,
               }}
             >
-              {steps[3].title}
+              {steps[2].title}
             </Typography>
             <Typography sx={{ mb: 3, color: "#939393", lineHeight: "150%" }}>
-              {serviceProvider === "professional" 
+              {serviceProvider === "professional"
                 ? "Great, you're almost done. Please add the job valuation."
                 : "Great, you're almost done. Please choose the date and time for your service."}
             </Typography>
@@ -1164,9 +1337,22 @@ export default function CreateServiceRequestModal({
                 </Typography>
                 <TextField
                   fullWidth
-                  value={`€ ${valuation}`}
+                  placeholder="Enter amount"
+                  value={valuation ? `€ ${valuation}` : "€ "}
                   onChange={(e) => {
-                    const value = e.target.value.replace("€ ", "").replace(",", "");
+                    let value = e.target.value
+                      .replace("€ ", "")
+                      .replace(",", "");
+                    
+                    // Only allow numbers and a single decimal point
+                    value = value.replace(/[^0-9.]/g, '');
+                    
+                    // Prevent multiple decimal points
+                    const parts = value.split('.');
+                    if (parts.length > 2) {
+                      value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    
                     setValuation(value);
                   }}
                   sx={{
@@ -1235,7 +1421,7 @@ export default function CreateServiceRequestModal({
                   </IconButton>
                 </Box>
               </Box>
-              
+
               <Box
                 sx={{
                   bgcolor: "#FBFBFB",
@@ -1405,19 +1591,29 @@ export default function CreateServiceRequestModal({
               />
               <Box sx={{ display: "flex", gap: 2 }}>
                 <Typography
-                  onClick={() => setSelectedTime({ ...selectedTime, period: "AM" })}
+                  onClick={() =>
+                    setSelectedTime({ ...selectedTime, period: "AM" })
+                  }
                   sx={{
                     cursor: "pointer",
-                    color: selectedTime.period === "AM" ? "primary.normal" : "#D5D5D5",
+                    color:
+                      selectedTime.period === "AM"
+                        ? "primary.normal"
+                        : "#D5D5D5",
                   }}
                 >
                   AM
                 </Typography>
                 <Typography
-                  onClick={() => setSelectedTime({ ...selectedTime, period: "PM" })}
+                  onClick={() =>
+                    setSelectedTime({ ...selectedTime, period: "PM" })
+                  }
                   sx={{
                     cursor: "pointer",
-                    color: selectedTime.period === "PM" ? "primary.normal" : "#D5D5D5",
+                    color:
+                      selectedTime.period === "PM"
+                        ? "primary.normal"
+                        : "#D5D5D5",
                   }}
                 >
                   PM
@@ -1427,8 +1623,8 @@ export default function CreateServiceRequestModal({
           </Box>
         );
 
-      case 5:
-        // Step 5: Barter Product (if non-professional) or Preview (if professional)
+      case 4:
+        // Step 4: Barter Product (if non-professional) or Preview (if professional)
         if (serviceProvider === "non-professional") {
           return (
             <Box>
@@ -1503,13 +1699,21 @@ export default function CreateServiceRequestModal({
                           size="large"
                           onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         >
-                          <Typography sx={{fontSize:"2rem", color:"#343330"}}>-</Typography>
+                          <Typography
+                            sx={{ fontSize: "2rem", color: "#343330" }}
+                          >
+                            -
+                          </Typography>
                         </IconButton>
                         <IconButton
                           size="large"
                           onClick={() => setQuantity(quantity + 1)}
                         >
-                          <Typography sx={{fontSize:"2rem",color:"#343330"}}>+</Typography>
+                          <Typography
+                            sx={{ fontSize: "2rem", color: "#343330" }}
+                          >
+                            +
+                          </Typography>
                         </IconButton>
                       </Box>
                     </InputAdornment>
@@ -1530,37 +1734,55 @@ export default function CreateServiceRequestModal({
                 Upload Photos of Product
               </Typography>
               <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                {[0, 1].map((index) => (
-                  <Box
-                    key={index}
-                    component="label"
-                    htmlFor={`barter-photo-${index}`}
-                    sx={{
-                      width: "100%",
-                      height: "9rem",
-                      border: "0.125rem dashed",
-                      borderColor: barterPhotoFiles[index] ? "#2F6B8E" : "#D1D5DB",
-                      borderRadius: 2,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      bgcolor: "#FFFFFF",
-                      position: "relative",
-                      "&:hover": {
-                        borderColor: "#9CA3AF",
-                      },
-                    }}
-                  >
-                    <input
-                      id={`barter-photo-${index}`}
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={(e) => handleBarterPhotoChange(e, index)}
-                    />
-                    {barterPhotoFiles[index] ? (
+                {/* First Barter Photo Upload Box */}
+                <Box
+                  component="label"
+                  htmlFor="barter-photo-0"
+                  sx={{
+                    width: "100%",
+                    height: "9rem",
+                    border: "0.125rem dashed",
+                    borderColor: barterPhotoFiles[0]
+                      ? "#2F6B8E"
+                      : "#D1D5DB",
+                    borderRadius: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    bgcolor: "#FFFFFF",
+                    position: "relative",
+                    "&:hover": {
+                      borderColor: "#9CA3AF",
+                    },
+                  }}
+                >
+                  <input
+                    id="barter-photo-0"
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={(e) => handleBarterPhotoChange(e, 0)}
+                  />
+                  {barterPhotoFiles[0] ? (
+                    barterPhotoFilePreviews[0] ? (
+                      <Box sx={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                        <Image
+                          src={barterPhotoFilePreviews[0]!}
+                          alt="Preview"
+                          fill
+                          style={{ objectFit: "cover", borderRadius: "8px" }}
+                        />
+                        <Box sx={{ position: "absolute", bottom: 8, left: 8, right: 8, bgcolor: "rgba(0,0,0,0.6)", borderRadius: 1, p: 0.5 }}>
+                          <Typography variant="caption" color="white" sx={{ fontSize: "0.75rem", textAlign: "center" }}>
+                            {barterPhotoFiles[0].name.length > 20
+                              ? `${barterPhotoFiles[0].name.substring(0, 20)}...`
+                              : barterPhotoFiles[0].name}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
                       <>
                         <Box sx={{ position: "relative", mb: 0.5 }}>
                           <Image
@@ -1582,17 +1804,92 @@ export default function CreateServiceRequestModal({
                             px: 1,
                           }}
                         >
-                          {barterPhotoFiles[index].name.length > 20
-                            ? `${barterPhotoFiles[index].name.substring(0, 20)}...`
-                            : barterPhotoFiles[index].name}
+                          {barterPhotoFiles[0].name.length > 20
+                            ? `${barterPhotoFiles[0].name.substring(0, 20)}...`
+                            : barterPhotoFiles[0].name}
                         </Typography>
                       </>
+                    )
+                  ) : (
+                    <>
+                      <Box sx={{ position: "relative", mb: 0.5 }}>
+                        <Image
+                          src="/icons/folder-upload-line.png"
+                          alt="cloud upload"
+                          width={24}
+                          height={24}
+                        />
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 300,
+                          fontSize: "0.75rem",
+                          lineHeight: "100%",
+                          letterSpacing: "0%",
+                          color: "#818285",
+                        }}
+                      >
+                        upload from device
+                      </Typography>
+                    </>
+                  )}
+                </Box>
+
+                {/* Second Barter Photo Upload Box */}
+                <Box
+                  component="label"
+                  htmlFor="barter-photo-1"
+                  sx={{
+                    width: "100%",
+                    height: "9rem",
+                    border: "0.125rem dashed",
+                    borderColor: barterPhotoFiles[1]
+                      ? "#2F6B8E"
+                      : "#D1D5DB",
+                    borderRadius: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    bgcolor: "#FFFFFF",
+                    position: "relative",
+                    "&:hover": {
+                      borderColor: "#9CA3AF",
+                    },
+                  }}
+                >
+                  <input
+                    id="barter-photo-1"
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={(e) => handleBarterPhotoChange(e, 1)}
+                  />
+                  {barterPhotoFiles[1] ? (
+                    barterPhotoFilePreviews[1] ? (
+                      <Box sx={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                        <Image
+                          src={barterPhotoFilePreviews[1]!}
+                          alt="Preview"
+                          fill
+                          style={{ objectFit: "cover", borderRadius: "8px" }}
+                        />
+                        <Box sx={{ position: "absolute", bottom: 8, left: 8, right: 8, bgcolor: "rgba(0,0,0,0.6)", borderRadius: 1, p: 0.5 }}>
+                          <Typography variant="caption" color="white" sx={{ fontSize: "0.75rem", textAlign: "center" }}>
+                            {barterPhotoFiles[1].name.length > 20
+                              ? `${barterPhotoFiles[1].name.substring(0, 20)}...`
+                              : barterPhotoFiles[1].name}
+                          </Typography>
+                        </Box>
+                      </Box>
                     ) : (
                       <>
                         <Box sx={{ position: "relative", mb: 0.5 }}>
                           <Image
                             src="/icons/folder-upload-line.png"
-                            alt="cloud upload"
+                            alt="file uploaded"
                             width={24}
                             height={24}
                           />
@@ -1604,15 +1901,42 @@ export default function CreateServiceRequestModal({
                             fontSize: "0.75rem",
                             lineHeight: "100%",
                             letterSpacing: "0%",
-                            color: "#818285",
+                            color: "#2F6B8E",
+                            textAlign: "center",
+                            px: 1,
                           }}
                         >
-                          upload from device
+                          {barterPhotoFiles[1].name.length > 20
+                            ? `${barterPhotoFiles[1].name.substring(0, 20)}...`
+                            : barterPhotoFiles[1].name}
                         </Typography>
                       </>
-                    )}
-                  </Box>
-                ))}
+                    )
+                  ) : (
+                    <>
+                      <Box sx={{ position: "relative", mb: 0.5 }}>
+                        <Image
+                          src="/icons/folder-upload-line.png"
+                          alt="cloud upload"
+                          width={24}
+                          height={24}
+                        />
+                      </Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 300,
+                          fontSize: "0.75rem",
+                          lineHeight: "100%",
+                          letterSpacing: "0%",
+                          color: "#818285",
+                        }}
+                      >
+                        upload from device
+                      </Typography>
+                    </>
+                  )}
+                </Box>
               </Box>
             </Box>
           );
@@ -1620,8 +1944,8 @@ export default function CreateServiceRequestModal({
         // For professional, show Preview
         return renderPreviewStep();
 
-      case 6:
-        // Step 6: Preview (for non-professional)
+      case 5:
+        // Step 5: Preview (for non-professional)
         return renderPreviewStep();
 
       default:
@@ -1647,7 +1971,8 @@ export default function CreateServiceRequestModal({
             fontWeight: 600,
           }}
         >
-          {apiCategories.find((c) => c.id === selectedCategory)?.category_name} Service
+          {apiCategories.find((c) => c.id === selectedCategory)?.category_name}{" "}
+          Service
         </Typography>
         {/* Preview content - simplified, you can copy full implementation from BookServiceModal */}
         <Box
@@ -1668,15 +1993,14 @@ export default function CreateServiceRequestModal({
               flex: "1 1 0%",
               position: "relative",
               width: "100%",
-              height:"80%",
+              height: "80%",
               overflow: "hidden",
             }}
           >
             <Image
               src={
-                subcategories.find(
-                  (s) => s.id === selectedService
-                )?.image || "/image/service-image-5.png"
+                subcategories.find((s) => s.id === selectedService)?.image ||
+                "/image/service-image-5.png"
               }
               alt="Service Preview"
               width={800}
@@ -1697,7 +2021,7 @@ export default function CreateServiceRequestModal({
               borderRadius: 1,
             }}
           >
-            <Typography  
+            <Typography
               variant="body1"
               color="#2C6587"
               fontWeight="600"
@@ -1705,15 +2029,25 @@ export default function CreateServiceRequestModal({
               noWrap
             >
               {
-                subcategories.find(
-                  (s) => s.id === selectedService
-                )?.subcategory_name
+                subcategories.find((s) => s.id === selectedService)
+                  ?.subcategory_name
               }
             </Typography>
           </Box>
         </Box>
 
-        {/* Job Details Card */}
+        <Typography
+          sx={{
+            mb: 2,
+            fontSize: "1.125rem",
+            lineHeight: "100%",
+            letterSpacing: "0%",
+            color: "#555555",
+            fontWeight: 600,
+          }}
+        >
+          Job Details
+        </Typography>
         <Card
           sx={{
             p: 2,
@@ -1728,19 +2062,37 @@ export default function CreateServiceRequestModal({
             {serviceProvider == "non-professional" && productName != "" ? (
               <>
                 <Box sx={{ flex: 1, textAlign: "center" }}>
-                  <Typography sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}>
+                  <Typography
+                    sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}
+                  >
                     Product
                   </Typography>
-                  <Typography sx={{ fontSize: "1.125rem", color: "primary.normal", fontWeight: 500 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "1.125rem",
+                      color: "primary.normal",
+                      fontWeight: 500,
+                    }}
+                  >
                     {productName}
                   </Typography>
                 </Box>
-                <Box sx={{ width: "0.0625rem", bgcolor: "grey.300", my: 0.5 }} />
+                <Box
+                  sx={{ width: "0.0625rem", bgcolor: "grey.300", my: 0.5 }}
+                />
                 <Box sx={{ flex: 1, textAlign: "center" }}>
-                  <Typography sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}>
+                  <Typography
+                    sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}
+                  >
                     Quantity
                   </Typography>
-                  <Typography sx={{ fontSize: "1.125rem", color: "primary.normal", fontWeight: 500 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "1.125rem",
+                      color: "primary.normal",
+                      fontWeight: 500,
+                    }}
+                  >
                     {quantity}
                   </Typography>
                 </Box>
@@ -1748,10 +2100,18 @@ export default function CreateServiceRequestModal({
             ) : (
               <>
                 <Box sx={{ flex: 1, textAlign: "center" }}>
-                  <Typography sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}>
+                  <Typography
+                    sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}
+                  >
                     Valuation
                   </Typography>
-                  <Typography sx={{ fontSize: "1.125rem", color: "primary.normal", fontWeight: 500 }}>
+                  <Typography
+                    sx={{
+                      fontSize: "1.125rem",
+                      color: "primary.normal",
+                      fontWeight: 500,
+                    }}
+                  >
                     €{valuation}
                   </Typography>
                 </Box>
@@ -1759,19 +2119,35 @@ export default function CreateServiceRequestModal({
             )}
             <Box sx={{ width: "0.0625rem", bgcolor: "grey.300", my: 0.5 }} />
             <Box sx={{ flex: 1, textAlign: "center" }}>
-              <Typography sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}>
+              <Typography
+                sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}
+              >
                 Job Date
               </Typography>
-              <Typography sx={{ fontSize: "1.125rem", color: "primary.normal", fontWeight: 500 }}>
+              <Typography
+                sx={{
+                  fontSize: "1.125rem",
+                  color: "primary.normal",
+                  fontWeight: 500,
+                }}
+              >
                 {selectedDate} {getMonthName(currentMonth).substring(0, 3)}
               </Typography>
             </Box>
             <Box sx={{ width: "0.0625rem", bgcolor: "grey.300", my: 0.5 }} />
             <Box sx={{ flex: 1, textAlign: "center" }}>
-              <Typography sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}>
+              <Typography
+                sx={{ fontSize: "1.125rem", color: "#989898", mb: 0.5 }}
+              >
                 Job Time
               </Typography>
-              <Typography sx={{ fontSize: "1.125rem", color: "primary.normal", fontWeight: 500 }}>
+              <Typography
+                sx={{
+                  fontSize: "1.125rem",
+                  color: "primary.normal",
+                  fontWeight: 500,
+                }}
+              >
                 {selectedTime.hour}:{selectedTime.minute} {selectedTime.period}
               </Typography>
             </Box>
@@ -1790,21 +2166,88 @@ export default function CreateServiceRequestModal({
         >
           Service description
         </Typography>
-        <Typography
+        <Box
           sx={{
             mb: 3,
-            fontSize: "1rem",
-            py:"0.875rem",
-            px:"1rem",
-            border:"0.0625rem solid #D5D5D5",
-            borderRadius:"0.75rem",
-            lineHeight: "150%",
-            letterSpacing: "0%",
-            color: "#939393",
+            border: "0.0625rem solid",
+            borderColor: "#D5D5D5",
+            borderRadius: "0.75rem",
+            p: 2,
+            bgcolor: "#FFFFFF",
+            minHeight: "120px",
           }}
         >
-          {serviceDescription || "No description provided"}
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: "1rem",
+              lineHeight: "150%",
+              letterSpacing: "0%",
+              color: "#424242",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {serviceDescription || "No description provided"}
+          </Typography>
+        </Box>
+
+        {descriptionFiles.length > 0 && (
+          <>
+            <Typography
+              sx={{
+                mb: 2,
+                fontSize: "1.125rem",
+                lineHeight: "100%",
+                letterSpacing: "0%",
+                color: "#555555",
+                fontWeight: 600,
+              }}
+            >
+              Job photos
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3 }}>
+              {descriptionFiles.map((file, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    width: "calc(50% - 0.5rem)",
+                    minWidth: "200px",
+                    height: "10.438rem",
+                    borderRadius: "0.75rem",
+                    overflow: "hidden",
+                    position: "relative",
+                    border: "none",
+                  }}
+                >
+                  {file.type.startsWith("image/") && descriptionFilePreviews[index] ? (
+                    <Image
+                      src={descriptionFilePreviews[index]}
+                      alt={`Job photo ${index + 1}`}
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        bgcolor: "grey.100",
+                      }}
+                    >
+                      <Typography
+                        sx={{ color: "text.secondary", fontSize: "0.875rem" }}
+                      >
+                        {file.name}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          </>
+        )}
       </Box>
     );
   };
@@ -1827,9 +2270,9 @@ export default function CreateServiceRequestModal({
           },
         }}
       >
-        <DialogContent 
-          sx={{ 
-            p: "2.5rem", 
+        <DialogContent
+          sx={{
+            p: "2.5rem",
             position: "relative",
             overflowY: "auto",
             maxHeight: "calc(90vh - 64px)",
@@ -1837,10 +2280,17 @@ export default function CreateServiceRequestModal({
             "&::-webkit-scrollbar": {
               display: "none",
             },
-            "-ms-overflow-style": "none",
+            msOverflowStyle: "none",
           }}
         >
-          <Box sx={{ display:"flex",alignItems:"center",justifyContent:"space-between",mb:"2rem" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: "2rem",
+            }}
+          >
             <Typography
               sx={{
                 color: "primary.normal",
@@ -1852,19 +2302,19 @@ export default function CreateServiceRequestModal({
               Create A Service Request
             </Typography>
             <Box
-              onClick={()=>{
+              onClick={() => {
                 resetForm();
                 onClose();
               }}
               sx={{
-                pr:0,
+                pr: 0,
                 cursor: "pointer",
               }}
             >
               <CloseIcon />
             </Box>
           </Box>
-       
+
           <Box sx={{ mb: 3 }}>
             <Box
               sx={{
@@ -1932,10 +2382,12 @@ export default function CreateServiceRequestModal({
               onClick={handleNext}
               disabled={
                 uploading ||
-                (currentStep === 1 && (!selectedCategory || !selectedService)) ||
-                (currentStep === 2 && !serviceProvider) ||
-                (currentStep === 3 && !serviceDescription) ||
-                (currentStep === 5 &&
+                (currentStep === 1 && !serviceProvider) ||
+                (currentStep === 2 && !serviceDescription) ||
+                (currentStep === 3 &&
+                  serviceProvider === "professional" &&
+                  (!valuation || valuation.trim() === "")) ||
+                (currentStep === 4 &&
                   serviceProvider === "non-professional" &&
                   !productName)
               }
@@ -1953,7 +2405,8 @@ export default function CreateServiceRequestModal({
             >
               {uploading
                 ? "Submitting..."
-                : currentStep === (serviceProvider === "non-professional" ? 6 : 5)
+                : currentStep ===
+                  (serviceProvider === "non-professional" ? 5 : 4)
                 ? "Submit"
                 : "Next"}
             </Button>
@@ -1995,7 +2448,15 @@ export default function CreateServiceRequestModal({
               width={372}
               height={332}
             />
-            <Typography sx={{ mb: 1, color:"#939393", fontSize:"1.125rem", lineHeight:"1.75rem", fontWeight:600 }}>
+            <Typography
+              sx={{
+                mb: 1,
+                color: "#939393",
+                fontSize: "1.125rem",
+                lineHeight: "1.75rem",
+                fontWeight: 600,
+              }}
+            >
               Great job! Your request is now submitted successfully.
             </Typography>
           </Box>
@@ -2004,4 +2465,3 @@ export default function CreateServiceRequestModal({
     </>
   );
 }
-

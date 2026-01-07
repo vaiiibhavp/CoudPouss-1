@@ -3,10 +3,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Box, Typography, Button } from "@mui/material";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import CreateServiceRequestModal from "@/components/CreateServiceRequestModal";
 
 interface Category {
   id: string;
@@ -58,6 +60,16 @@ export default function TechSupportPage() {
     Record<string, boolean>
   >({});
   const [banners, setBanners] = useState<Record<string, Banner | null>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
+
+  // Memoized function to handle modal close
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedCategoryId("");
+    setSelectedSubcategoryId("");
+  }, []);
 
   const fetchSubcategories = useCallback(async (categoryId: string) => {
     setSubcategoriesLoading((prev) => ({ ...prev, [categoryId]: true }));
@@ -381,6 +393,11 @@ export default function TechSupportPage() {
                               <Button
                                 variant="contained"
                                 size="small"
+                                onClick={() => {
+                                  setSelectedCategoryId(category.id);
+                                  setSelectedSubcategoryId(subcategory.id);
+                                  setIsModalOpen(true);
+                                }}
                                 sx={{
                                   bgcolor: "primary.normal",
                                   color: "white",
@@ -388,8 +405,11 @@ export default function TechSupportPage() {
                                   borderRadius: 2,
                                   fontSize: "0.85rem",
                                   py: 0.75,
-                                  textWrap:"nowrap"
+                                  textWrap: "nowrap",
                                 }}
+                                endIcon={
+                                  <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />
+                                }
                               >
                                 Create Request
                               </Button>
@@ -426,6 +446,14 @@ export default function TechSupportPage() {
           </Box>
         </Box>
       </Box>
+
+      {/* Create Service Request Modal */}
+      <CreateServiceRequestModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        preSelectedCategoryId={selectedCategoryId}
+        preSelectedSubcategoryId={selectedSubcategoryId}
+      />
     </Box>
   );
 }

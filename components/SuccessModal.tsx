@@ -40,23 +40,40 @@ export default function SuccessModal({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
-      fullWidth
+      maxWidth={false}
+      fullWidth={false}
+      sx={{
+        '& .MuiDialog-container': {
+          padding: { xs: 0 },
+        },
+      }}
       PaperProps={{
         sx: {
           borderRadius: 3,
-          padding: showSubscriptionDetails ? 3 : 2,
+          padding: { xs: 0, sm: showSubscriptionDetails ? 3 : 2 },
+          margin: { xs: 0 },
+          width: { xs: '100%', sm: '570px' },
+          maxWidth: { xs: '100%', sm: '570px' },
+          maxHeight: { xs: '100%', sm: '692px' },
+          height: { xs: '100%', sm: '692px' },
         },
       }}
     >
-      <DialogContent>
+      <DialogContent
+        sx={{
+          padding: { xs: '24px', sm: 'inherit' },
+          '&.MuiDialogContent-root': {
+            padding: { xs: '24px', sm: 'inherit' },
+          },
+        }}
+      >
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            py: showSubscriptionDetails ? 2 : 3,
+            py: { xs: 0, sm: showSubscriptionDetails ? 2 : 3 },
           }}
         >
           {showSubscriptionDetails ? (

@@ -7,7 +7,7 @@ import { ROUTES } from "@/constants/routes";
 import { RootState } from "@/lib/redux/store";
 import { getCookie } from "@/utils/validation";
 
-export default function ProtectedLayout({
+export default function ProfessionalLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -16,25 +16,23 @@ export default function ProtectedLayout({
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    // Check if user is authenticated
-    const storedInitial = localStorage.getItem("userInitial");
-    const storedEmail = localStorage.getItem("userEmail");
+    // Check role from Redux state or cookies
     const role = user?.role || getCookie("userRole") || localStorage.getItem("role");
     
     // If user is not authenticated, redirect to login
-    if (!isAuthenticated && !storedInitial && !storedEmail) {
+    if (!isAuthenticated && !role) {
       router.push(ROUTES.LOGIN);
       return;
     }
 
-    // If user is service_provider, prevent access to elderly pages
-    if (role === "service_provider") {
-      router.push(ROUTES.PROFESSIONAL_HOME);
+    // If user is elderly_user, prevent access to professional pages
+    if (role === "elderly_user") {
+      router.push(ROUTES.AUTH_HOME);
       return;
     }
 
-    // If user is not elderly_user, redirect to login
-    if (role && role !== "elderly_user") {
+    // If user is not service_provider, redirect to login
+    if (role && role !== "service_provider") {
       router.push(ROUTES.LOGIN);
       return;
     }

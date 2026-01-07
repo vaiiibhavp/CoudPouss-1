@@ -33,6 +33,7 @@ import { AppDispatch, RootState } from "@/lib/redux/store";
 import { Lato } from "next/font/google";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import { getCookie } from "@/utils/validation";
 
 interface HeaderProps {
   showExploreServices?: boolean;
@@ -337,9 +338,14 @@ export default function Header({
   const handleProfileMenuClose = () => {
     setProfileMenuAnchor(null);
   };
-  // Determine home route - use prop if provided, otherwise based on authentication
-  const finalHomeRoute =
-    homeRoute || (isAuthenticated ? ROUTES.AUTH_HOME : ROUTES.HOME);
+  // Determine home route - use prop if provided, otherwise based on authentication and role
+  const userRole = user?.role || getCookie("userRole") || localStorage.getItem("role");
+  const finalHomeRoute = homeRoute || 
+    (isAuthenticated && userRole === "service_provider" 
+      ? ROUTES.PROFESSIONAL_HOME 
+      : isAuthenticated && userRole === "elderly_user"
+      ? ROUTES.AUTH_HOME
+      : ROUTES.HOME);
 
   return (
     <>
@@ -412,16 +418,16 @@ export default function Header({
                   <>
                     <Button
                       component={Link}
-                      href={ROUTES.PROFESSIONAL_DASHBOARD}
+                      href={ROUTES.PROFESSIONAL_HOME}
                       sx={{
                         color:
-                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
+                          pathname === ROUTES.PROFESSIONAL_HOME
                             ? "primary.main"
                             : "text.secondary",
                         textTransform: "none",
                         display: { xs: "none", lg: "block" },
                         borderBottom:
-                          pathname === ROUTES.PROFESSIONAL_DASHBOARD
+                          pathname === ROUTES.PROFESSIONAL_HOME
                             ? "0.125rem solid"
                             : "none",
                         borderColor: "primary.main",

@@ -67,11 +67,26 @@ export default function LoginPage() {
     // Check if loading just finished (was true, now false) and user is authenticated
     if (wasLoading && !isLoading && isAuthenticated && user) {
       toast.success('Login successful! Welcome back.');
-      router.push(ROUTES.AUTH_HOME);
+      // Navigate based on user role
+      if (user.role === "elderly_user") {
+        router.push(ROUTES.AUTH_HOME);
+      } else if (user.role === "service_provider") {
+        router.push(ROUTES.PROFESSIONAL_HOME);
+      } else {
+        // Fallback to home if role is unknown
+        router.push(ROUTES.AUTH_HOME);
+      }
       hasShownErrorRef.current = false; // Reset error flag on success
-    } else if (isAuthenticated && !wasLoading) {
+    } else if (isAuthenticated && !wasLoading && user) {
       // Already authenticated on page load (not from login attempt)
-      router.push(ROUTES.AUTH_HOME);
+      // Navigate based on user role
+      if (user.role === "elderly_user") {
+        router.push(ROUTES.AUTH_HOME);
+      } else if (user.role === "service_provider") {
+        router.push(ROUTES.PROFESSIONAL_HOME);
+      } else {
+        router.push(ROUTES.AUTH_HOME);
+      }
     }
     
     // Show error toast when login fails
@@ -114,7 +129,7 @@ export default function LoginPage() {
       <Box
         sx={{
           display: { xs: 'none', lg: 'flex' },
-          width: '55%',
+          width: '56%',
           position: 'relative',
           overflow: 'hidden',
         }}
@@ -158,7 +173,7 @@ export default function LoginPage() {
           <Paper
             elevation={0}
             sx={{
-              padding: 4,
+              padding: { xs: '32px 12px', md: 4 },
               width: '100%',
             }}
           >
@@ -360,15 +375,15 @@ export default function LoginPage() {
                                       >
                                         {showPassword ? (
                                           <img 
-                                            src="/icons/EyeOpen.svg" 
+                                            src="/icons/blueOpenIcon.svg" 
                                             alt="Hide password" 
-                                            style={{ width: 24, height: 24 }}
+                                            style={{ width: 20, height: 20 }}
                                           />
                                         ) : (
                                           <img 
-                                            src="/icons/EyeClose.svg" 
+                                            src="/icons/blueHideIcon.svg" 
                                             alt="Show password" 
-                                            style={{ width: 24, height: 24 }}
+                                            style={{ width: 20, height: 20 }}
                                           />
                                         )}
                                       </IconButton>
@@ -430,7 +445,7 @@ export default function LoginPage() {
                         <Link
                           href={ROUTES.RESET_PASSWORD}
                           style={{
-                            color: 'secondary.naturalGray',
+                            color: '#6D6D6D',
                             fontSize: "1.125rem",
                             lineHeight: "1.25rem",
                             fontWeight: 600,
