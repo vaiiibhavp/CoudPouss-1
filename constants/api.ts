@@ -22,9 +22,11 @@ export const API_ENDPOINTS = {
     RESET_PASSWORD: `${API_BASE_URL}userService/auth/reset/confirm`,
     VERIFY_EMAIL: `${API_BASE_URL}userService/auth/verify-email`,
     PLANS_ALL: `${API_BASE_URL}userService/auth/plans/all`,
+    SELECT_PLAN: `${API_BASE_URL}userService/auth/select-plan`,
     EXPERIENCE: `${API_BASE_URL}userService/auth/experience`,
     GET_USER: `${API_BASE_URL}userService/auth/get_user`,
     DELETE_PROFILE: `${API_BASE_URL}userService/auth/delete-profile`,
+    SAVE_SERVICES: `${API_BASE_URL}userService/auth/services`,
   },
   HOME:{
     HOME: `${API_BASE_URL}home_module/home`,

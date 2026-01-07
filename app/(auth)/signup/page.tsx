@@ -122,6 +122,7 @@ export default function SignupPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const [step, setStep] = useState<SignupStep>("select-profile");
+  // const [step, setStep] = useState<SignupStep>("add-details");
   const [userType, setUserType] = useState<UserType>(null);
   const [formData, setFormData] = useState({
     emailOrMobile: "",
@@ -969,7 +970,9 @@ export default function SignupPage() {
 
       case "verify-otp":
         return (
-          <Box>
+          <Box  sx={{
+            px: { xs: 0, md: 4 }
+          }} >
             <Typography
               sx={{
                 fontWeight: `700`,
@@ -1075,7 +1078,6 @@ export default function SignupPage() {
                         color: "#555555",
                         margin: "0 auto",
                         mb: { xs: 1.5, md: 2 },
-                        // maxWidth: "382px",
                         
                       }}
                     >
@@ -1086,7 +1088,7 @@ export default function SignupPage() {
                         display: "flex",
                         gap: "20px",
                         justifyContent: "space-between",
-                      maxWidth: "382px",
+
                       margin: "0 auto",
                         mb: formikErrors.otp && submitCount > 0 ? 1 : 2,
                       }}
@@ -1120,11 +1122,9 @@ export default function SignupPage() {
                           }}
                           sx={{
                             borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
-                            width: "80.5px",
                             "& .MuiOutlinedInput-root": {
-                              height: "54px",
                               borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
-                              width: "80.5px",
+                              width: "100%",
                               borderRadius: "12px",
                             },
                           }}
@@ -1152,7 +1152,7 @@ export default function SignupPage() {
                         sx={{
                           display: "block",
                           textAlign: "center",
-                          mb: { xs: 2, md: 3 },
+                          mb: { xs: 2, md: 5 },
                           fontSize: { xs: "1.125rem", md: "1.25rem" },
                           lineHeight: "1.5rem",
                           fontWeight: 600,
@@ -1215,7 +1215,12 @@ export default function SignupPage() {
 
       case "create-password":
         return (
-          <Box>
+          <Box
+          
+          sx={{
+            px: { xs: 0, md: 4 }
+          }} 
+          >
             <Typography
               sx={{
                 fontWeight: `700`,
@@ -1342,15 +1347,15 @@ export default function SignupPage() {
                                 >
                                   {showPassword ? (
                                     <img 
-                                      src="/icons/EyeOpen.svg" 
+                                      src="/icons/blueOpenIcon.svg" 
                                       alt="Hide password" 
-                                      style={{ width: 24, height: 24 }}
+                                      style={{ width: 20, height: 20 }}
                                     />
                                   ) : (
                                     <img 
-                                      src="/icons/EyeClose.svg" 
+                                      src="/icons/blueHideIcon.svg" 
                                       alt="Show password" 
-                                      style={{ width: 24, height: 24 }}
+                                      style={{ width: 20, height: 20 }}
                                     />
                                   )}
                                 </IconButton>
@@ -1424,15 +1429,15 @@ export default function SignupPage() {
                                 >
                                   {showConfirmPassword ? (
                                     <img 
-                                      src="/icons/EyeOpen.svg" 
+                                      src="/icons/blueOpenIcon.svg" 
                                       alt="Hide password" 
-                                      style={{ width: 24, height: 24 }}
+                                      style={{ width: 20, height: 20 }}
                                     />
                                   ) : (
                                     <img 
-                                      src="/icons/EyeClose.svg" 
+                                      src="/icons/blueHideIcon.svg" 
                                       alt="Show password" 
-                                      style={{ width: 24, height: 24 }}
+                                      style={{ width: 20, height: 20 }}
                                     />
                                   )}
                                 </IconButton>
@@ -1502,8 +1507,8 @@ export default function SignupPage() {
               <Box component={Form} onSubmit={handleSubmit}>
                 <Box
                   sx={{
-                    width: { xs: 100, sm: 120, md: 140 },
-                    height: { xs: 100, sm: 120, md: 140 },
+                    width: 80,
+                    height: 80,
                     borderRadius: "50%",
                     // bgcolor: 'primary.main',
                     display: "flex",
@@ -1513,8 +1518,8 @@ export default function SignupPage() {
                 >
                   <Image
                     alt="appLogo"
-                    width={140}
-                    height={140}
+                    width={80}
+                    height={80}
                     src={"/icons/appLogo.png"}
                     style={{
                       width: "100%",
@@ -1954,7 +1959,7 @@ export default function SignupPage() {
       <Box
         sx={{
           display: { xs: "none", md: "block" },
-          width: { md: "55%" },
+          width: { md: "56%" },
           position: "relative",
           bgcolor: "grey.100",
         }}
@@ -1988,7 +1993,8 @@ export default function SignupPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: { xs: 2, sm: 3, md: 4 },
+          px: { xs: 0, sm: 0, md: 4 },
+          py: { xs: 2, sm: 3, md: 4 },
           overflowY: "auto",
           pt: step !== "select-profile" ? { xs: 2, sm: 4, md: 10 } : { xs: 2, md: 4 },
         }}
@@ -1997,8 +2003,9 @@ export default function SignupPage() {
           <Paper
             elevation={0}
             sx={{
-              padding: { xs: 2, sm: 3, md: 4 },
+              padding: { xs: '32px 12px', sm: 3, md: 4 },
               width: "100%",
+              
             }}
           >
             {/* Logo Section */}

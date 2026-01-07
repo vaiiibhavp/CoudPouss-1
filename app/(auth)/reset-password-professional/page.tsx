@@ -13,8 +13,6 @@ import {
   IconButton,
 } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
-import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter } from 'next/navigation';
 import { Formik, Form, Field, FieldProps } from 'formik';
 import * as Yup from 'yup';
@@ -663,9 +661,17 @@ export default function ProfessionalResetPasswordPage() {
                               edge="end"
                             >
                               {showPassword ? (
-                                <VisibilityOutlinedIcon />
+                                <img 
+                                  src="/icons/blueOpenIcon.svg" 
+                                  alt="Hide password" 
+                                  style={{ width: 20, height: 20 }}
+                                />
                               ) : (
-                                <VisibilityOffOutlinedIcon />
+                                <img 
+                                  src="/icons/blueHideIcon.svg" 
+                                  alt="Show password" 
+                                  style={{ width: 20, height: 20 }}
+                                />
                               )}
                             </IconButton>
                           </InputAdornment>
@@ -735,9 +741,17 @@ export default function ProfessionalResetPasswordPage() {
                               edge="end"
                             >
                               {showReEnterPassword ? (
-                                <VisibilityOutlinedIcon />
+                                <img 
+                                  src="/icons/blueOpenIcon.svg" 
+                                  alt="Hide password" 
+                                  style={{ width: 20, height: 20 }}
+                                />
                               ) : (
-                                <VisibilityOffOutlinedIcon />
+                                <img 
+                                  src="/icons/blueHideIcon.svg" 
+                                  alt="Show password" 
+                                  style={{ width: 20, height: 20 }}
+                                />
                               )}
                             </IconButton>
                           </InputAdornment>
@@ -854,7 +868,7 @@ export default function ProfessionalResetPasswordPage() {
           <Paper
             elevation={0}
             sx={{
-              padding: 4,
+              padding: { xs: '32px 12px', md: 4 },
               width: '100%',
             }}
           >

@@ -95,6 +95,18 @@ export function getCookie(name: string): string | null {
   return match ? match[2] : null;
 }
 
+export function setCookie(name: string, value: string, days: number = 7): void {
+  if (typeof window === "undefined") return;
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value}; path=/; expires=${expires.toUTCString()}; SameSite=Lax`;
+}
+
+export function deleteCookie(name: string): void {
+  if (typeof window === "undefined") return;
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax`;
+}
+
 export const buildInputData = (emailOrMobile: string) => {
   if (isValidEmail(emailOrMobile)) {
     return { email: emailOrMobile };

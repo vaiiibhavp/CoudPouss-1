@@ -14,8 +14,6 @@ import {
 } from '@mui/material';
 import Link from 'next/link';
 import { ArrowBack } from '@mui/icons-material';
-import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Formik, Form, Field, FieldProps } from 'formik';
 import * as Yup from 'yup';
@@ -90,8 +88,8 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userType: UserType = (searchParams.get('type') as UserType) || 'elder';
-  // const [step, setStep] = useState<ResetStep>('enter-email');
-  const [step, setStep] = useState<ResetStep>('verify-otp');
+  const [step, setStep] = useState<ResetStep>('enter-email');
+  // const [step, setStep] = useState<ResetStep>('verify-otp');
   const [formData, setFormData] = useState({
     emailOrMobile: '',
     otp: ['', '', '', ''],
@@ -392,25 +390,47 @@ export default function ResetPasswordPage() {
 
       case 'verify-otp':
         return (
-          <Box>
-            <Typography sx={{ color: '#424242', fontWeight: 600, fontSize: "1.5rem", lineHeight: "1.75rem", mb: "0.75rem" }}>
-              Enter OTP
-            </Typography>
-            <Typography sx={{ mb: 3, color: "#787878", lineHeight: "1.5rem", fontSize: "1.125rem", fontWeight: 500 }}>
-              To continue Please enter the 4 Digit OTP sent to your Email or Phone Number.
+          <Box  sx={{
+            px: { xs: 0, md: 4 }
+          }} >
+            <Typography
+              sx={{
+                fontWeight: `700`,
+                fontSize: { xs: `1.25rem`, sm: `1.375rem`, md: `1.5rem` },
+                color: `primary.normal`,
+                mb: { xs: "0.5rem", md: "0.75rem" },
+                lineHeight: { xs: "1.5rem", md: "1.75rem" },
+                textAlign: "center",
+              }}
+            >
+              Welcome To CoudPouss!
             </Typography>
             <Typography
               sx={{
-                fontSize: { xs: "16px", md: "18px" },
-                fontWeight: "500",
-                lineHeight: "100%",
-                color: "#555555",
-                margin: "0 auto",
-                mb: { xs: 1.5, md: 2 },
-                
+                fontWeight: 400,
+                fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                textAlign: "center",
+                lineHeight: "140%",
+                mb: { xs: "2rem", md: "2.5rem" },
+                color: "secondary.neutralWhiteDark",
               }}
             >
-              Code
+              Empowering seniors with easy access to trusted help, care, and
+              companionship whenever needed.
+            </Typography>
+
+            <Typography
+              sx={{
+                fontWeight: 400,
+                fontSize: { xs: "14px", sm: "15px", md: "16px" },
+                textAlign: "center",
+                lineHeight: "140%",
+                mb: { xs: "1rem", md: "1.5rem" },
+                color: "secondary.neutralWhiteDark",
+              }}
+            >
+              To continue Please enter the 4 Digit OTP sent to your Email or
+              Phone Number.
             </Typography>
             <Formik
               initialValues={{ otp: formData.otp || ["", "", "", ""] }}
@@ -468,14 +488,27 @@ export default function ResetPasswordPage() {
                 };
 
                 return (
-                  <Form>
+                  <Form  >
+                    <Typography
+                      sx={{
+                        fontSize: { xs: "16px", md: "18px" },
+                        fontWeight: "500",
+                        lineHeight: "100%",
+                        color: "#555555",
+                        margin: "0 auto",
+                        mb: { xs: 1.5, md: 2 },
+                        
+                      }}
+                    >
+                      Code
+                    </Typography>
                     <Box
                       sx={{
                         display: "flex",
                         gap: "20px",
                         justifyContent: "space-between",
-                        // maxWidth: "382px",
-                        margin: "0 auto",
+
+                      margin: "0 auto",
                         mb: formikErrors.otp && submitCount > 0 ? 1 : 2,
                       }}
                     >
@@ -508,11 +541,9 @@ export default function ResetPasswordPage() {
                           }}
                           sx={{
                             borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
-                            width: "80.5px",
                             "& .MuiOutlinedInput-root": {
-                              height: "54px",
                               borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
-                              width: "80.5px",
+                              width: "100%",
                               borderRadius: "12px",
                             },
                           }}
@@ -707,9 +738,17 @@ export default function ResetPasswordPage() {
                               edge="end"
                             >
                               {showPassword ? (
-                                <VisibilityOutlinedIcon />
+                                <img 
+                                  src="/icons/blueOpenIcon.svg" 
+                                  alt="Hide password" 
+                                  style={{ width: 20, height: 20 }}
+                                />
                               ) : (
-                                <VisibilityOffOutlinedIcon />
+                                <img 
+                                  src="/icons/blueHideIcon.svg" 
+                                  alt="Show password" 
+                                  style={{ width: 20, height: 20 }}
+                                />
                               )}
                             </IconButton>
                           </InputAdornment>
@@ -779,9 +818,17 @@ export default function ResetPasswordPage() {
                               edge="end"
                             >
                               {showReEnterPassword ? (
-                                <VisibilityOutlinedIcon />
+                                <img 
+                                  src="/icons/blueOpenIcon.svg" 
+                                  alt="Hide password" 
+                                  style={{ width: 20, height: 20 }}
+                                />
                               ) : (
-                                <VisibilityOffOutlinedIcon />
+                                <img 
+                                  src="/icons/blueHideIcon.svg" 
+                                  alt="Show password" 
+                                  style={{ width: 20, height: 20 }}
+                                />
                               )}
                             </IconButton>
                           </InputAdornment>
@@ -887,7 +934,8 @@ export default function ResetPasswordPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 4,
+          px: { xs: 0, md: 4 },
+          py: { xs: 2, md: 4 },
           overflowY: 'auto',
         }}
       >
@@ -895,7 +943,7 @@ export default function ResetPasswordPage() {
           <Paper
             elevation={0}
             sx={{
-              padding: 4,
+              padding: { xs: '32px 12px', md: 4 },
               width: '100%',
             }}
           >

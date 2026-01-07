@@ -2,7 +2,7 @@
 "use client";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { apiGet, apiPost } from "../api";
-import { buildInputData,getCookie } from "@/utils/validation";
+import { buildInputData, getCookie, setCookie, deleteCookie } from "@/utils/validation";
 import { API_ENDPOINTS } from "@/constants/api";
 import { ApiResponse } from "@/types";
 import { act } from "react";
@@ -177,12 +177,16 @@ const authSlice = createSlice({
       state.accessTokenExpire = null;
       state.refreshTokenExpire = null;
 
-      document.cookie = "refreshToken=; path=/; max-age=0";
+      // Clear cookies
+      deleteCookie("refreshToken");
+      deleteCookie("userRole");
         
       // Clear localStorage on logout (mirroring login persistence)
       if (typeof window !== "undefined") {
         localStorage.removeItem("userEmail");
         localStorage.removeItem("userInitial");
+        localStorage.removeItem("role");
+        localStorage.removeItem("token");
       }
     },
     clearAuthError(state) {
@@ -192,7 +196,8 @@ const authSlice = createSlice({
       if (typeof window !== "undefined") {
         const email = localStorage.getItem("userEmail");
         const initial = localStorage.getItem("userInitial");
-        const role = localStorage.getItem("role");
+        // Check both localStorage and cookies for role
+        const role = localStorage.getItem("role") || getCookie("userRole");
         // const token = localStorage.getItem("token");
 
         if (email && initial && role) {
@@ -263,13 +268,15 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.authInitialized = true;
         
-        // Persist to localStorage for page refresh
+        // Persist to localStorage and cookies for page refresh
         if (typeof window !== "undefined") {
           localStorage.setItem("userEmail", action.payload.user.email);
           localStorage.setItem("userInitial", action.payload.user.initial);
           localStorage.setItem("role", action.payload.user.role);
-          localStorage.setItem("token",action.payload.accessToken)
-          document.cookie = `refreshToken=${action.payload.refreshToken}; path=/; max-age=${7*24*60*60}`;
+          localStorage.setItem("token", action.payload.accessToken);
+          // Save refresh token and role to cookies
+          setCookie("refreshToken", action.payload.refreshToken, 7);
+          setCookie("userRole", action.payload.user.role, 7);
         }
       })
       .addCase(loginUser.rejected, (state, action) => {
