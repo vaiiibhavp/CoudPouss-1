@@ -10,6 +10,7 @@ import {
   LinearProgress,
   Button,
   Radio,
+  RadioProps,
   RadioGroup,
   FormControlLabel,
   FormControl,
@@ -113,6 +114,55 @@ const CategoryIcon = ({
   );
 };
 
+// Custom bullet radio icons using Material-UI Box and styling
+const BulletRadio = (props: RadioProps) => {
+  return (
+    <Radio
+      {...props}
+      disableRipple
+      icon={
+        <Box
+          sx={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            border: "2px solid #C5D3DC",
+            bgcolor: "#FFFFFF",
+            boxShadow: "0px 4px 10px rgba(44, 101, 135, 0.12)",
+          }}
+        />
+      }
+      checkedIcon={
+        <Box
+          sx={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            bgcolor: "#2C6587",
+            boxShadow: "0px 4px 12px rgba(44, 101, 135, 0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              bgcolor: "#FFFFFF",
+            }}
+          />
+        </Box>
+      }
+      sx={{
+        p: 0.5,
+        "&:hover": { backgroundColor: "transparent" },
+      }}
+    />
+  );
+};
+
 // Steps: Professional/Non-professional, then Service Description, Valuation, and Preview
 const steps = [
   { id: 1, title: "Select Your Service Provider", progress: 25 },
@@ -146,8 +196,12 @@ export default function CreateServiceRequestModal({
   const [showSuccess, setShowSuccess] = useState(false);
   const [descriptionFiles, setDescriptionFiles] = useState<File[]>([]);
   const [barterPhotoFiles, setBarterPhotoFiles] = useState<File[]>([]);
-  const [descriptionFilePreviews, setDescriptionFilePreviews] = useState<(string | null)[]>([]);
-  const [barterPhotoFilePreviews, setBarterPhotoFilePreviews] = useState<(string | null)[]>([]);
+  const [descriptionFilePreviews, setDescriptionFilePreviews] = useState<
+    (string | null)[]
+  >([]);
+  const [barterPhotoFilePreviews, setBarterPhotoFilePreviews] = useState<
+    (string | null)[]
+  >([]);
   const [uploading, setUploading] = useState(false);
   const [categoryId, setCategoryId] = useState<string>("");
   const [subCategoryId, setSubCategoryId] = useState<string>("");
@@ -263,14 +317,20 @@ export default function CreateServiceRequestModal({
 
   // Reset all form state to initial values
   const resetForm = useCallback(() => {
-    // Clean up preview URLs
-    descriptionFilePreviews.forEach((url) => {
-      if (url) URL.revokeObjectURL(url);
+    // Clean up preview URLs using functional setState to access current values
+    setDescriptionFilePreviews((prev) => {
+      prev.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+      return [];
     });
-    barterPhotoFilePreviews.forEach((url) => {
-      if (url) URL.revokeObjectURL(url);
+    setBarterPhotoFilePreviews((prev) => {
+      prev.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+      return [];
     });
-    
+
     setCurrentStep(1);
     setServiceProvider("professional");
     setSelectedCategory("");
@@ -286,12 +346,10 @@ export default function CreateServiceRequestModal({
     setShowSuccess(false);
     setDescriptionFiles([]);
     setBarterPhotoFiles([]);
-    setDescriptionFilePreviews([]);
-    setBarterPhotoFilePreviews([]);
     setCategoryId("");
     setSubCategoryId("");
     setSubcategories([]);
-  }, [descriptionFilePreviews, barterPhotoFilePreviews]);
+  }, []);
 
   // Reset form when modal is closed
   useEffect(() => {
@@ -315,79 +373,84 @@ export default function CreateServiceRequestModal({
     }
 
     setDescriptionFilePreviews((prev) => {
-      // Ensure array length matches files array
-      const newPreviews: (string | null)[] = new Array(descriptionFiles.length).fill(null);
+      // Start with existing previews, extend array if needed
+      const newPreviews: (string | null)[] = [...prev];
       let hasChanges = false;
 
-      // Copy existing valid previews and create new ones if needed
+      // Ensure array length matches files array
+      while (newPreviews.length < descriptionFiles.length) {
+        newPreviews.push(null);
+      }
+
+      // Process each file
       descriptionFiles.forEach((file, index) => {
         if (file && file.type.startsWith("image/")) {
-          const existingPreview = prev[index];
-          
-          // Only create new preview if it doesn't exist
-          // When step changes, we'll recreate on next render when step 2 is visible
+          const existingPreview = newPreviews[index];
+
+          // Only create preview if it doesn't exist
           if (!existingPreview) {
             const previewURL = URL.createObjectURL(file);
             newPreviews[index] = previewURL;
             hasChanges = true;
-          } else {
-            // Keep existing preview if it exists
-            newPreviews[index] = existingPreview;
           }
+          // If preview exists, keep it as is
         } else {
           // Clear preview if file doesn't exist or is not an image
-          const existingPreview = prev[index];
+          const existingPreview = newPreviews[index];
           if (existingPreview) {
             URL.revokeObjectURL(existingPreview);
+            newPreviews[index] = null;
             hasChanges = true;
           }
-          newPreviews[index] = null;
         }
       });
 
       // Clean up previews for indices that no longer have files
-      prev.forEach((preview, index) => {
-        if (preview && index >= descriptionFiles.length) {
-          URL.revokeObjectURL(preview);
-          hasChanges = true;
+      if (newPreviews.length > descriptionFiles.length) {
+        for (
+          let index = descriptionFiles.length;
+          index < newPreviews.length;
+          index++
+        ) {
+          if (newPreviews[index]) {
+            URL.revokeObjectURL(newPreviews[index]!);
+            hasChanges = true;
+          }
         }
-      });
+        newPreviews.splice(descriptionFiles.length);
+      }
 
       return hasChanges ? newPreviews : prev;
     });
   }, [descriptionFiles]);
 
-  // Recreate previews when coming back to step 2 (where images are displayed)
+  // Recreate previews when coming back to step 2 or preview steps (where images are displayed)
   useEffect(() => {
-    if (currentStep === 2 && descriptionFiles.length > 0) {
+    if (
+      (currentStep === 2 || currentStep === 4 || currentStep === 5) &&
+      descriptionFiles.length > 0
+    ) {
       setDescriptionFilePreviews((prev) => {
-        const newPreviews: (string | null)[] = [];
-        let hasChanges = false;
+        // Clean up all old previews first
+        prev.forEach((preview) => {
+          if (preview) URL.revokeObjectURL(preview);
+        });
 
-        descriptionFiles.forEach((file, index) => {
+        // Create fresh previews for all image files
+        const newPreviews: (string | null)[] = [];
+        descriptionFiles.forEach((file) => {
           if (file && file.type.startsWith("image/")) {
-            const existingPreview = prev[index];
-            // Only recreate if preview doesn't exist or is invalid
-            if (!existingPreview || !existingPreview.startsWith('blob:')) {
-              // Clean up old preview if it exists
-              if (existingPreview) {
-                URL.revokeObjectURL(existingPreview);
-              }
-              const previewURL = URL.createObjectURL(file);
-              newPreviews[index] = previewURL;
-              hasChanges = true;
-            } else {
-              newPreviews[index] = existingPreview;
-            }
+            const previewURL = URL.createObjectURL(file);
+            newPreviews.push(previewURL);
           } else {
-            newPreviews[index] = prev[index] || null;
+            newPreviews.push(null);
           }
         });
 
-        return hasChanges ? newPreviews : prev;
+        return newPreviews;
       });
     }
-  }, [currentStep, descriptionFiles]);
+  }, [currentStep, descriptionFiles.length]);
 
   useEffect(() => {
     if (barterPhotoFiles.length === 0) {
@@ -403,42 +466,52 @@ export default function CreateServiceRequestModal({
     }
 
     setBarterPhotoFilePreviews((prev) => {
-      // Ensure array length matches files array
-      const newPreviews: (string | null)[] = new Array(barterPhotoFiles.length).fill(null);
+      // Start with existing previews, extend array if needed
+      const newPreviews: (string | null)[] = [...prev];
       let hasChanges = false;
 
-      // Copy existing valid previews and create new ones if needed
+      // Ensure array length matches files array
+      while (newPreviews.length < barterPhotoFiles.length) {
+        newPreviews.push(null);
+      }
+
+      // Process each file
       barterPhotoFiles.forEach((file, index) => {
         if (file && file.type.startsWith("image/")) {
-          const existingPreview = prev[index];
-          
-          // Only create new preview if it doesn't exist
+          const existingPreview = newPreviews[index];
+
+          // Only create preview if it doesn't exist
           if (!existingPreview) {
             const previewURL = URL.createObjectURL(file);
             newPreviews[index] = previewURL;
             hasChanges = true;
-          } else {
-            // Keep existing preview if it exists
-            newPreviews[index] = existingPreview;
           }
+          // If preview exists, keep it as is
         } else {
           // Clear preview if file doesn't exist or is not an image
-          const existingPreview = prev[index];
+          const existingPreview = newPreviews[index];
           if (existingPreview) {
             URL.revokeObjectURL(existingPreview);
+            newPreviews[index] = null;
             hasChanges = true;
           }
-          newPreviews[index] = null;
         }
       });
 
       // Clean up previews for indices that no longer have files
-      prev.forEach((preview, index) => {
-        if (preview && index >= barterPhotoFiles.length) {
-          URL.revokeObjectURL(preview);
-          hasChanges = true;
+      if (newPreviews.length > barterPhotoFiles.length) {
+        for (
+          let index = barterPhotoFiles.length;
+          index < newPreviews.length;
+          index++
+        ) {
+          if (newPreviews[index]) {
+            URL.revokeObjectURL(newPreviews[index]!);
+            hasChanges = true;
+          }
         }
-      });
+        newPreviews.splice(barterPhotoFiles.length);
+      }
 
       return hasChanges ? newPreviews : prev;
     });
@@ -446,35 +519,31 @@ export default function CreateServiceRequestModal({
 
   // Recreate previews when coming back to step 4/5 (where barter photos are displayed)
   useEffect(() => {
-    if ((currentStep === 4 || currentStep === 5) && barterPhotoFiles.length > 0) {
+    if (
+      (currentStep === 4 || currentStep === 5) &&
+      barterPhotoFiles.length > 0
+    ) {
       setBarterPhotoFilePreviews((prev) => {
-        const newPreviews: (string | null)[] = [];
-        let hasChanges = false;
+        // Clean up all old previews first
+        prev.forEach((preview) => {
+          if (preview) URL.revokeObjectURL(preview);
+        });
 
-        barterPhotoFiles.forEach((file, index) => {
+        // Create fresh previews for all image files
+        const newPreviews: (string | null)[] = [];
+        barterPhotoFiles.forEach((file) => {
           if (file && file.type.startsWith("image/")) {
-            const existingPreview = prev[index];
-            // Only recreate if preview doesn't exist or is invalid
-            if (!existingPreview || !existingPreview.startsWith('blob:')) {
-              // Clean up old preview if it exists
-              if (existingPreview) {
-                URL.revokeObjectURL(existingPreview);
-              }
-              const previewURL = URL.createObjectURL(file);
-              newPreviews[index] = previewURL;
-              hasChanges = true;
-            } else {
-              newPreviews[index] = existingPreview;
-            }
+            const previewURL = URL.createObjectURL(file);
+            newPreviews.push(previewURL);
           } else {
-            newPreviews[index] = prev[index] || null;
+            newPreviews.push(null);
           }
         });
 
-        return hasChanges ? newPreviews : prev;
+        return newPreviews;
       });
     }
-  }, [currentStep, barterPhotoFiles]);
+  }, [currentStep, barterPhotoFiles.length]);
 
   // Cleanup preview URLs on unmount
   useEffect(() => {
@@ -586,7 +655,10 @@ export default function CreateServiceRequestModal({
     }
 
     // Validate valuation for professional services
-    if (serviceProvider === "professional" && (!valuation || valuation.trim() === "")) {
+    if (
+      serviceProvider === "professional" &&
+      (!valuation || valuation.trim() === "")
+    ) {
       alert("Please enter a valuation amount");
       return;
     }
@@ -680,16 +752,16 @@ export default function CreateServiceRequestModal({
     if (file) {
       // Create preview URL for images
       let previewURL: string | null = null;
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         previewURL = URL.createObjectURL(file);
       }
-      
+
       setDescriptionFiles((prev) => {
         const newFiles = [...prev];
         newFiles[index] = file;
         return newFiles;
       });
-      
+
       setDescriptionFilePreviews((prev) => {
         const newPreviews = [...prev];
         // Clean up old preview URL if it exists
@@ -702,8 +774,6 @@ export default function CreateServiceRequestModal({
     }
   };
 
-
-
   const handleBarterPhotoChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
@@ -712,16 +782,16 @@ export default function CreateServiceRequestModal({
     if (file) {
       // Create preview URL for images
       let previewURL: string | null = null;
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         previewURL = URL.createObjectURL(file);
       }
-      
+
       setBarterPhotoFiles((prev) => {
         const newFiles = [...prev];
         newFiles[index] = file;
         return newFiles;
       });
-      
+
       setBarterPhotoFilePreviews((prev) => {
         const newPreviews = [...prev];
         // Clean up old preview URL if it exists
@@ -828,7 +898,7 @@ export default function CreateServiceRequestModal({
                 >
                   <FormControlLabel
                     value="professional"
-                    control={<Radio />}
+                    control={<BulletRadio />}
                     label="Professional"
                     labelPlacement="start"
                     sx={{
@@ -863,7 +933,7 @@ export default function CreateServiceRequestModal({
                 >
                   <FormControlLabel
                     value="non-professional"
-                    control={<Radio />}
+                    control={<BulletRadio />}
                     label="Non-professional"
                     labelPlacement="start"
                     sx={{
@@ -914,8 +984,8 @@ export default function CreateServiceRequestModal({
                   Select a category
                 </Typography>
                 <FormControl fullWidth sx={{ mb: 2 }}>
-                  <Select 
-                    value={selectedCategory} 
+                  <Select
+                    value={selectedCategory}
                     disabled
                     sx={{
                       "& .MuiSelect-select": {
@@ -1094,9 +1164,7 @@ export default function CreateServiceRequestModal({
                   width: "100%",
                   height: "9rem",
                   border: "0.125rem dashed",
-                  borderColor: descriptionFiles[0]
-                    ? "#2F6B8E"
-                    : "#D1D5DB",
+                  borderColor: descriptionFiles[0] ? "#2F6B8E" : "#D1D5DB",
                   borderRadius: 2,
                   display: "flex",
                   flexDirection: "column",
@@ -1118,16 +1186,41 @@ export default function CreateServiceRequestModal({
                   onChange={(e) => handleDescriptionFileChange(e, 0)}
                 />
                 {descriptionFiles[0] ? (
-                  descriptionFilePreviews[0] && descriptionFiles[0].type.startsWith('image/') ? (
-                    <Box sx={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                  descriptionFilePreviews[0] &&
+                  descriptionFiles[0].type.startsWith("image/") ? (
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                      }}
+                    >
                       <Image
                         src={descriptionFilePreviews[0]!}
                         alt="Preview"
                         fill
                         style={{ objectFit: "cover", borderRadius: "8px" }}
                       />
-                      <Box sx={{ position: "absolute", bottom: 8, left: 8, right: 8, bgcolor: "rgba(0,0,0,0.6)", borderRadius: 1, p: 0.5 }}>
-                        <Typography variant="caption" color="white" sx={{ fontSize: "0.75rem", textAlign: "center" }}>
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          bottom: 8,
+                          left: 8,
+                          right: 8,
+                          bgcolor: "rgba(0,0,0,0.6)",
+                          borderRadius: 1,
+                          p: 0.5,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          color="white"
+                          sx={{ fontSize: "0.75rem", textAlign: "center" }}
+                        >
                           {descriptionFiles[0].name.length > 20
                             ? `${descriptionFiles[0].name.substring(0, 20)}...`
                             : descriptionFiles[0].name}
@@ -1194,9 +1287,7 @@ export default function CreateServiceRequestModal({
                   width: "100%",
                   height: "9rem",
                   border: "0.125rem dashed",
-                  borderColor: descriptionFiles[1]
-                    ? "#2F6B8E"
-                    : "#D1D5DB",
+                  borderColor: descriptionFiles[1] ? "#2F6B8E" : "#D1D5DB",
                   borderRadius: 2,
                   display: "flex",
                   flexDirection: "column",
@@ -1218,16 +1309,41 @@ export default function CreateServiceRequestModal({
                   onChange={(e) => handleDescriptionFileChange(e, 1)}
                 />
                 {descriptionFiles[1] ? (
-                  descriptionFilePreviews[1] && descriptionFiles[1].type.startsWith('image/') ? (
-                    <Box sx={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                  descriptionFilePreviews[1] &&
+                  descriptionFiles[1].type.startsWith("image/") ? (
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                      }}
+                    >
                       <Image
                         src={descriptionFilePreviews[1]!}
                         alt="Preview"
                         fill
                         style={{ objectFit: "cover", borderRadius: "8px" }}
                       />
-                      <Box sx={{ position: "absolute", bottom: 8, left: 8, right: 8, bgcolor: "rgba(0,0,0,0.6)", borderRadius: 1, p: 0.5 }}>
-                        <Typography variant="caption" color="white" sx={{ fontSize: "0.75rem", textAlign: "center" }}>
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          bottom: 8,
+                          left: 8,
+                          right: 8,
+                          bgcolor: "rgba(0,0,0,0.6)",
+                          borderRadius: 1,
+                          p: 0.5,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          color="white"
+                          sx={{ fontSize: "0.75rem", textAlign: "center" }}
+                        >
                           {descriptionFiles[1].name.length > 20
                             ? `${descriptionFiles[1].name.substring(0, 20)}...`
                             : descriptionFiles[1].name}
@@ -1297,7 +1413,7 @@ export default function CreateServiceRequestModal({
               }}
             >
               Please upload photos of the job so the worker can understand the
-              task better. (You can also upload a video)
+              task better. <br /> (You can also upload a video)
             </Typography>
           </Box>
         );
@@ -1343,16 +1459,16 @@ export default function CreateServiceRequestModal({
                     let value = e.target.value
                       .replace("€ ", "")
                       .replace(",", "");
-                    
+
                     // Only allow numbers and a single decimal point
-                    value = value.replace(/[^0-9.]/g, '');
-                    
+                    value = value.replace(/[^0-9.]/g, "");
+
                     // Prevent multiple decimal points
-                    const parts = value.split('.');
+                    const parts = value.split(".");
                     if (parts.length > 2) {
-                      value = parts[0] + '.' + parts.slice(1).join('');
+                      value = parts[0] + "." + parts.slice(1).join("");
                     }
-                    
+
                     setValuation(value);
                   }}
                   sx={{
@@ -1687,15 +1803,67 @@ export default function CreateServiceRequestModal({
                 Quantity
               </Typography>
               <TextField
-                type="number"
                 value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "") {
+                    setQuantity(1);
+                    return;
+                  }
+                  const numValue = Number(value);
+                  if (!isNaN(numValue) && numValue >= 1) {
+                    // Get the number of digits (excluding decimal point)
+                    const digitCount = Math.floor(numValue).toString().length;
+                    // Allow values with 7-8 digits, or values less than 7 digits (for typing)
+                    if (digitCount <= 8) {
+                      const clampedValue = Math.max(
+                        1,
+                        Math.min(99999999, Math.floor(numValue))
+                      );
+                      setQuantity(clampedValue);
+                    }
+                    // If more than 8 digits, don't update (keep current value)
+                  }
+                }}
+                onBlur={(e) => {
+                  // Enforce max limit of 8 digits when field loses focus
+                  if (quantity > 99999999) {
+                    setQuantity(99999999);
+                  }
+                }}
+                inputProps={{
+                  type: "number",
+                  min: 1,
+                  max: 99999999,
+                  style: {
+                    MozAppearance: "textfield",
+                  },
+                }}
+                sx={{
+                  mb: 3,
+                  "& input[type=number]": {
+                    MozAppearance: "textfield",
+                  },
+                  "& input[type=number]::-webkit-outer-spin-button": {
+                    WebkitAppearance: "none",
+                    margin: 0,
+                  },
+                  "& input[type=number]::-webkit-inner-spin-button": {
+                    WebkitAppearance: "none",
+                    margin: 0,
+                  },
+                }}
                 fullWidth
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
                       <Box sx={{ display: "flex", flexDirection: "row" }}>
                         <IconButton
+                          sx={{
+                            "&:hover": {
+                              bgcolor: "transparent",
+                            },
+                          }}
                           size="large"
                           onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         >
@@ -1706,8 +1874,15 @@ export default function CreateServiceRequestModal({
                           </Typography>
                         </IconButton>
                         <IconButton
+                          sx={{
+                            "&:hover": {
+                              bgcolor: "transparent",
+                            },
+                          }}
                           size="large"
-                          onClick={() => setQuantity(quantity + 1)}
+                          onClick={() =>
+                            setQuantity(Math.min(99999999, quantity + 1))
+                          }
                         >
                           <Typography
                             sx={{ fontSize: "2rem", color: "#343330" }}
@@ -1719,7 +1894,6 @@ export default function CreateServiceRequestModal({
                     </InputAdornment>
                   ),
                 }}
-                sx={{ mb: 3 }}
               />
 
               <Typography
@@ -1742,9 +1916,7 @@ export default function CreateServiceRequestModal({
                     width: "100%",
                     height: "9rem",
                     border: "0.125rem dashed",
-                    borderColor: barterPhotoFiles[0]
-                      ? "#2F6B8E"
-                      : "#D1D5DB",
+                    borderColor: barterPhotoFiles[0] ? "#2F6B8E" : "#D1D5DB",
                     borderRadius: 2,
                     display: "flex",
                     flexDirection: "column",
@@ -1767,17 +1939,44 @@ export default function CreateServiceRequestModal({
                   />
                   {barterPhotoFiles[0] ? (
                     barterPhotoFilePreviews[0] ? (
-                      <Box sx={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                        }}
+                      >
                         <Image
                           src={barterPhotoFilePreviews[0]!}
                           alt="Preview"
                           fill
                           style={{ objectFit: "cover", borderRadius: "8px" }}
                         />
-                        <Box sx={{ position: "absolute", bottom: 8, left: 8, right: 8, bgcolor: "rgba(0,0,0,0.6)", borderRadius: 1, p: 0.5 }}>
-                          <Typography variant="caption" color="white" sx={{ fontSize: "0.75rem", textAlign: "center" }}>
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 8,
+                            left: 8,
+                            right: 8,
+                            bgcolor: "rgba(0,0,0,0.6)",
+                            borderRadius: 1,
+                            p: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            color="white"
+                            sx={{ fontSize: "0.75rem", textAlign: "center" }}
+                          >
                             {barterPhotoFiles[0].name.length > 20
-                              ? `${barterPhotoFiles[0].name.substring(0, 20)}...`
+                              ? `${barterPhotoFiles[0].name.substring(
+                                  0,
+                                  20
+                                )}...`
                               : barterPhotoFiles[0].name}
                           </Typography>
                         </Box>
@@ -1844,9 +2043,7 @@ export default function CreateServiceRequestModal({
                     width: "100%",
                     height: "9rem",
                     border: "0.125rem dashed",
-                    borderColor: barterPhotoFiles[1]
-                      ? "#2F6B8E"
-                      : "#D1D5DB",
+                    borderColor: barterPhotoFiles[1] ? "#2F6B8E" : "#D1D5DB",
                     borderRadius: 2,
                     display: "flex",
                     flexDirection: "column",
@@ -1869,17 +2066,44 @@ export default function CreateServiceRequestModal({
                   />
                   {barterPhotoFiles[1] ? (
                     barterPhotoFilePreviews[1] ? (
-                      <Box sx={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                        }}
+                      >
                         <Image
                           src={barterPhotoFilePreviews[1]!}
                           alt="Preview"
                           fill
                           style={{ objectFit: "cover", borderRadius: "8px" }}
                         />
-                        <Box sx={{ position: "absolute", bottom: 8, left: 8, right: 8, bgcolor: "rgba(0,0,0,0.6)", borderRadius: 1, p: 0.5 }}>
-                          <Typography variant="caption" color="white" sx={{ fontSize: "0.75rem", textAlign: "center" }}>
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 8,
+                            left: 8,
+                            right: 8,
+                            bgcolor: "rgba(0,0,0,0.6)",
+                            borderRadius: 1,
+                            p: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            color="white"
+                            sx={{ fontSize: "0.75rem", textAlign: "center" }}
+                          >
                             {barterPhotoFiles[1].name.length > 20
-                              ? `${barterPhotoFiles[1].name.substring(0, 20)}...`
+                              ? `${barterPhotoFiles[1].name.substring(
+                                  0,
+                                  20
+                                )}...`
                               : barterPhotoFiles[1].name}
                           </Typography>
                         </Box>
@@ -2190,22 +2414,166 @@ export default function CreateServiceRequestModal({
           </Typography>
         </Box>
 
-        {descriptionFiles.length > 0 && (
-          <>
-            <Typography
-              sx={{
-                mb: 2,
-                fontSize: "1.125rem",
-                lineHeight: "100%",
-                letterSpacing: "0%",
-                color: "#555555",
-                fontWeight: 600,
-              }}
-            >
-              Job photos
-            </Typography>
-            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3 }}>
-              {descriptionFiles.map((file, index) => (
+        {serviceProvider == "non-professional" ? (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 3,
+              mb: 3,
+              width: "100%",
+            }}
+          >
+            {/* Job Photos Section */}
+            <Box sx={{ width: "100%" }}>
+              <Typography
+                sx={{
+                  mb: 2,
+                  fontSize: "1.125rem",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                  color: "#555555",
+                  fontWeight: 600,
+                }}
+              >
+                Job photos
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: { xs: "wrap", md: "nowrap" },
+                }}
+              >
+                {descriptionFiles.length > 0 ? (
+                  descriptionFiles.map((file, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        width: "100%",
+                        height: "10.438rem",
+                        borderRadius: "0.75rem",
+                        overflow: "hidden",
+                        position: "relative",
+                        border: "none",
+                      }}
+                    >
+                      {file.type.startsWith("image/") &&
+                      descriptionFilePreviews[index] ? (
+                        <Image
+                          src={descriptionFilePreviews[index]}
+                          alt={`Job photo ${index + 1}`}
+                          fill
+                          style={{ objectFit: "cover" }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: "grey.100",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: "text.secondary",
+                              fontSize: "0.875rem",
+                            }}
+                          >
+                            {file.name}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  ))
+                ) : (
+                  <Typography sx={{ color: "text.secondary", py: 2 }}>
+                    No photos uploaded
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
+            {/* Product Images Section */}
+            <Box sx={{ width: "100%" }}>
+              <Typography
+                sx={{
+                  mb: 2,
+                  fontSize: "1.125rem",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                  color: "#555555",
+                  fontWeight: 600,
+                }}
+              >
+                Product Images
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: { xs: "wrap", md: "nowrap" },
+                }}
+              >
+                {barterPhotoFiles.length > 0 ? (
+                  barterPhotoFiles.map((file, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        width: "100%",
+                        height: "10.438rem",
+                        borderRadius: "0.75rem",
+                        overflow: "hidden",
+                        position: "relative",
+                        border: "none",
+                      }}
+                    >
+                      {file.type.startsWith("image/") &&
+                      barterPhotoFilePreviews[index] ? (
+                        <Image
+                          src={barterPhotoFilePreviews[index]}
+                          alt={`Product photo ${index + 1}`}
+                          fill
+                          style={{ objectFit: "cover" }}
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: "grey.100",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: "text.secondary",
+                              fontSize: "0.875rem",
+                            }}
+                          >
+                            {file.name}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  ))
+                ) : (
+                  <Typography sx={{ color: "text.secondary", py: 2 }}>
+                    No product photos uploaded
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3 }}>
+            {descriptionFiles.length > 0 ? (
+              descriptionFiles.map((file, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -2218,7 +2586,8 @@ export default function CreateServiceRequestModal({
                     border: "none",
                   }}
                 >
-                  {file.type.startsWith("image/") && descriptionFilePreviews[index] ? (
+                  {file.type.startsWith("image/") &&
+                  descriptionFilePreviews[index] ? (
                     <Image
                       src={descriptionFilePreviews[index]}
                       alt={`Job photo ${index + 1}`}
@@ -2244,9 +2613,13 @@ export default function CreateServiceRequestModal({
                     </Box>
                   )}
                 </Box>
-              ))}
-            </Box>
-          </>
+              ))
+            ) : (
+              <Typography sx={{ color: "text.secondary", py: 2 }}>
+                No photos uploaded
+              </Typography>
+            )}
+          </Box>
         )}
       </Box>
     );

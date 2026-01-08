@@ -10,6 +10,7 @@ import {
   LinearProgress,
   Button,
   Radio,
+  RadioProps,
   RadioGroup,
   FormControlLabel,
   FormControl,
@@ -32,6 +33,92 @@ interface BookServiceModalProps {
   open: boolean;
   onClose: () => void;
 }
+
+// Custom bullet radio icons to match the provided design
+const UncheckedBullet = () => (
+  <Box
+    sx={{
+      width: 18,
+      height: 18,
+      borderRadius: "50%",
+      border: "2px solid #C5D3DC",
+      bgcolor: "#FFFFFF",
+      boxShadow: "0px 4px 10px rgba(44, 101, 135, 0.12)",
+    }}
+  />
+);
+
+const CheckedBullet = () => (
+  <Box
+    sx={{
+      width: 18,
+      height: 18,
+      borderRadius: "50%",
+      bgcolor: "#2C6587",
+      boxShadow: "0px 4px 12px rgba(44, 101, 135, 0.35)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <Box
+      sx={{
+        width: 8,
+        height: 8,
+        borderRadius: "50%",
+        bgcolor: "#FFFFFF",
+      }}
+    />
+  </Box>
+);
+
+const BulletRadio = (props: RadioProps) => {
+  return (
+    <Radio
+      {...props}
+      disableRipple
+      icon={
+        <Box
+          sx={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            border: "2px solid #C5D3DC",
+            bgcolor: "#FFFFFF",
+            boxShadow: "0px 4px 10px rgba(44, 101, 135, 0.12)",
+          }}
+        />
+      }
+      checkedIcon={
+        <Box
+          sx={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            bgcolor: "#2C6587",
+            boxShadow: "0px 4px 12px rgba(44, 101, 135, 0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              bgcolor: "#FFFFFF",
+            }}
+          />
+        </Box>
+      }
+      sx={{
+        p: 0.5,
+        "&:hover": { backgroundColor: "transparent" },
+      }}
+    />
+  );
+};
 
 // Helper function to clone SVG and modify fill colors
 const cloneElementWithColor = (
@@ -502,12 +589,18 @@ export default function BookServiceModal({
 
   // Reset all form state to initial values
   const resetForm = useCallback(() => {
-    // Clean up preview URLs
-    descriptionFilePreviews.forEach((url) => {
-      if (url) URL.revokeObjectURL(url);
+    // Clean up preview URLs using functional setState to access current values
+    setDescriptionFilePreviews((prev) => {
+      prev.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+      return [];
     });
-    barterPhotoFilePreviews.forEach((url) => {
-      if (url) URL.revokeObjectURL(url);
+    setBarterPhotoFilePreviews((prev) => {
+      prev.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+      return [];
     });
 
     setCurrentStep(1);
@@ -525,12 +618,10 @@ export default function BookServiceModal({
     setShowSuccess(false);
     setDescriptionFiles([]);
     setBarterPhotoFiles([]);
-    setDescriptionFilePreviews([]);
-    setBarterPhotoFilePreviews([]);
     setCategoryId("");
     setSubCategoryId("");
     setSubcategories([]);
-  }, [descriptionFilePreviews, barterPhotoFilePreviews]);
+  }, []);
 
   // Reset form when modal is closed
   useEffect(() => {
@@ -544,7 +635,6 @@ export default function BookServiceModal({
     if (descriptionFiles.length === 0) {
       // Clean up all previews if no files
       setDescriptionFilePreviews((prev) => {
-        if (prev.length === 0) return prev; // No change needed
         prev.forEach((preview) => {
           if (preview) URL.revokeObjectURL(preview);
         });
@@ -561,18 +651,19 @@ export default function BookServiceModal({
       // Copy existing valid previews and create new ones if needed
       descriptionFiles.forEach((file, index) => {
         if (file && file.type.startsWith("image/")) {
+          // Always create new preview URL from the file object
+          // File objects persist across step changes, so we can always recreate the blob URL
           const existingPreview = prev[index];
           
-          // Only create new preview if it doesn't exist
-          // When step changes, we'll recreate on next render when step 2 is visible
-          if (!existingPreview) {
-            const previewURL = URL.createObjectURL(file);
-            newPreviews[index] = previewURL;
-            hasChanges = true;
-          } else {
-            // Keep existing preview if it exists
-            newPreviews[index] = existingPreview;
+          // Clean up old preview if it exists
+          if (existingPreview) {
+            URL.revokeObjectURL(existingPreview);
           }
+          
+          // Create new preview URL from the file
+          const previewURL = URL.createObjectURL(file);
+          newPreviews[index] = previewURL;
+          hasChanges = true;
         } else {
           // Clear preview if file doesn't exist or is not an image
           const existingPreview = prev[index];
@@ -594,45 +685,12 @@ export default function BookServiceModal({
 
       return hasChanges ? newPreviews : prev;
     });
-  }, [descriptionFiles]);
-
-  // Recreate previews when coming back to step 3 (where images are displayed)
-  useEffect(() => {
-    if (currentStep === 3 && descriptionFiles.length > 0) {
-      setDescriptionFilePreviews((prev) => {
-        const newPreviews: (string | null)[] = [];
-        let hasChanges = false;
-
-        descriptionFiles.forEach((file, index) => {
-          if (file && file.type.startsWith("image/")) {
-            const existingPreview = prev[index];
-            // Only recreate if preview doesn't exist or is invalid
-            if (!existingPreview || !existingPreview.startsWith('blob:')) {
-              // Clean up old preview if it exists
-              if (existingPreview) {
-                URL.revokeObjectURL(existingPreview);
-              }
-              const previewURL = URL.createObjectURL(file);
-              newPreviews[index] = previewURL;
-              hasChanges = true;
-            } else {
-              newPreviews[index] = existingPreview;
-            }
-          } else {
-            newPreviews[index] = prev[index] || null;
-          }
-        });
-
-        return hasChanges ? newPreviews : prev;
-      });
-    }
-  }, [currentStep, descriptionFiles]);
+  }, [descriptionFiles, currentStep]);
 
   useEffect(() => {
     if (barterPhotoFiles.length === 0) {
       // Clean up all previews if no files
       setBarterPhotoFilePreviews((prev) => {
-        if (prev.length === 0) return prev; // No change needed
         prev.forEach((preview) => {
           if (preview) URL.revokeObjectURL(preview);
         });
@@ -649,17 +707,19 @@ export default function BookServiceModal({
       // Copy existing valid previews and create new ones if needed
       barterPhotoFiles.forEach((file, index) => {
         if (file && file.type.startsWith("image/")) {
+          // Always create new preview URL from the file object
+          // File objects persist across step changes, so we can always recreate the blob URL
           const existingPreview = prev[index];
           
-          // Only create new preview if it doesn't exist
-          if (!existingPreview) {
-            const previewURL = URL.createObjectURL(file);
-            newPreviews[index] = previewURL;
-            hasChanges = true;
-          } else {
-            // Keep existing preview if it exists
-            newPreviews[index] = existingPreview;
+          // Clean up old preview if it exists
+          if (existingPreview) {
+            URL.revokeObjectURL(existingPreview);
           }
+          
+          // Create new preview URL from the file
+          const previewURL = URL.createObjectURL(file);
+          newPreviews[index] = previewURL;
+          hasChanges = true;
         } else {
           // Clear preview if file doesn't exist or is not an image
           const existingPreview = prev[index];
@@ -681,39 +741,7 @@ export default function BookServiceModal({
 
       return hasChanges ? newPreviews : prev;
     });
-  }, [barterPhotoFiles]);
-
-  // Recreate previews when coming back to step 5/6 (where barter photos are displayed)
-  useEffect(() => {
-    if ((currentStep === 5 || currentStep === 6) && barterPhotoFiles.length > 0) {
-      setBarterPhotoFilePreviews((prev) => {
-        const newPreviews: (string | null)[] = [];
-        let hasChanges = false;
-
-        barterPhotoFiles.forEach((file, index) => {
-          if (file && file.type.startsWith("image/")) {
-            const existingPreview = prev[index];
-            // Only recreate if preview doesn't exist or is invalid
-            if (!existingPreview || !existingPreview.startsWith('blob:')) {
-              // Clean up old preview if it exists
-              if (existingPreview) {
-                URL.revokeObjectURL(existingPreview);
-              }
-              const previewURL = URL.createObjectURL(file);
-              newPreviews[index] = previewURL;
-              hasChanges = true;
-            } else {
-              newPreviews[index] = existingPreview;
-            }
-          } else {
-            newPreviews[index] = prev[index] || null;
-          }
-        });
-
-        return hasChanges ? newPreviews : prev;
-      });
-    }
-  }, [currentStep, barterPhotoFiles]);
+  }, [barterPhotoFiles, currentStep]);
 
   // Cleanup preview URLs on unmount
   useEffect(() => {
@@ -1073,7 +1101,7 @@ export default function BookServiceModal({
                 >
                   <FormControlLabel
                     value="professional"
-                    control={<Radio />}
+                    control={<BulletRadio />}
                     label="Professional"
                     labelPlacement="start"
                     sx={{
@@ -1108,7 +1136,7 @@ export default function BookServiceModal({
                 >
                   <FormControlLabel
                     value="non-professional"
-                    control={<Radio />}
+                    control={<BulletRadio />}
                     label="Non-professional"
                     labelPlacement="start"
                     sx={{
@@ -1214,7 +1242,7 @@ export default function BookServiceModal({
                   PaperProps: {
                     elevation: 3,
                     sx: {
-                      maxHeight: 250,
+                      maxHeight: 180,
                       overflowY: "auto",
                       mt: 1,
                     },
@@ -1756,7 +1784,7 @@ export default function BookServiceModal({
               }}
             >
               Please upload photos of the job so the worker can understand the
-              task better. (You can also upload a video)
+              task better. <br/> (You can also upload a video)
             </Typography>
           </Box>
         );
@@ -2443,23 +2471,68 @@ export default function BookServiceModal({
                 }}
               >
                 <TextField
-                  type="number"
                   value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "") {
+                      setQuantity(1);
+                      return;
+                    }
+                    const numValue = Number(value);
+                    if (!isNaN(numValue) && numValue >= 1) {
+                      // Get the number of digits (excluding decimal point)
+                      const digitCount = Math.floor(numValue).toString().length;
+                      // Allow values with 7-8 digits, or values less than 7 digits (for typing)
+                      if (digitCount <= 8) {
+                        const clampedValue = Math.max(
+                          1,
+                          Math.min(99999999, Math.floor(numValue))
+                        );
+                        setQuantity(clampedValue);
+                      }
+                      // If more than 8 digits, don't update (keep current value)
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Enforce max limit of 8 digits when field loses focus
+                    if (quantity > 99999999) {
+                      setQuantity(99999999);
+                    }
+                  }}
+                  inputProps={{
+                    type: "number",
+                    min: 1,
+                    max: 99999999,
+                    style: {
+                      MozAppearance: "textfield",
+                    },
+                  }}
+                  sx={{
+                    "& input[type=number]": {
+                      MozAppearance: "textfield",
+                    },
+                    "& input[type=number]::-webkit-outer-spin-button": {
+                      WebkitAppearance: "none",
+                      margin: 0,
+                    },
+                    "& input[type=number]::-webkit-inner-spin-button": {
+                      WebkitAppearance: "none",
+                      margin: 0,
+                    },
+                  }}
                   fullWidth
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
                         <Box sx={{ display: "flex", flexDirection: "row" }}>
                           <IconButton
-                            size="large"
-                            onClick={() =>
-                              setQuantity(Math.max(1, quantity - 1))
-                            }
                             sx={{
-                              width: 32,
-                              height: 32,
+                              "&:hover": {
+                                bgcolor: "transparent",
+                              },
                             }}
+                            size="large"
+                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
                           >
                             <Typography
                               sx={{ fontSize: "2rem", color: "#343330" }}
@@ -2469,13 +2542,15 @@ export default function BookServiceModal({
                             </Typography>
                           </IconButton>
                           <IconButton
-                            size="large"
-                            onClick={() => setQuantity(quantity + 1)}
                             sx={{
-                              width: 32,
-                              marginLeft: "10px",
-                              height: 32,
+                              "&:hover": {
+                                bgcolor: "transparent",
+                              },
                             }}
+                            size="large"
+                            onClick={() =>
+                              setQuantity(Math.min(99999999, quantity + 1))
+                            }
                           >
                             <Typography
                               sx={{ fontSize: "2rem", color: "#343330" }}
@@ -2487,14 +2562,6 @@ export default function BookServiceModal({
                         </Box>
                       </InputAdornment>
                     ),
-                  }}
-                  sx={{
-                    // Hide number input spinner for Webkit browsers (Chrome, Safari, Edge)
-                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        WebkitAppearance: "none",
-                        margin: 0,
-                      },
                   }}
                 />
               </Box>
@@ -2952,8 +3019,17 @@ export default function BookServiceModal({
         </Box>
 
         {serviceProvider == "non-professional" ? (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="d-flex">
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 3,
+              mb: 3,
+              width: "100%",
+            }}
+          >
+            {/* Job Photos Section */}
+            <Box sx={{ width: "100%" }}>
               <Typography
                 sx={{
                   mb: 2,
@@ -2966,14 +3042,13 @@ export default function BookServiceModal({
               >
                 Job photos
               </Typography>
-              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Box sx={{ display: "flex", gap: "12px", flexWrap: { xs: "wrap", md: "nowrap" } }}>
                 {descriptionFiles.length > 0 ? (
                   descriptionFiles.map((file, index) => (
                     <Box
                       key={index}
                       sx={{
-                        width: "calc(50% - 0.5rem)",
-                        minWidth: "200px",
+                        width: "100%",
                         height: "10.438rem",
                         borderRadius: "0.75rem",
                         overflow: "hidden",
@@ -3017,8 +3092,10 @@ export default function BookServiceModal({
                   </Typography>
                 )}
               </Box>
-            </div>
-            <div className="d-flex">
+            </Box>
+
+            {/* Product Images Section */}
+            <Box sx={{ width: "100%" }}>
               <Typography
                 sx={{
                   mb: 2,
@@ -3031,14 +3108,13 @@ export default function BookServiceModal({
               >
                 Product Images
               </Typography>
-              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Box sx={{ display: "flex", gap: "12px", flexWrap: { xs: "wrap", md: "nowrap" } }}>
                 {barterPhotoFiles.length > 0 ? (
                   barterPhotoFiles.map((file, index) => (
                     <Box
                       key={index}
                       sx={{
-                        width: "calc(50% - 0.5rem)",
-                        minWidth: "200px",
+                        width: "100%",
                         height: "10.438rem",
                         borderRadius: "0.75rem",
                         overflow: "hidden",
@@ -3082,8 +3158,8 @@ export default function BookServiceModal({
                   </Typography>
                 )}
               </Box>
-            </div>
-          </div>
+            </Box>
+          </Box>
         ) : (
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             {descriptionFiles.length > 0 ? (

@@ -104,7 +104,7 @@ export default function TechSupportPage() {
   const fetchCategories = useCallback(async () => {
     setCategoriesLoading(true);
     try {
-      const serviceName = "transport";
+      const serviceName = "tech support";
       const endpoint = `${
         API_ENDPOINTS.HOME.HOME
       }?service_name=${encodeURIComponent(serviceName)}`;
@@ -402,10 +402,12 @@ export default function TechSupportPage() {
                                   bgcolor: "primary.normal",
                                   color: "white",
                                   textTransform: "none",
-                                  borderRadius: 2,
+                                  borderRadius: 1,
                                   fontSize: "0.85rem",
                                   py: 0.75,
                                   textWrap: "nowrap",
+                                  lineHeight:"1.125rem",
+                                  px:"12px"
                                 }}
                                 endIcon={
                                   <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />

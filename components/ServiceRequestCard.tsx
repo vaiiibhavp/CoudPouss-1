@@ -9,7 +9,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import { useRouter } from "next/navigation";
 
 interface ServiceRequestCardProps {
-  id: number;
+  id: number | string;
   title: string;
   image: string;
   date: string;

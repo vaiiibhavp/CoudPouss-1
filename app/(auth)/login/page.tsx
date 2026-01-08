@@ -13,6 +13,7 @@ import {
   IconButton,
   Paper,
 } from '@mui/material';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,6 +24,7 @@ import { isValidEmailOrMobile } from '@/utils/validation';
 import { ROUTES } from '@/constants/routes';
 import { loginUser, clearAuthError } from '@/lib/redux/authSlice';
 import { AppDispatch, RootState } from '@/lib/redux/store';
+import CountrySelectDropdown from '@/components/CountrySelectDropdown';
 
 // Yup validation schema
 const loginSchema = Yup.object().shape({
@@ -39,6 +41,8 @@ const loginSchema = Yup.object().shape({
 interface LoginFormValues {
   emailOrMobile: string;
   password: string;
+  mobileNo?: string;
+  phoneCountryCode?: string;
 }
 
 export default function LoginPage() {
@@ -46,6 +50,12 @@ export default function LoginPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const [showPassword, setShowPassword] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
+  const [formData, setFormData] = useState({
+    mobileNo: '',
+    phoneCountryCode: '',
+    countryCode: 'us',
+  });
   const prevLoadingRef = useRef(false);
   const hasShownErrorRef = useRef(false);
 
@@ -232,7 +242,7 @@ export default function LoginPage() {
             >
               {({ values, errors: formikErrors, touched, handleChange, handleBlur, setFieldValue }) => {
                 // Clear auth error when user starts typing
-                const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                   handleChange(e);
                   if (error) {
                     dispatch(clearAuthError());
@@ -318,6 +328,89 @@ export default function LoginPage() {
                             )}
                           </Field>
                         </Box>
+
+                        {/* <Box>
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: "1.0625rem",
+                              lineHeight: "1.25rem",
+                              color: "#424242",
+                              mb: "0.5rem"
+                            }}
+                          >
+                            Mobile No.
+                          </Typography>
+                          <Box sx={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                            <Box sx={{ width: "auto", flexShrink: 0 }}>
+                              <CountrySelectDropdown
+                                value={formData.countryCode || 'us'}
+                                onChange={(countryCode, dialCode) => {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    countryCode: countryCode,
+                                    phoneCountryCode: `+${dialCode}`,
+                                  }));
+                                  setFieldValue('phoneCountryCode', `+${dialCode}`);
+                                }}
+                                error={phoneError}
+                                defaultCountry="us"
+                                preferredCountries={["in", "us"]}
+                              />
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Field name="mobileNo">
+                                {({ field, meta }: FieldProps) => {
+                                  const isError = !!(meta.touched && meta.error) || (meta.touched && phoneError);
+                                  return (
+                                    <>
+                                      <TextField
+                                        {...field}
+                                        fullWidth
+                                        placeholder="Enter Mobile No."
+                                        onChange={(e) => {
+                                          handleChange(e);
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            mobileNo: e.target.value,
+                                          }));
+                                          if (phoneError && e.target.value) {
+                                            setPhoneError(false);
+                                          }
+                                        }}
+                                        onBlur={handleBlur}
+                                        error={isError}
+                                        helperText={isError ? (meta.error || "Please enter a valid phone number") : ''}
+                                        sx={{
+                                          m: 0,
+                                          "& .MuiFormHelperText-root": {
+                                            fontWeight: 400,
+                                            fontSize: "16px",
+                                            lineHeight: "140%",
+                                            letterSpacing: "0%",
+                                            color: "#EF5350",
+                                            marginTop: "12px !important",
+                                            marginLeft: "0 !important",
+                                            marginRight: "0 !important",
+                                            marginBottom: "0 !important",
+                                          },
+                                        }}
+                                        FormHelperTextProps={{
+                                          sx: {
+                                            marginTop: "12px",
+                                            marginLeft: 0,
+                                            marginRight: 0,
+                                            marginBottom: 0,
+                                          },
+                                        }}
+                                      />
+                                    </>
+                                  );
+                                }}
+                              </Field>
+                            </Box>
+                          </Box>
+                        </Box> */}
 
                         <Box>
                           <Typography
