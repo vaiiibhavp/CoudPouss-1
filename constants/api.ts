@@ -56,6 +56,7 @@ export const API_ENDPOINTS = {
     CREATE: `${API_BASE_URL}service_request/service-requests`,
     GET_SERVICES: `${API_BASE_URL}service_confirmation/service_accept/get_services`,
     GET_SERVICE_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/get_service`,
+    OPEN_SERVICES: `${API_BASE_URL}quote_request/open-services`,
   },
 } as const;
 

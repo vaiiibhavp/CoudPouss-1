@@ -439,12 +439,6 @@ export default function ProfessionalSignupPage() {
   const dispatch = useDispatch<AppDispatch>();
 
 
-  // "select-plan"
-  // | "review-plan"
-  // | "payment-mode"
-  // | "additional-details"
-  // | "select-category"
-  // | "bank-details";
   const [step, setStep] = useState<SignupStep>("enter-contact");
   const [formData, setFormData] = useState({
     emailOrMobile: "",
@@ -1761,7 +1755,7 @@ export default function ProfessionalSignupPage() {
                 textAlign: "center",
               }}
             >
-              Welcome To CoudPouss!
+              CoudPouss
             </Typography>
             <Typography
               sx={{

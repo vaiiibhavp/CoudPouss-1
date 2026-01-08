@@ -19,6 +19,7 @@ import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import BookServiceModal from "@/components/BookServiceModal";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 
@@ -84,44 +85,89 @@ interface ServiceCard {
 }
 
 // Helper function to map service names to routes and icons
-const getServiceRouteAndIcon = (serviceName: string): { route: string; icon: string } => {
+const getServiceRouteAndIcon = (
+  serviceName: string
+): { route: string; icon: string } => {
   const nameLower = serviceName.toLowerCase().trim();
-  
+
   const serviceMap: Record<string, { route: string; icon: string }> = {
-    "home assistance": { route: ROUTES.HOME_ASSISTANCE, icon: "/icons/home_assistance_icon_home.svg" },
-    "transport": { route: ROUTES.TRANSPORT, icon: "/icons/transport.svg" },
+    "home assistance": {
+      route: ROUTES.HOME_ASSISTANCE,
+      icon: "/icons/home_assistance_icon_home.svg",
+    },
+    transport: { route: ROUTES.TRANSPORT, icon: "/icons/transport.svg" },
     "personal care": { route: ROUTES.PERSONAL_CARE, icon: "/icons/makeup.svg" },
     "tech support": { route: ROUTES.TECH_SUPPORT, icon: "/icons/laptop.svg" },
   };
-  
-  return serviceMap[nameLower] || { 
-    route: `/services/${nameLower.replace(/\s+/g, "-").toLowerCase()}`, 
-    icon: "/icons/home_assistance_icon_home.svg" 
-  };
+
+  return (
+    serviceMap[nameLower] || {
+      route: `/services/${nameLower.replace(/\s+/g, "-").toLowerCase()}`,
+      icon: "/icons/home_assistance_icon_home.svg",
+    }
+  );
 };
 
 // Helper function to get colors for service cards based on category name
-const getCategoryColors = (categoryName: string, index: number): { bgColor: string; buttonColor: string; buttonHover: string } => {
+const getCategoryColors = (
+  categoryName: string,
+  index: number
+): { bgColor: string; buttonColor: string; buttonHover: string } => {
   const nameLower = categoryName.toLowerCase().trim();
-  
+
   // Predefined color mappings for known categories
-  const colorMap: Record<string, { bgColor: string; buttonColor: string; buttonHover: string }> = {
-    "pets": { bgColor: "#4A4A4A", buttonColor: "#3A3A3A", buttonHover: "#2A2A2A" },
-    "homecare": { bgColor: "#7A4A2E", buttonColor: "#5C3823", buttonHover: "#4A2E1A" },
-    "housekeeping": { bgColor: "#A38B7D", buttonColor: "#8C756A", buttonHover: "#75655A" },
-    "childcare": { bgColor: "#6B8E8E", buttonColor: "#5A7A7A", buttonHover: "#4A6A6A" },
-    "diy": { bgColor: "#8B6F47", buttonColor: "#7A5F3A", buttonHover: "#6A4F2A" },
-    "transport": { bgColor: "#5A7A9E", buttonColor: "#4A6A8E", buttonHover: "#3A5A7E" },
-    "personal care": { bgColor: "#9E7A9E", buttonColor: "#8E6A8E", buttonHover: "#7E5A7E" },
-    "tech support": { bgColor: "#6B8E6B", buttonColor: "#5A7A5A", buttonHover: "#4A6A4A" },
-    "gardening": { bgColor: "#7A9E5A", buttonColor: "#6A8E4A", buttonHover: "#5A7E3A" },
+  const colorMap: Record<
+    string,
+    { bgColor: string; buttonColor: string; buttonHover: string }
+  > = {
+    pets: {
+      bgColor: "#4A4A4A",
+      buttonColor: "#3A3A3A",
+      buttonHover: "#2A2A2A",
+    },
+    homecare: {
+      bgColor: "#7A4A2E",
+      buttonColor: "#5C3823",
+      buttonHover: "#4A2E1A",
+    },
+    housekeeping: {
+      bgColor: "#A38B7D",
+      buttonColor: "#8C756A",
+      buttonHover: "#75655A",
+    },
+    childcare: {
+      bgColor: "#6B8E8E",
+      buttonColor: "#5A7A7A",
+      buttonHover: "#4A6A6A",
+    },
+    diy: { bgColor: "#8B6F47", buttonColor: "#7A5F3A", buttonHover: "#6A4F2A" },
+    transport: {
+      bgColor: "#5A7A9E",
+      buttonColor: "#4A6A8E",
+      buttonHover: "#3A5A7E",
+    },
+    "personal care": {
+      bgColor: "#9E7A9E",
+      buttonColor: "#8E6A8E",
+      buttonHover: "#7E5A7E",
+    },
+    "tech support": {
+      bgColor: "#6B8E6B",
+      buttonColor: "#5A7A5A",
+      buttonHover: "#4A6A4A",
+    },
+    gardening: {
+      bgColor: "#7A9E5A",
+      buttonColor: "#6A8E4A",
+      buttonHover: "#5A7E3A",
+    },
   };
-  
+
   // Return mapped color or use a rotating palette
   if (colorMap[nameLower]) {
     return colorMap[nameLower];
   }
-  
+
   // Fallback rotating color palette
   const colors = [
     { bgColor: "#7A4A2E", buttonColor: "#5C3823", buttonHover: "#4A2E1A" },
@@ -130,26 +176,26 @@ const getCategoryColors = (categoryName: string, index: number): { bgColor: stri
     { bgColor: "#6B8E8E", buttonColor: "#5A7A7A", buttonHover: "#4A6A6A" },
     { bgColor: "#8B6F47", buttonColor: "#7A5F3A", buttonHover: "#6A4F2A" },
   ];
-  
+
   return colors[index % colors.length];
 };
 
 // Helper function to generate title from category name
 const getCategoryTitle = (categoryName: string): string => {
   const nameLower = categoryName.toLowerCase().trim();
-  
+
   const titleMap: Record<string, string> = {
-    "pets": "Pet care with experts",
-    "homecare": "Want a help in Homecare ?",
-    "housekeeping": "Clean your kitchen by experts",
-    "childcare": "Childcare with professionals",
-    "diy": "DIY projects made easy",
-    "transport": "Transport services at your doorstep",
+    pets: "Pet care with experts",
+    homecare: "Want a help in Homecare ?",
+    housekeeping: "Clean your kitchen by experts",
+    childcare: "Childcare with professionals",
+    diy: "DIY projects made easy",
+    transport: "Transport services at your doorstep",
     "personal care": "Personal care with experts",
     "tech support": "Tech support when you need it",
-    "gardening": "Gardening services by experts",
+    gardening: "Gardening services by experts",
   };
-  
+
   return titleMap[nameLower] || `Expert ${categoryName} services`;
 };
 
@@ -161,16 +207,20 @@ export default function AuthenticatedHomePage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [servicesLoading, setServicesLoading] = useState(false);
-  const [favoriteProfessionals, setFavoriteProfessionals] = useState<FavoriteProfessional[]>([]);
-  const [favoriteProfessionalsLoading, setFavoriteProfessionalsLoading] = useState(false);
+  const [favoriteProfessionals, setFavoriteProfessionals] = useState<
+    FavoriteProfessional[]
+  >([]);
+  const [favoriteProfessionalsLoading, setFavoriteProfessionalsLoading] =
+    useState(false);
   const [serviceCards, setServiceCards] = useState<ServiceCard[]>([]);
   const [serviceCardsLoading, setServiceCardsLoading] = useState(false);
+  const [isBookServiceModalOpen, setIsBookServiceModalOpen] = useState(false);
 
   // Check if user is authenticated on mount
   useEffect(() => {
-    const storedInitial = localStorage.getItem('userInitial');
-    const storedEmail = localStorage.getItem('userEmail');
-    
+    const storedInitial = localStorage.getItem("userInitial");
+    const storedEmail = localStorage.getItem("userEmail");
+
     // If user details are not present, redirect to login
     if (!storedInitial || !storedEmail) {
       router.push(ROUTES.LOGIN);
@@ -184,28 +234,33 @@ export default function AuthenticatedHomePage() {
   const fetchBanners = async () => {
     setServiceCardsLoading(true);
     try {
-      const response = await apiGet<BannersApiResponse>(API_ENDPOINTS.HOME.ALL_BANNERS);
+      const response = await apiGet<BannersApiResponse>(
+        API_ENDPOINTS.HOME.ALL_BANNERS
+      );
       if (response.success && response.data) {
         const categories = response.data.data?.categories || [];
-        
+
         // Limit to first 3 categories
         const limitedCategories = categories.slice(0, 3);
-        
+
         // Map categories to service cards format
-        const mappedCards: ServiceCard[] = limitedCategories.map((category, index) => {
-          const colors = getCategoryColors(category.category_name, index);
-          return {
-            id: category.id,
-            title: getCategoryTitle(category.category_name),
-            description: "Lorem Ipsum dit.",
-            bgColor: colors.bgColor,
-            buttonColor: colors.buttonColor,
-            buttonHover: colors.buttonHover,
-            image: category.banner_url || "/image/explore-service-section-1.png",
-            alt: category.category_name,
-          };
-        });
-        
+        const mappedCards: ServiceCard[] = limitedCategories.map(
+          (category, index) => {
+            const colors = getCategoryColors(category.category_name, index);
+            return {
+              id: category.id,
+              title: getCategoryTitle(category.category_name),
+              description: "Lorem Ipsum dit.",
+              bgColor: colors.bgColor,
+              buttonColor: colors.buttonColor,
+              buttonHover: colors.buttonHover,
+              image:
+                category.banner_url || "/image/explore-service-section-1.png",
+              alt: category.category_name,
+            };
+          }
+        );
+
         setServiceCards(mappedCards);
       }
     } catch (error) {
@@ -219,40 +274,40 @@ export default function AuthenticatedHomePage() {
 
   const apiCallToGetHomeScreenDetails = async () => {
     // Don't call API if user is not authenticated
-    const storedInitial = localStorage.getItem('userInitial');
-    const storedEmail = localStorage.getItem('userEmail');
+    const storedInitial = localStorage.getItem("userInitial");
+    const storedEmail = localStorage.getItem("userEmail");
     if (!storedInitial || !storedEmail) {
       return;
     }
-    
+
     setServicesLoading(true);
     setFavoriteProfessionalsLoading(true);
     try {
       const response = await apiGet<HomeApiResponse>(API_ENDPOINTS.HOME.HOME);
       if (response.success && response.data) {
         const apiData = response.data;
-        
+
         // Handle services
         if (apiData.data?.services && Array.isArray(apiData.data.services)) {
           // Sort services to ensure "Home Assistance" comes first
           const sortedServices = [...apiData.data.services].sort((a, b) => {
             const aName = a.name.toLowerCase();
             const bName = b.name.toLowerCase();
-            
+
             // Home Assistance should always be first
             if (aName === "home assistance") return -1;
             if (bName === "home assistance") return 1;
-            
+
             // Maintain original order for other services
             return 0;
           });
-          
+
           setServices(sortedServices);
         }
-        console.log({apiData})
-        
+        console.log({ apiData });
+
         // Handle favorite professionals
-        if (apiData?.data?.favorite_professionals?.records ) {
+        if (apiData?.data?.favorite_professionals?.records) {
           setFavoriteProfessionals(apiData.data.favorite_professionals.records);
         } else {
           setFavoriteProfessionals([]);
@@ -308,13 +363,19 @@ export default function AuthenticatedHomePage() {
     setIsDragging(false);
   };
 
+  const navigate = useRouter();
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-
       <Box sx={{ bgcolor: "#DFE8ED", height: "0.063rem" }} />
       {/* Hero Section */}
-      <Box sx={{ pt: { xs: "2rem", sm: "2.5rem", md: "3.563rem" }, px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" }, pb: { xs: "2rem", sm: "3rem", md: "5rem" } }}>
+      <Box
+        sx={{
+          pt: { xs: "2rem", sm: "2.5rem", md: "3.563rem" },
+          px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" },
+          pb: { xs: "2rem", sm: "3rem", md: "5rem" },
+        }}
+      >
         <Box
           sx={{
             display: "grid",
@@ -323,11 +384,15 @@ export default function AuthenticatedHomePage() {
             alignItems: "center",
           }}
         >
-          <Box
-          >
+          <Box>
             <Typography
               sx={{
-                fontSize: { xs: "1.5rem", sm: "1.875rem", md: "2rem", lg: "2.5rem" },
+                fontSize: {
+                  xs: "1.5rem",
+                  sm: "1.875rem",
+                  md: "2rem",
+                  lg: "2.5rem",
+                },
                 lineHeight: "150%",
                 color: "#323232",
                 fontWeight: 600,
@@ -345,11 +410,20 @@ export default function AuthenticatedHomePage() {
                 lineHeight: 1.6,
               }}
             >
-              Making home care simple, safe, and accessible for seniors. Find trusted professionals for repairs, cleaning, and more — right at your doorstep.
+              Making home care simple, safe, and accessible for seniors. Find
+              trusted professionals for repairs, cleaning, and more — right at
+              your doorstep.
             </Typography>
 
             {/* Blue Card - 10 Professionals Connected Today */}
-            <Box sx={{ position: "relative", mb: { xs: 2, md: 3 }, overflow: "visible", ml: { xs: 0, md: "1.188rem" } }}>
+            <Box
+              sx={{
+                position: "relative",
+                mb: { xs: 2, md: 3 },
+                overflow: "visible",
+                ml: { xs: 0, md: "1.188rem" },
+              }}
+            >
               <Box
                 sx={{
                   bgcolor: "#2F6B8E",
@@ -384,41 +458,76 @@ export default function AuthenticatedHomePage() {
                   />
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 1 }, mb: 1, flexWrap: "wrap" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 0.5, sm: 1 },
+                      mb: 1,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     <Typography
                       sx={{
-                        fontSize: { xs: "1.5rem", sm: "2.5rem", md: "3rem", lg: "3.276rem" },
-                        lineHeight: { xs: "1.5rem", sm: "2rem", md: "2.184rem" },
-                        fontWeight: "600"
+                        fontSize: {
+                          xs: "1.5rem",
+                          sm: "2.5rem",
+                          md: "3rem",
+                          lg: "3.276rem",
+                        },
+                        lineHeight: {
+                          xs: "1.5rem",
+                          sm: "2rem",
+                          md: "2.184rem",
+                        },
+                        fontWeight: "600",
                       }}
                     >
                       10
                     </Typography>
                     <Typography
                       sx={{
-                        fontSize: { xs: "0.875rem", sm: "1rem", md: "1.365rem" },
-                        lineHeight: { xs: "1.2rem", sm: "1.4rem", md: "1.638rem" },
+                        fontSize: {
+                          xs: "0.875rem",
+                          sm: "1rem",
+                          md: "1.365rem",
+                        },
+                        lineHeight: {
+                          xs: "1.2rem",
+                          sm: "1.4rem",
+                          md: "1.638rem",
+                        },
                       }}
                     >
-                      Professionals <br />Connected Today
+                      Professionals <br />
+                      Connected Today
                     </Typography>
                   </Box>
                   <Typography
                     variant="body2"
                     sx={{
                       opacity: 0.9,
-                      fontSize: { xs: "0.625rem", sm: "0.75rem", md: "0.875rem" },
-                      lineHeight: { xs: "0.875rem", sm: "1rem", md: "1.125rem" },
+                      fontSize: {
+                        xs: "0.625rem",
+                        sm: "0.75rem",
+                        md: "0.875rem",
+                      },
+                      lineHeight: {
+                        xs: "0.875rem",
+                        sm: "1rem",
+                        md: "1.125rem",
+                      },
                     }}
                   >
-                    Lorem ipsum a pharetra mattis dilt pulvinar tortor amet vulputate.
+                    Lorem ipsum a pharetra mattis dilt pulvinar tortor amet
+                    vulputate.
                   </Typography>
                 </Box>
               </Box>
             </Box>
 
             {/* Yellow Home Assistance Button */}
-            {services.length > 0 && (() => {
+            {/* {services.length > 0 && (() => {
               const firstService = services[0];
               const { route, icon } = getServiceRouteAndIcon(firstService.name);
               return (
@@ -484,8 +593,29 @@ export default function AuthenticatedHomePage() {
                   </Box>
                 </Box>
               );
-            })()}
-            {servicesLoading && (
+            })()} */}
+
+            <Box
+              onClick={() => navigate.push(ROUTES.HOME_ASSISTANCE)}
+              sx={{
+                mb: "25px",
+                cursor: "pointer",
+              }}
+            >
+              <Image
+                src="/image/HomeAssistanceBanner.png"
+                alt="Home Assistance"
+                style={{
+                  width: "100%",
+                  height: "auto",
+                }}
+                // quality={100}
+                // unoptimized
+                width={804}
+                height={182}
+              />
+            </Box>
+            {/* {servicesLoading && (
               <Box
                 sx={{
                   borderTopLeftRadius: { xs: "0.5rem", md: "0.75rem" },
@@ -506,18 +636,91 @@ export default function AuthenticatedHomePage() {
                 <Typography
                   sx={{
                     color: "#323232",
-                    fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem", lg: "2rem" },
+                    fontSize: {
+                      xs: "1.25rem",
+                      sm: "1.5rem",
+                      md: "1.75rem",
+                      lg: "2rem",
+                    },
                     fontWeight: 600,
-                    lineHeight: { xs: "1.5rem", md: "1.75rem" }
+                    lineHeight: { xs: "1.5rem", md: "1.75rem" },
                   }}
                 >
                   Loading...
                 </Typography>
               </Box>
-            )}
+            )} */}
 
             {/* Service Icons */}
-            {services.length > 1 && (
+
+            <Box
+              sx={{
+                display: "flex",
+                gap: "18.25px",
+              }}
+            >
+              <Box
+                onClick={() => navigate.push(ROUTES.TRANSPORT)}
+                sx={{
+                  mb: "25px",
+                  cursor: "pointer",
+                }}
+              >
+                <Image
+                  src="/image/transportLogo.png"
+                  alt="Home Assistance"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                  }}
+                  // quality={100}
+                  // unoptimized
+                  width={804}
+                  height={182}
+                />
+              </Box>
+              <Box
+                onClick={() => navigate.push(ROUTES.PERSONAL_CARE)}
+                sx={{
+                  mb: "25px",
+                  cursor: "pointer",
+                }}
+              >
+                <Image
+                  src="/image/personalCareLogo.png"
+                  alt="Home Assistance"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                  }}
+                  // quality={100}
+                  // unoptimized
+                  width={804}
+                  height={182}
+                />
+              </Box>
+              <Box
+                onClick={() => navigate.push(ROUTES.TECH_SUPPORT)}
+                sx={{
+                  mb: "25px",
+                  cursor: "pointer",
+                }}
+              >
+                <Image
+                  src="/image/techSupportLogo.png"
+                  alt="Home Assistance"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                  }}
+                  // quality={100}
+                  // unoptimized
+                  width={804}
+                  height={182}
+                />
+              </Box>
+            </Box>
+            {/* {services.length > 1 && (
               <Box
                 sx={{
                   display: "flex",
@@ -529,20 +732,32 @@ export default function AuthenticatedHomePage() {
                   const { route, icon } = getServiceRouteAndIcon(service.name);
                   const isFirst = index === 0;
                   const isLast = index === services.slice(1).length - 1;
-                  
+
                   return (
                     <Box
                       key={service.id}
                       component={Link}
                       href={route}
                       sx={{
-                        flex: { xs: "1 1 calc(50% - 0.75rem)", sm: "1 1 calc(33.333% - 1.33rem)", md: 1 },
-                        minWidth: { xs: "calc(50% - 0.75rem)", sm: 120, md: "auto" },
+                        flex: {
+                          xs: "1 1 calc(50% - 0.75rem)",
+                          sm: "1 1 calc(33.333% - 1.33rem)",
+                          md: 1,
+                        },
+                        minWidth: {
+                          xs: "calc(50% - 0.75rem)",
+                          sm: 120,
+                          md: "auto",
+                        },
                         p: { xs: 1.5, sm: 2, md: 3 },
                         cursor: "pointer",
                         borderRadius: { xs: "0.5rem", md: "12.17px" },
-                        borderTopLeftRadius: isFirst ? { xs: "1rem", md: "2.535rem" } : { xs: "0.5rem", md: "12.17px" },
-                        borderTopRightRadius: isLast ? { xs: "1rem", md: "2.535rem" } : { xs: "0.5rem", md: "12.17px" },
+                        borderTopLeftRadius: isFirst
+                          ? { xs: "1rem", md: "2.535rem" }
+                          : { xs: "0.5rem", md: "12.17px" },
+                        borderTopRightRadius: isLast
+                          ? { xs: "1rem", md: "2.535rem" }
+                          : { xs: "0.5rem", md: "12.17px" },
                         textAlign: "center",
                         bgcolor: "grey.100",
                         border: "none",
@@ -567,7 +782,13 @@ export default function AuthenticatedHomePage() {
                             alt={service.name}
                             width={64}
                             height={64}
-                            style={{ objectFit: "contain", width: "auto", height: "auto", maxWidth: "100%", maxHeight: "100%" }}
+                            style={{
+                              objectFit: "contain",
+                              width: "auto",
+                              height: "auto",
+                              maxWidth: "100%",
+                              maxHeight: "100%",
+                            }}
                             sizes="(max-width: 600px) 48px, (max-width: 960px) 56px, 64px"
                           />
                         ) : (
@@ -576,7 +797,13 @@ export default function AuthenticatedHomePage() {
                             alt={service.name}
                             width={64}
                             height={64}
-                            style={{ objectFit: "contain", width: "auto", height: "auto", maxWidth: "100%", maxHeight: "100%" }}
+                            style={{
+                              objectFit: "contain",
+                              width: "auto",
+                              height: "auto",
+                              maxWidth: "100%",
+                              maxHeight: "100%",
+                            }}
                             sizes="(max-width: 600px) 48px, (max-width: 960px) 56px, 64px"
                           />
                         )}
@@ -584,9 +811,13 @@ export default function AuthenticatedHomePage() {
                       <Typography
                         variant="body1"
                         fontWeight="500"
-                        sx={{ 
+                        sx={{
                           color: "text.primary",
-                          fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" }
+                          fontSize: {
+                            xs: "0.875rem",
+                            sm: "0.9375rem",
+                            md: "1rem",
+                          },
                         }}
                       >
                         {service.name}
@@ -608,8 +839,16 @@ export default function AuthenticatedHomePage() {
                   <Box
                     key={index}
                     sx={{
-                      flex: { xs: "1 1 calc(50% - 0.75rem)", sm: "1 1 calc(33.333% - 1.33rem)", md: 1 },
-                      minWidth: { xs: "calc(50% - 0.75rem)", sm: 120, md: "auto" },
+                      flex: {
+                        xs: "1 1 calc(50% - 0.75rem)",
+                        sm: "1 1 calc(33.333% - 1.33rem)",
+                        md: 1,
+                      },
+                      minWidth: {
+                        xs: "calc(50% - 0.75rem)",
+                        sm: 120,
+                        md: "auto",
+                      },
                       p: { xs: 1.5, sm: 2, md: 3 },
                       borderRadius: { xs: "0.5rem", md: "12.17px" },
                       textAlign: "center",
@@ -619,14 +858,17 @@ export default function AuthenticatedHomePage() {
                   >
                     <Typography
                       variant="body2"
-                      sx={{ color: "text.secondary", fontSize: { xs: "0.875rem", md: "1rem" } }}
+                      sx={{
+                        color: "text.secondary",
+                        fontSize: { xs: "0.875rem", md: "1rem" },
+                      }}
                     >
                       Loading...
                     </Typography>
                   </Box>
                 ))}
               </Box>
-            )}
+            )} */}
           </Box>
           <Box
             sx={{
@@ -646,13 +888,13 @@ export default function AuthenticatedHomePage() {
                 display: "flex",
                 borderTopLeftRadius: "0.75rem",
                 overflow: "hidden",
-                borderBottomLeftRadius: "8.5rem"
+                borderBottomLeftRadius: "8.5rem",
               }}
             >
               <Box
                 sx={{
                   width: "100%",
-                  height: "50%"
+                  height: "50%",
                 }}
               >
                 <Image
@@ -661,15 +903,13 @@ export default function AuthenticatedHomePage() {
                   className="size-full"
                   src="/image/service-image-1.png"
                   alt="Service - TV Installation"
-
                   style={{ objectFit: "cover" }}
-
                 />
               </Box>
               <Box
                 sx={{
                   width: "100%",
-                  height: "50%"
+                  height: "50%",
                 }}
               >
                 <Image
@@ -678,7 +918,6 @@ export default function AuthenticatedHomePage() {
                   className="size-full"
                   src="/image/service-image-3.png"
                   alt="Service - TV Installation"
-
                   style={{ objectFit: "cover" }}
                 />
               </Box>
@@ -692,13 +931,13 @@ export default function AuthenticatedHomePage() {
                 display: "flex",
                 borderTopRightRadius: "8.5rem",
                 overflow: "hidden",
-                borderBottomRightRadius: "0.75rem"
+                borderBottomRightRadius: "0.75rem",
               }}
             >
               <Box
                 sx={{
                   width: "100%",
-                  height: "30%"
+                  height: "30%",
                 }}
               >
                 <Image
@@ -707,15 +946,13 @@ export default function AuthenticatedHomePage() {
                   className="size-full"
                   src="/image/service-image-2.png"
                   alt="Service - TV Installation"
-
                   style={{ objectFit: "cover" }}
-
                 />
               </Box>
               <Box
                 sx={{
                   width: "100%",
-                  height: "70%"
+                  height: "70%",
                 }}
               >
                 <Image
@@ -724,11 +961,9 @@ export default function AuthenticatedHomePage() {
                   className="size-full"
                   src="/image/service-image-4.png"
                   alt="Service - TV Installation"
-
                   style={{ objectFit: "cover" }}
                 />
               </Box>
-
             </Box>
           </Box>
         </Box>
@@ -737,21 +972,28 @@ export default function AuthenticatedHomePage() {
       {/* Explore All Services Section */}
       <Box sx={{ bgcolor: "white", py: { xs: 4, sm: 6, md: 8 } }}>
         <Box>
-          <Box sx={{ 
-            display: "flex", 
-            justifyContent: "space-between", 
-            alignItems: { xs: "flex-start", sm: "center" }, 
-            mb: { xs: 3, sm: 4, md: 6 }, 
-            px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" },
-            flexDirection: { xs: "column", sm: "row" },
-            gap: { xs: 2, sm: 0 }
-          }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: { xs: "flex-start", sm: "center" },
+              mb: { xs: 3, sm: 4, md: 6 },
+              px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" },
+              flexDirection: { xs: "column", sm: "row" },
+              gap: { xs: 2, sm: 0 },
+            }}
+          >
             <Typography
               variant="h3"
               fontWeight="bold"
               sx={{
                 color: "#2F6B8E",
-                fontSize: { xs: "1.5rem", sm: "1.875rem", md: "2rem", lg: "2.5rem" },
+                fontSize: {
+                  xs: "1.5rem",
+                  sm: "1.875rem",
+                  md: "2rem",
+                  lg: "2.5rem",
+                },
               }}
             >
               Explore All Services
@@ -783,7 +1025,11 @@ export default function AuthenticatedHomePage() {
             sx={{
               px: { xs: "1rem", sm: "2rem", md: "3rem", lg: "5rem" },
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" },
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(3, 1fr)",
+              },
               gap: { xs: 2, sm: 2.5, md: 3 },
               gridAutoRows: "auto",
             }}
@@ -813,7 +1059,14 @@ export default function AuthenticatedHomePage() {
                       minHeight: { xs: 150, sm: 200 },
                     }}
                   >
-                    <Typography sx={{ color: "grey.400", fontSize: { xs: "0.875rem", md: "1rem" } }}>Loading...</Typography>
+                    <Typography
+                      sx={{
+                        color: "grey.400",
+                        fontSize: { xs: "0.875rem", md: "1rem" },
+                      }}
+                    >
+                      Loading...
+                    </Typography>
                   </Box>
                   <Box
                     sx={{
@@ -826,94 +1079,125 @@ export default function AuthenticatedHomePage() {
               ))
             ) : serviceCards.length === 0 ? (
               <Box sx={{ gridColumn: "1 / -1", textAlign: "center", py: 4 }}>
-                <Typography sx={{ color: "text.secondary" }}>No services available</Typography>
+                <Typography sx={{ color: "text.secondary" }}>
+                  No services available
+                </Typography>
               </Box>
             ) : (
               serviceCards.slice(0, 3).map((card) => (
-              <Box
-                key={card.id}
-                sx={{
-                  overflow: "hidden",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  borderRadius: { xs: "0.75rem", md: "1.25rem" },
-                  flexShrink: 0,
-                  scrollSnapAlign: "start",
-                  userSelect: "none",
-                  pointerEvents: isDragging ? "none" : "auto",
-                }}
-              >
                 <Box
+                  key={card.id}
+                  onClick={() => setIsBookServiceModalOpen(true)}
                   sx={{
-                    bgcolor: card.bgColor,
-                    py: { xs: "1.5rem", sm: "1.75rem", md: "2.188rem" },
-                    px: { xs: "1rem", sm: "1.25rem", md: "1.438rem" },
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    flex: { xs: "1 1 auto", sm: "0 0 50%" },
-                    color: "white",
-                    minHeight: { xs: "auto", sm: "200px" },
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      sx={{ 
-                        fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem", lg: "2rem" }, 
-                        color: "white", 
-                        fontWeight: 500, 
-                        lineHeight: { xs: "1.5rem", md: "1.75rem" } 
-                      }}
-                    >
-                      {card.title}
-                    </Typography>
-                    <Typography
-                      sx={{ 
-                        fontSize: { xs: "0.625rem", sm: "0.6875rem", md: "0.75rem" }, 
-                        lineHeight: "150%", 
-                        mb: { xs: "1rem", md: "1.25rem" }, 
-                        mt: { xs: "0.25rem", md: "0.375rem" },
-                      }}
-                    >
-                      {card.description}
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    sx={{
-                      bgcolor: card.buttonColor,
-                      color: "white",
-                      marginRight: "auto",
-                      lineHeight: "150%",
-                      fontSize: { xs: "0.75rem", md: "0.875rem" },
-                      borderRadius: "6.25rem ",
-                      py: { xs: "0.25rem", md: "0.375rem" },
-                      px: { xs: "0.625rem", md: "0.813rem" },
-                      mt: { xs: 1, md: 0 },
-                    }}
-                  >
-                    Book Now
-                  </Button>
-                </Box>
-                <Box
-                  sx={{
-                    position: "relative",
-                    flex: { xs: "1 1 auto", sm: "0 0 50%" },
-                    minHeight: { xs: 200, sm: 200, md: "100%" },
-                    width: { xs: "100%", sm: "auto" },
+                    width: "100%",
+                    gap: "10px",
+                    cursor: "pointer",
                   }}
                 >
                   <Image
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                    }}
                     src={card.image}
-                    alt={card.alt}
-                    fill
-                    style={{ objectFit: "cover" }}
-                    sizes="(max-width: 600px) 100vw, (max-width: 960px) 50vw, 33vw"
-                    draggable={false}
+                    alt={card.title}
+                    height={200}
+                    width={400}
                   />
                 </Box>
-              </Box>
+                // <Box
+                //   key={card.id}
+                //   sx={{
+                //     overflow: "hidden",
+                //     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                //     display: "flex",
+                //     flexDirection: { xs: "column", sm: "row" },
+                //     borderRadius: { xs: "0.75rem", md: "1.25rem" },
+                //     flexShrink: 0,
+                //     scrollSnapAlign: "start",
+                //     userSelect: "none",
+                //     pointerEvents: isDragging ? "none" : "auto",
+                //   }}
+                // >
+                //   <Box
+                //     sx={{
+                //       bgcolor: card.bgColor,
+                //       py: { xs: "1.5rem", sm: "1.75rem", md: "2.188rem" },
+                //       px: { xs: "1rem", sm: "1.25rem", md: "1.438rem" },
+                //       display: "flex",
+                //       flexDirection: "column",
+                //       justifyContent: "space-between",
+                //       flex: { xs: "1 1 auto", sm: "0 0 50%" },
+                //       color: "white",
+                //       minHeight: { xs: "auto", sm: "200px" },
+                //     }}
+                //   >
+                //     <Box>
+                //       <Typography
+                //         sx={{
+                //           fontSize: {
+                //             xs: "1.25rem",
+                //             sm: "1.5rem",
+                //             md: "1.75rem",
+                //             lg: "2rem",
+                //           },
+                //           color: "white",
+                //           fontWeight: 500,
+                //           lineHeight: { xs: "1.5rem", md: "1.75rem" },
+                //         }}
+                //       >
+                //         {card.title}
+                //       </Typography>
+                //       <Typography
+                //         sx={{
+                //           fontSize: {
+                //             xs: "0.625rem",
+                //             sm: "0.6875rem",
+                //             md: "0.75rem",
+                //           },
+                //           lineHeight: "150%",
+                //           mb: { xs: "1rem", md: "1.25rem" },
+                //           mt: { xs: "0.25rem", md: "0.375rem" },
+                //         }}
+                //       >
+                //         {card.description}
+                //       </Typography>
+                //     </Box>
+                //     <Button
+                //       variant="contained"
+                //       sx={{
+                //         bgcolor: card.buttonColor,
+                //         color: "white",
+                //         marginRight: "auto",
+                //         lineHeight: "150%",
+                //         fontSize: { xs: "0.75rem", md: "0.875rem" },
+                //         borderRadius: "6.25rem ",
+                //         py: { xs: "0.25rem", md: "0.375rem" },
+                //         px: { xs: "0.625rem", md: "0.813rem" },
+                //         mt: { xs: 1, md: 0 },
+                //       }}
+                //     >
+                //       Book Now
+                //     </Button>
+                //   </Box>
+                //   <Box
+                //     sx={{
+                //       position: "relative",
+                //       flex: { xs: "1 1 auto", sm: "0 0 50%" },
+                //       minHeight: { xs: 200, sm: 200, md: "100%" },
+                //       width: { xs: "100%", sm: "auto" },
+                //     }}
+                //   >
+                //     <Image
+                //       src={card.image}
+                //       alt={card.alt}
+                //       fill
+                //       style={{ objectFit: "cover" }}
+                //       sizes="(max-width: 600px) 100vw, (max-width: 960px) 50vw, 33vw"
+                //       draggable={false}
+                //     />
+                //   </Box>
+                // </Box>
               ))
             )}
           </Box>
@@ -921,30 +1205,33 @@ export default function AuthenticatedHomePage() {
       </Box>
 
       {/* App Download Section */}
-      <Box sx={{ bgcolor: '#F8F8F8', py: { xs: 4, sm: 6, md: 8 } }}>
-        <Container maxWidth="lg" sx={{ px: { xs: "1rem", sm: "2rem", md: "3rem" } }}>
+      <Box sx={{ bgcolor: "#F8F8F8", py: { xs: 4, sm: 6, md: 8 } }}>
+        <Container
+          maxWidth="lg"
+          sx={{ px: { xs: "1rem", sm: "2rem", md: "3rem" } }}
+        >
           <Box
             sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
               gap: { xs: 3, sm: 4, md: 6 },
-              alignItems: 'center',
+              alignItems: "center",
             }}
           >
             {/* Left Side - Phone Mockups */}
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'relative',
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                position: "relative",
                 order: { xs: 2, md: 1 },
               }}
             >
               {/* Left Phone */}
               <Box
                 sx={{
-                  position: 'relative',
+                  position: "relative",
                   width: { xs: 150, sm: 200, md: "29.75rem" },
                   height: { xs: 300, sm: 400, md: "44.5rem" },
                   zIndex: 2,
@@ -954,7 +1241,7 @@ export default function AuthenticatedHomePage() {
                   src="/icons/dualMobile.png"
                   alt="CoudPouss App - Home Screen"
                   fill
-                  style={{ objectFit: 'contain' }}
+                  style={{ objectFit: "contain" }}
                 />
               </Box>
             </Box>
@@ -963,11 +1250,16 @@ export default function AuthenticatedHomePage() {
             <Box sx={{ order: { xs: 1, md: 2 } }}>
               <Typography
                 sx={{
-                  color: '#222222',
+                  color: "#222222",
                   fontWeight: 600,
                   lineHeight: "100%",
                   mb: { xs: "1rem", md: "1.75rem" },
-                  fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem', lg: '3.125rem' }
+                  fontSize: {
+                    xs: "1.5rem",
+                    sm: "2rem",
+                    md: "2.5rem",
+                    lg: "3.125rem",
+                  },
                 }}
               >
                 Download the new CoudPouss app
@@ -983,39 +1275,39 @@ export default function AuthenticatedHomePage() {
                   lineHeight: 1.6,
                 }}
               >
-                Lorem ipsum dolor sit amet consectetur. Egestas ac velit donec quisque. Vel suscipit donec non varius placerat. Eu at vitae sit varius bibendum semper eget.
+                Lorem ipsum dolor sit amet consectetur. Egestas ac velit donec
+                quisque. Vel suscipit donec non varius placerat. Eu at vitae sit
+                varius bibendum semper eget.
               </Typography>
 
               {/* App Store Badges */}
               <Box>
                 {/* Apple App Store Badge */}
 
-
-
-
-                <Box sx={{
-                  alignItems: { xs: "flex-start", sm: "center" },
-                  display: "flex",
-                  gap: { xs: "0.5rem", sm: "0.75rem" },
-                  flexDirection: { xs: "column", sm: "row" },
-                  flexWrap: "wrap",
-                }}  >
-
+                <Box
+                  sx={{
+                    alignItems: { xs: "flex-start", sm: "center" },
+                    display: "flex",
+                    gap: { xs: "0.5rem", sm: "0.75rem" },
+                    flexDirection: { xs: "column", sm: "row" },
+                    flexWrap: "wrap",
+                  }}
+                >
                   <Button
                     variant="contained"
                     sx={{
-                      bgcolor: 'secondary.main',
-                      color: 'white',
-                      textTransform: 'none',
+                      bgcolor: "secondary.main",
+                      color: "white",
+                      textTransform: "none",
                       borderRadius: 2,
                       px: { xs: 3, md: 4 },
                       py: { xs: 1, md: 1.5 },
-                      fontSize: { xs: '0.875rem', md: '1rem' },
-                      fontWeight: 'bold',
+                      fontSize: { xs: "0.875rem", md: "1rem" },
+                      fontWeight: "bold",
                       lineHeight: "1.125rem",
                       width: { xs: "100%", sm: "auto" },
-                      '&:hover': {
-                        bgcolor: '#D97706',
+                      "&:hover": {
+                        bgcolor: "#D97706",
                       },
                     }}
                   >
@@ -1033,7 +1325,12 @@ export default function AuthenticatedHomePage() {
                       width={118}
                       height={36}
                       src={"/icons/downloadAppStoreButton.png"}
-                      style={{ width: "auto", height: "auto", maxWidth: "100px", maxHeight: "30px" }}
+                      style={{
+                        width: "auto",
+                        height: "auto",
+                        maxWidth: "100px",
+                        maxHeight: "30px",
+                      }}
                     />
 
                     <Image
@@ -1041,11 +1338,15 @@ export default function AuthenticatedHomePage() {
                       width={118}
                       height={36}
                       src={"/icons/googlePlayDownloadButton.png"}
-                      style={{ width: "auto", height: "auto", maxWidth: "100px", maxHeight: "30px" }}
+                      style={{
+                        width: "auto",
+                        height: "auto",
+                        maxWidth: "100px",
+                        maxHeight: "30px",
+                      }}
                     />
                   </Box>
                 </Box>
-
               </Box>
             </Box>
           </Box>
@@ -1054,16 +1355,23 @@ export default function AuthenticatedHomePage() {
 
       {/* Favorite Professionals Section */}
       {(favoriteProfessionalsLoading || favoriteProfessionals.length > 0) && (
-        <Box sx={{ bgcolor: "white", p: { xs: "1.5rem", sm: "2.5rem", md: "3rem", lg: "5rem" } }}>
-          <Box >
-            <Box sx={{ 
-              display: "flex", 
-              justifyContent: "space-between", 
-              alignItems: { xs: "flex-start", sm: "center" }, 
-              mb: { xs: "1.5rem", md: "2rem" },
-              flexDirection: { xs: "column", sm: "row" },
-              gap: { xs: 1.5, sm: 0 }
-            }}>
+        <Box
+          sx={{
+            bgcolor: "white",
+            p: { xs: "1.5rem", sm: "2.5rem", md: "3rem", lg: "5rem" },
+          }}
+        >
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: { xs: "flex-start", sm: "center" },
+                mb: { xs: "1.5rem", md: "2rem" },
+                flexDirection: { xs: "column", sm: "row" },
+                gap: { xs: 1.5, sm: 0 },
+              }}
+            >
               <Typography
                 sx={{
                   color: "text.primary",
@@ -1110,7 +1418,11 @@ export default function AuthenticatedHomePage() {
               onMouseLeave={handleMouseLeave}
               sx={{
                 display: { xs: "flex", sm: "grid" },
-                gridTemplateColumns: { xs: "none", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" },
+                gridTemplateColumns: {
+                  xs: "none",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(4, 1fr)",
+                },
                 flexDirection: { xs: "row", sm: "unset" },
                 gap: { xs: 1.5, sm: 2 },
                 overflowX: { xs: "auto", sm: "hidden" },
@@ -1129,24 +1441,39 @@ export default function AuthenticatedHomePage() {
             >
               {favoriteProfessionalsLoading ? (
                 <Box sx={{ gridColumn: "1 / -1", textAlign: "center", py: 4 }}>
-                  <Typography sx={{ color: "text.secondary" }}>Loading professionals...</Typography>
+                  <Typography sx={{ color: "text.secondary" }}>
+                    Loading professionals...
+                  </Typography>
                 </Box>
               ) : favoriteProfessionals.length === 0 ? (
                 <Box sx={{ gridColumn: "1 / -1", textAlign: "center", py: 4 }}>
-                  <Typography sx={{ color: "text.secondary" }}>No favorite professionals yet</Typography>
+                  <Typography sx={{ color: "text.secondary" }}>
+                    No favorite professionals yet
+                  </Typography>
                 </Box>
               ) : (
                 favoriteProfessionals.map((professional) => {
-                  const fullName = `${professional.first_name || ""} ${professional.last_name || ""}`.trim() || "Unknown";
+                  const fullName =
+                    `${professional.first_name || ""} ${
+                      professional.last_name || ""
+                    }`.trim() || "Unknown";
                   const rating = professional.average_rating || 0;
                   const reviews = professional.total_reviews || 0;
-                  
+
                   return (
                     <Box
                       key={professional.id}
                       sx={{
-                        minWidth: { xs: "calc(85vw - 2rem)", sm: "calc(50% - 1rem)", md: 200 },
-                        maxWidth: { xs: "calc(85vw - 2rem)", sm: "none", md: "none" },
+                        minWidth: {
+                          xs: "calc(85vw - 2rem)",
+                          sm: "calc(50% - 1rem)",
+                          md: 200,
+                        },
+                        maxWidth: {
+                          xs: "calc(85vw - 2rem)",
+                          sm: "none",
+                          md: "none",
+                        },
                         flexShrink: 0,
                         scrollSnapAlign: "start",
                         borderRadius: { xs: "0.75rem", md: "1.125rem" },
@@ -1200,42 +1527,77 @@ export default function AuthenticatedHomePage() {
                             }}
                           />
                         ) : (
-                          <AccountCircleIcon sx={{ fontSize: { xs: 60, sm: 70, md: 80 }, color: "grey.500" }} />
+                          <AccountCircleIcon
+                            sx={{
+                              fontSize: { xs: 60, sm: 70, md: 80 },
+                              color: "grey.500",
+                            }}
+                          />
                         )}
                       </Box>
 
                       {/* Name */}
-                      <Typography sx={{ 
-                        mb: { xs: 0.75, md: 1 }, 
-                        textAlign: 'left', 
-                        color: "#323232", 
-                        fontSize: { xs: "0.9375rem", sm: "1rem", md: "1.125rem" }, 
-                        fontWeight: 500 
-                      }}>
+                      <Typography
+                        sx={{
+                          mb: { xs: 0.75, md: 1 },
+                          textAlign: "left",
+                          color: "#323232",
+                          fontSize: {
+                            xs: "0.9375rem",
+                            sm: "1rem",
+                            md: "1.125rem",
+                          },
+                          fontWeight: 500,
+                        }}
+                      >
                         {fullName}
                       </Typography>
-                      <Box sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center"
-                      }} >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
                         {/* Rating */}
-                        <Box sx={{ display: "flex", gap: 0.5, mb: "0.375rem", alignItems: "center" }}>
-                          <Typography sx={{
-                            textAlign: 'left',
-                            color: "secondary.naturalGray",
-                            fontSize: { xs: "0.9375rem", sm: "1rem", md: "1.063rem" }
-                          }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 0.5,
+                            mb: "0.375rem",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              textAlign: "left",
+                              color: "secondary.naturalGray",
+                              fontSize: {
+                                xs: "0.9375rem",
+                                sm: "1rem",
+                                md: "1.063rem",
+                              },
+                            }}
+                          >
                             {rating > 0 ? rating.toFixed(1) : "0.0"}
                           </Typography>
-                          <StarIcon sx={{ fontSize: { xs: 14, md: 16 }, color: "#F59E0B" }} />
+                          <StarIcon
+                            sx={{
+                              fontSize: { xs: 14, md: 16 },
+                              color: "#F59E0B",
+                            }}
+                          />
                         </Box>
 
                         {/* Reviews */}
-                        <Typography variant="caption" color="#999999" sx={{
-                          fontSize: { xs: "0.625rem", md: "0.688rem" },
-                          lineHeight: "1rem"
-                        }} >
+                        <Typography
+                          variant="caption"
+                          color="#999999"
+                          sx={{
+                            fontSize: { xs: "0.625rem", md: "0.688rem" },
+                            lineHeight: "1rem",
+                          }}
+                        >
                           ({reviews} {reviews === 1 ? "Review" : "Reviews"})
                         </Typography>
                       </Box>
@@ -1247,7 +1609,12 @@ export default function AuthenticatedHomePage() {
           </Box>
         </Box>
       )}
+
+      {/* Book Service Modal */}
+      <BookServiceModal
+        open={isBookServiceModalOpen}
+        onClose={() => setIsBookServiceModalOpen(false)}
+      />
     </Box>
   );
 }
-

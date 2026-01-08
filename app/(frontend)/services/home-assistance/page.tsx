@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -56,6 +57,34 @@ interface SubcategoriesApiResponse {
   status_code: number;
 }
 
+interface FavoriteProfessional {
+  id: string;
+  first_name: string;
+  last_name: string;
+  profile_photo_url: string | null;
+  total_reviews: number;
+  average_rating: number;
+}
+
+interface HomeApiResponse {
+  message: string;
+  data: {
+    services: any[];
+    user_data: any;
+    professional_connected_count: number;
+    recent_requests: any;
+    favorite_professionals: {
+      page: number;
+      limit: number;
+      total_items: number;
+      total_pages: number;
+      records: FavoriteProfessional[];
+    };
+  };
+  success: boolean;
+  status_code: number;
+}
+
 export default function HomeAssistancePage() {
   const router = useRouter();
 
@@ -63,6 +92,7 @@ export default function HomeAssistancePage() {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const favoriteProfessionalsCarouselRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [subcategories, setSubcategories] = useState<
@@ -74,6 +104,11 @@ export default function HomeAssistancePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
+  const [favoriteProfessionals, setFavoriteProfessionals] = useState<
+    FavoriteProfessional[]
+  >([]);
+  const [favoriteProfessionalsLoading, setFavoriteProfessionalsLoading] =
+    useState(false);
 
   // Memoized function to handle modal close
   const handleCloseModal = useCallback(() => {
@@ -137,6 +172,56 @@ export default function HomeAssistancePage() {
     setIsDragging(false);
   };
 
+  // Touch handlers for favorite professionals carousel
+  const handleFavoriteProfessionalsTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(
+      e.touches[0].pageX -
+        (favoriteProfessionalsCarouselRef.current?.offsetLeft || 0)
+    );
+    setScrollLeft(favoriteProfessionalsCarouselRef.current?.scrollLeft || 0);
+  };
+
+  const handleFavoriteProfessionalsTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !favoriteProfessionalsCarouselRef.current) return;
+    e.preventDefault();
+    const x =
+      e.touches[0].pageX -
+      (favoriteProfessionalsCarouselRef.current.offsetLeft || 0);
+    const walk = (x - startX) * 2;
+    favoriteProfessionalsCarouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleFavoriteProfessionalsTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Mouse handlers for favorite professionals carousel
+  const handleFavoriteProfessionalsMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(
+      e.pageX - (favoriteProfessionalsCarouselRef.current?.offsetLeft || 0)
+    );
+    setScrollLeft(favoriteProfessionalsCarouselRef.current?.scrollLeft || 0);
+  };
+
+  const handleFavoriteProfessionalsMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !favoriteProfessionalsCarouselRef.current) return;
+    e.preventDefault();
+    const x =
+      e.pageX - (favoriteProfessionalsCarouselRef.current.offsetLeft || 0);
+    const walk = (x - startX) * 2;
+    favoriteProfessionalsCarouselRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleFavoriteProfessionalsMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleFavoriteProfessionalsMouseLeave = () => {
+    setIsDragging(false);
+  };
+
   // Check if user is authenticated on mount
   useEffect(() => {
     const storedInitial = localStorage.getItem("userInitial");
@@ -149,6 +234,8 @@ export default function HomeAssistancePage() {
 
     // Fetch categories for home assistance service
     fetchCategories();
+    // Fetch favorite professionals
+    fetchFavoriteProfessionals();
   }, [router]);
 
   const fetchCategories = async () => {
@@ -205,6 +292,34 @@ export default function HomeAssistancePage() {
       );
     } finally {
       setSubcategoriesLoading((prev) => ({ ...prev, [categoryId]: false }));
+    }
+  };
+
+  const fetchFavoriteProfessionals = async () => {
+    // Don't call API if user is not authenticated
+    const storedInitial = localStorage.getItem("userInitial");
+    const storedEmail = localStorage.getItem("userEmail");
+    if (!storedInitial || !storedEmail) {
+      return;
+    }
+
+    setFavoriteProfessionalsLoading(true);
+    try {
+      const response = await apiGet<HomeApiResponse>(API_ENDPOINTS.HOME.HOME);
+      if (response.success && response.data) {
+        const apiData = response.data;
+
+        // Handle favorite professionals
+        if (apiData?.data?.favorite_professionals?.records) {
+          setFavoriteProfessionals(apiData.data.favorite_professionals.records);
+        } else {
+          setFavoriteProfessionals([]);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching favorite professionals:", error);
+    } finally {
+      setFavoriteProfessionalsLoading(false);
     }
   };
 
@@ -660,10 +775,12 @@ export default function HomeAssistancePage() {
                               bgcolor: "primary.normal",
                               color: "white",
                               textTransform: "none",
-                              borderRadius: 2,
+                              borderRadius: 1,
                               fontSize: "0.85rem",
                               py: 0.75,
                               textWrap: "nowrap",
+                              lineHeight:"1.125rem",
+                              px:"12px"
                             }}
                             endIcon={
                               <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />
@@ -693,179 +810,261 @@ export default function HomeAssistancePage() {
           })}
         </Box>
 
-        <Box sx={{ bgcolor: "white", px: "5rem" }}>
-          <Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: "2rem",
-              }}
-            >
-              <Typography
+        {/* Favorite Professionals Section */}
+        {(favoriteProfessionalsLoading || favoriteProfessionals.length > 0) && (
+          <Box sx={{ bgcolor: "white", px: "5rem" }}>
+            <Box>
+              <Box
                 sx={{
-                  color: "text.primary",
-                  fontSize: { xs: "1.2rem", md: "1.688rem", fontWeight: 700 },
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: { xs: "flex-start", sm: "center" },
+                  mb: "2rem",
+                  flexDirection: { xs: "column", sm: "row" },
+                  gap: { xs: 1.5, sm: 0 },
                 }}
               >
-                Favorite Professionals
-              </Typography>
-              <Button
-                variant="outlined"
-                sx={{
-                  m: 0,
-                  textTransform: "none",
-                  color: "#2F6B8E",
-                  px: "1.25rem",
-                  py: "0.5rem",
-                  display: { xs: "none", md: "block" },
-                }}
-              >
-                View All
-              </Button>
-            </Box>
-
-            {/* Professionals Carousel */}
-            <Box
-              ref={carouselRef}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseLeave}
-              sx={{
-                display: "flex",
-                gap: 3,
-                overflowX: "auto",
-                overflowY: "hidden",
-                scrollSnapType: "x mandatory",
-                scrollBehavior: "smooth",
-                WebkitOverflowScrolling: "touch",
-                pb: 2,
-                cursor: isDragging ? "grabbing" : "grab",
-                "&::-webkit-scrollbar": {
-                  display: "none",
-                },
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-              }}
-            >
-              {[
-                { name: "Wade Warren", rating: 4.2, reviews: 1490 },
-                { name: "Jenny Wilson", rating: 4.5, reviews: 1234 },
-                { name: "Robert Fox", rating: 4.8, reviews: 2100 },
-                { name: "Cameron Williamson", rating: 4.3, reviews: 980 },
-                { name: "Leslie Alexander", rating: 4.6, reviews: 1650 },
-                { name: "Leslie Alexander", rating: 4.6, reviews: 1650 },
-              ].map((professional, index) => (
-                <Box
-                  key={index}
+                <Typography
                   sx={{
-                    minWidth: { xs: "85%", md: 200 },
-                    flexShrink: 0,
-                    scrollSnapAlign: "start",
-                    borderRadius: "1.125rem",
-                    p: "0.875rem",
-                    textAlign: "center",
-                    position: "relative",
-                    border: "0.0625rem solid #DFE8ED",
-                    cursor: isDragging ? "grabbing" : "pointer",
-                    userSelect: "none",
-                    pointerEvents: isDragging ? "none" : "auto",
+                    color: "text.primary",
+                    fontSize: { xs: "1.2rem", md: "1.688rem" },
+                    fontWeight: 700,
                   }}
                 >
-                  {/* Heart Icon */}
-                  <IconButton
+                  Favorite Professionals
+                </Typography>
+                {favoriteProfessionals.length > 4 && (
+                  <Button
+                    component={Link}
+                    href={ROUTES.Favorite}
+                    variant="outlined"
                     sx={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      color: "error.main",
-                      p: 0.5,
+                      m: 0,
+                      textTransform: "none",
+                      color: "#2F6B8E",
+                      px: "1.25rem",
+                      py: "0.5rem",
+                      display: { xs: "none", md: "block" },
+                      fontSize: { xs: "0.875rem", md: "1rem" },
+                      borderColor: "#2F6B8E",
+                      "&:hover": {
+                        borderColor: "#2F6B8E",
+                        bgcolor: "rgba(47, 107, 142, 0.05)",
+                      },
                     }}
                   >
-                    <FavoriteIcon sx={{ fontSize: 20 }} />
-                  </IconButton>
+                    View All
+                  </Button>
+                )}
+              </Box>
 
-                  {/* Profile Picture */}
+              {/* Professionals Carousel */}
+              <Box
+                ref={favoriteProfessionalsCarouselRef}
+                onTouchStart={handleFavoriteProfessionalsTouchStart}
+                onTouchMove={handleFavoriteProfessionalsTouchMove}
+                onTouchEnd={handleFavoriteProfessionalsTouchEnd}
+                onMouseDown={handleFavoriteProfessionalsMouseDown}
+                onMouseMove={handleFavoriteProfessionalsMouseMove}
+                onMouseUp={handleFavoriteProfessionalsMouseUp}
+                onMouseLeave={handleFavoriteProfessionalsMouseLeave}
+                sx={{
+                  display: { xs: "flex", sm: "grid" },
+                  gridTemplateColumns: {
+                    xs: "none",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(4, 1fr)",
+                  },
+                  flexDirection: { xs: "row", sm: "unset" },
+                  gap: { xs: 1.5, sm: 2, md: 3 },
+                  overflowX: { xs: "auto", sm: "hidden" },
+                  overflowY: "hidden",
+                  scrollSnapType: { xs: "x mandatory", sm: "none" },
+                  scrollBehavior: "smooth",
+                  WebkitOverflowScrolling: "touch",
+                  pb: 2,
+                  cursor: isDragging ? "grabbing" : "grab",
+                  "&::-webkit-scrollbar": {
+                    display: "none",
+                  },
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                }}
+              >
+                {favoriteProfessionalsLoading ? (
                   <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: "50%",
-                      bgcolor: "grey.300",
-                      margin: "0 auto 0.75rem",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
-                    }}
+                    sx={{ gridColumn: "1 / -1", textAlign: "center", py: 4 }}
                   >
-                    <AccountCircleIcon
-                      sx={{ fontSize: 80, color: "grey.500" }}
-                    />
-                  </Box>
-
-                  {/* Name */}
-                  <Typography
-                    sx={{
-                      mb: 1,
-                      textAlign: "left",
-                      color: "#323232",
-                      fontSize: "1.125rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {professional.name}
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    {/* Rating */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 0.5,
-                        mb: "0.375rem",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          textAlign: "left",
-                          color: "secondary.naturalGray",
-                          fontSize: "1.063rem",
-                        }}
-                      >
-                        {professional.rating}
-                      </Typography>
-                      <StarIcon sx={{ fontSize: 16, color: "#F59E0B" }} />
-                    </Box>
-
-                    {/* Reviews */}
-                    <Typography
-                      variant="caption"
-                      color="#999999"
-                      sx={{
-                        fontSize: "0.688rem",
-                        lineHeight: "1rem",
-                      }}
-                    >
-                      ({professional.reviews} Reviews)
+                    <Typography sx={{ color: "text.secondary" }}>
+                      Loading professionals...
                     </Typography>
                   </Box>
-                </Box>
-              ))}
+                ) : favoriteProfessionals.length === 0 ? (
+                  <Box
+                    sx={{ gridColumn: "1 / -1", textAlign: "center", py: 4 }}
+                  >
+                    <Typography sx={{ color: "text.secondary" }}>
+                      No favorite professionals yet
+                    </Typography>
+                  </Box>
+                ) : (
+                  favoriteProfessionals.map((professional) => {
+                    const fullName =
+                      `${professional.first_name || ""} ${
+                        professional.last_name || ""
+                      }`.trim() || "Unknown";
+                    const rating = professional.average_rating || 0;
+                    const reviews = professional.total_reviews || 0;
+
+                    return (
+                      <Box
+                        key={professional.id}
+                        sx={{
+                          minWidth: {
+                            xs: "calc(85vw - 2rem)",
+                            sm: "calc(50% - 1rem)",
+                            md: 200,
+                          },
+                          maxWidth: {
+                            xs: "calc(85vw - 2rem)",
+                            sm: "none",
+                            md: "none",
+                          },
+                          flexShrink: 0,
+                          scrollSnapAlign: "start",
+                          borderRadius: { xs: "0.75rem", md: "1.125rem" },
+                          p: { xs: "0.75rem", md: "0.875rem" },
+                          textAlign: "center",
+                          position: "relative",
+                          border: "1px solid #DFE8ED",
+                          cursor: isDragging ? "grabbing" : "pointer",
+                          userSelect: "none",
+                          pointerEvents: isDragging ? "none" : "auto",
+                        }}
+                      >
+                        {/* Heart Icon */}
+                        <IconButton
+                          sx={{
+                            position: "absolute",
+                            top: { xs: 4, md: 8 },
+                            right: { xs: 4, md: 8 },
+                            color: "#2C6587",
+                            p: 0.5,
+                          }}
+                        >
+                          <FavoriteIcon sx={{ fontSize: { xs: 18, md: 20 } }} />
+                        </IconButton>
+
+                        {/* Profile Picture */}
+                        <Box
+                          sx={{
+                            width: { xs: 60, sm: 70, md: 80 },
+                            height: { xs: 60, sm: 70, md: 80 },
+                            borderRadius: "50%",
+                            bgcolor: "grey.300",
+                            margin: "0 auto 12px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {professional.profile_photo_url ? (
+                            <Image
+                              src={professional.profile_photo_url}
+                              alt={fullName}
+                              width={80}
+                              height={80}
+                              style={{
+                                objectFit: "cover",
+                                borderRadius: "50%",
+                                width: "100%",
+                                height: "100%",
+                              }}
+                            />
+                          ) : (
+                            <AccountCircleIcon
+                              sx={{
+                                fontSize: { xs: 60, sm: 70, md: 80 },
+                                color: "grey.500",
+                              }}
+                            />
+                          )}
+                        </Box>
+
+                        {/* Name */}
+                        <Typography
+                          sx={{
+                            mb: { xs: 0.75, md: 1 },
+                            textAlign: "left",
+                            color: "#323232",
+                            fontSize: {
+                              xs: "0.9375rem",
+                              sm: "1rem",
+                              md: "1.125rem",
+                            },
+                            fontWeight: 500,
+                          }}
+                        >
+                          {fullName}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          {/* Rating */}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 0.5,
+                              mb: "0.375rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                textAlign: "left",
+                                color: "secondary.naturalGray",
+                                fontSize: {
+                                  xs: "0.9375rem",
+                                  sm: "1rem",
+                                  md: "1.063rem",
+                                },
+                              }}
+                            >
+                              {rating > 0 ? rating.toFixed(1) : "0.0"}
+                            </Typography>
+                            <StarIcon
+                              sx={{
+                                fontSize: { xs: 14, md: 16 },
+                                color: "#F59E0B",
+                              }}
+                            />
+                          </Box>
+
+                          {/* Reviews */}
+                          <Typography
+                            variant="caption"
+                            color="#999999"
+                            sx={{
+                              fontSize: { xs: "0.625rem", md: "0.688rem" },
+                              lineHeight: "1rem",
+                            }}
+                          >
+                            ({reviews} {reviews === 1 ? "Review" : "Reviews"})
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })
+                )}
+              </Box>
             </Box>
           </Box>
-        </Box>
+        )}
       </Box>
 
       {/* Create Service Request Modal */}

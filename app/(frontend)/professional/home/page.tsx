@@ -1,109 +1,165 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Box, Container, Typography, Card, Button } from "@mui/material";
+import { Box, Container, Typography, Card, Button, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ServiceRequestCard from "@/components/ServiceRequestCard";
 import RecentTaskCard from "@/components/RecentTaskCard";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
+
+interface ServiceRequest {
+  id: string;
+  title: string;
+  image: string;
+  date: string;
+  time: string;
+  serviceProvider: string;
+  location: string;
+  estimatedCost: string;
+  timeAgo: string;
+}
+
+interface ApiServiceRequest {
+  service_id: string;
+  date: string;
+  time: string;
+  category_info: {
+    category_id: string;
+    category_name: {
+      name: string;
+      logo_url: string;
+    };
+  };
+  subcategory_info: {
+    sub_category_id: string;
+    sub_category_name: {
+      name: string;
+      img_url: string;
+    };
+  };
+  estimated_cost: number;
+  location: string;
+}
+
+interface ApiResponse {
+  status: boolean;
+  msg: string;
+  count: number;
+  data: ApiServiceRequest[];
+}
+
+// Format date from "2026-01-05" to "16 Aug, 2025"
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month}, ${year}`;
+};
+
+// Format time from "13:27" to "1:27 pm"
+const formatTime = (timeString: string): string => {
+  const [hours, minutes] = timeString.split(":");
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? "pm" : "am";
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minutes} ${ampm}`;
+};
+
+// Calculate time ago from date and time
+const calculateTimeAgo = (dateString: string, timeString: string): string => {
+  const [hours, minutes] = timeString.split(":");
+  const date = new Date(dateString);
+  date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+  
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) {
+    return "Just now";
+  } else if (diffMins < 60) {
+    return `${diffMins} ${diffMins === 1 ? "minute" : "minutes"} ago`;
+  } else if (diffHours < 24) {
+    return `${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`;
+  } else if (diffDays < 7) {
+    return `${diffDays} ${diffDays === 1 ? "day" : "days"} ago`;
+  } else {
+    const diffWeeks = Math.floor(diffDays / 7);
+    return `${diffWeeks} ${diffWeeks === 1 ? "week" : "weeks"} ago`;
+  }
+};
+
+// Transform API response to ServiceRequest format
+const transformServiceRequest = (apiRequest: ApiServiceRequest): ServiceRequest => {
+  // Format cost - remove trailing zeros if it's a whole number
+  const cost = apiRequest.estimated_cost;
+  const formattedCost = cost % 1 === 0 
+    ? `€${cost.toFixed(0)}` 
+    : `€${cost.toFixed(2)}`;
+  
+  return {
+    id: apiRequest.service_id,
+    title: apiRequest.subcategory_info.sub_category_name.name,
+    image: apiRequest.subcategory_info.sub_category_name.img_url || "/image/main.png",
+    date: formatDate(apiRequest.date),
+    time: formatTime(apiRequest.time),
+    serviceProvider: apiRequest.category_info.category_name.name,
+    location: apiRequest.location,
+    estimatedCost: formattedCost,
+    timeAgo: calculateTimeAgo(apiRequest.date, apiRequest.time),
+  };
+};
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Check if user is authenticated on mount
-  // useEffect(() => {
-  //   const storedInitial = localStorage.getItem("userInitial");
-  //   const storedEmail = localStorage.getItem("userEmail");
+  // Fetch service requests from API
+  useEffect(() => {
+    const fetchServiceRequests = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await apiGet<ApiResponse>(API_ENDPOINTS.SERVICE_REQUEST.OPEN_SERVICES);
+        
+        if (response.success && response.data) {
+          const apiData = response.data.data || response.data;
+          if (Array.isArray(apiData)) {
+            const transformed = apiData.map(transformServiceRequest);
+            setServiceRequests(transformed);
+          } else {
+            setError("Invalid response format");
+            setServiceRequests([]);
+          }
+        } else {
+          setError(response.error?.message || "Failed to fetch service requests");
+          setServiceRequests([]);
+        }
+      } catch (err) {
+        console.error("Error fetching service requests:", err);
+        setError("Failed to load service requests");
+        setServiceRequests([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // If user details are not present, redirect to login
-  //   if (!storedInitial || !storedEmail) {
-  //     router.push(ROUTES.LOGIN);
-  //   }
-  // }, [router]);
-
-  // Service request data
-  const serviceRequests = [
-    {
-      id: 1,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-    },
-    {
-      id: 2,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-    },
-    {
-      id: 3,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-    },
-    {
-      id: 4,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-    },
-    {
-      id: 5,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-    },
-    {
-      id: 6,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-    },
-    {
-      id: 7,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-    },
-  ];
+    fetchServiceRequests();
+  }, []);
 
   // Recent tasks data
   const recentTasks = {
@@ -306,54 +362,93 @@ export default function DashboardPage() {
           </Button>
         </Box>
 
-        <Box
-          sx={{
-            display: "flex",
-            gap: "1.5rem",
-            overflowX: "auto",
-            overflowY: "hidden",
-            scrollBehavior: "smooth",
+        {loading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              py: "4rem",
+            }}
+          >
+            <CircularProgress sx={{ color: "#2C6587" }} />
+          </Box>
+        ) : error ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              py: "4rem",
+            }}
+          >
+            <Typography sx={{ color: "#737373", fontSize: "1rem" }}>
+              {error}
+            </Typography>
+          </Box>
+        ) : serviceRequests.length === 0 ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              py: "4rem",
+            }}
+          >
+            <Typography sx={{ color: "#737373", fontSize: "1rem" }}>
+              No service requests available
+            </Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1.5rem",
+              overflowX: "auto",
+              overflowY: "hidden",
+              scrollBehavior: "smooth",
 
-            "&::-webkit-scrollbar": {
-              height: 0,
-            },
-            "&::-webkit-scrollbar-track": {
-              bgcolor: "transparent",
-              borderRadius: 0,
-            },
-            "&::-webkit-scrollbar-thumb": {
-              bgcolor: "transparent",
-              borderRadius: 0,
-              "&:hover": {
-                bgcolor: "transparent",
+              "&::-webkit-scrollbar": {
+                height: 0,
               },
-            },
-            msOverflowStyle: "none", // IE/Edge
-            scrollbarWidth: "none", // Firefox
-          }}
-        >
-          {serviceRequests.map((request) => (
-            <Box
-              key={request.id}
-              sx={{
-                minWidth: { xs: "17.5rem", sm: "20rem", md: "18.75rem" },
-                flexShrink: 0,
-              }}
-            >
-              <ServiceRequestCard
-                id={request.id}
-                title={request.title}
-                image={request.image}
-                date={request.date}
-                time={request.time}
-                serviceProvider={request.serviceProvider}
-                location={request.location}
-                estimatedCost={request.estimatedCost}
-                timeAgo={request.timeAgo}
-              />
-            </Box>
-          ))}
-        </Box>
+              "&::-webkit-scrollbar-track": {
+                bgcolor: "transparent",
+                borderRadius: 0,
+              },
+              "&::-webkit-scrollbar-thumb": {
+                bgcolor: "transparent",
+                borderRadius: 0,
+                "&:hover": {
+                  bgcolor: "transparent",
+                },
+              },
+              msOverflowStyle: "none", // IE/Edge
+              scrollbarWidth: "none", // Firefox
+            }}
+          >
+            {serviceRequests.map((request) => (
+              <Box
+                key={request.id}
+                sx={{
+                  minWidth: { xs: "17.5rem", sm: "20rem", md: "18.75rem" },
+                  flexShrink: 0,
+                }}
+              >
+                <ServiceRequestCard
+                  id={request.id}
+                  title={request.title}
+                  image={request.image}
+                  date={request.date}
+                  time={request.time}
+                  serviceProvider={request.serviceProvider}
+                  location={request.location}
+                  estimatedCost={request.estimatedCost}
+                  timeAgo={request.timeAgo}
+                />
+              </Box>
+            ))}
+          </Box>
+        )}
       </Box>
 
       {/* Recent Tasks Section */}

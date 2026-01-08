@@ -406,10 +406,12 @@ export default function PersonalCarePage() {
                                   bgcolor: "primary.normal",
                                   color: "white",
                                   textTransform: "none",
-                                  borderRadius: 2,
+                                  borderRadius: 1,
                                   fontSize: "0.85rem",
                                   py: 0.75,
                                   textWrap: "nowrap",
+                                  lineHeight:"1.125rem",
+                                  px:"12px"
                                 }}
                                 endIcon={
                                   <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />
