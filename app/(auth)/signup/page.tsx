@@ -32,6 +32,7 @@ import {
 import ResponseCache from "next/dist/server/response-cache";
 import { API_ENDPOINTS } from "@/constants/api";
 import PhoneInputWrapper from "@/components/PhoneInputWrapper";
+import CountrySelectDropdown from "@/components/CountrySelectDropdown";
 
 type SignupStep =
 | "select-profile"
@@ -144,6 +145,12 @@ export default function SignupPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
+  // Phone mode and error tracking states
+  const [isPhoneMode, setIsPhoneMode] = useState(false);
+  const [phoneCountryCode, setPhoneCountryCode] = useState('+1');
+  const [countryCode, setCountryCode] = useState('us');
+  const [hasTypedAfterError, setHasTypedAfterError] = useState(false);
+  const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
 
   // Start countdown timer when OTP step is reached
   useEffect(() => {
@@ -156,7 +163,17 @@ export default function SignupPage() {
   useEffect(() => {
     if (step === "add-details" && formData.emailOrMobile) {
       try {
-        const validData = buildInputData(formData.emailOrMobile);
+        // If in phone mode, prepend country code before building input data
+        let finalEmailOrMobile = formData.emailOrMobile.trim();
+        if (isPhoneMode && phoneCountryCode && finalEmailOrMobile) {
+          if (finalEmailOrMobile.startsWith('+')) {
+            const cleanedNumber = finalEmailOrMobile.replace(/^\+\d{1,4}\s*/, '');
+            finalEmailOrMobile = `${phoneCountryCode}${cleanedNumber}`;
+          } else {
+            finalEmailOrMobile = `${phoneCountryCode}${finalEmailOrMobile}`;
+          }
+        }
+        const validData = buildInputData(finalEmailOrMobile);
         setFormData((prev) => {
           const updates: any = {};
           
@@ -195,6 +212,11 @@ export default function SignupPage() {
       return () => clearTimeout(timer);
     }
   }, [otpCountdown]);
+
+  // Function to check if input indicates phone number (3 consecutive digits)
+  const checkIfPhoneMode = (value: string): boolean => {
+    return /^\d{3,}/.test(value);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -242,6 +264,9 @@ export default function SignupPage() {
 
   const handleContinue = async () => {
     setLoading(true);
+    // Reset error states on new attempt
+    setHasTypedAfterError(false);
+    setApiErrorMessage(null);
     if (step === "enter-contact") {
       let { data, error } = await apiCallToSignUpUser("");
       // Extract nested data from response
@@ -283,10 +308,14 @@ export default function SignupPage() {
           setStep("create-password");
         } else if (errorMsg.includes("Email already registered")) {
           toast.error(errorMsg);
+          setApiErrorMessage(errorMsg);
+          setHasTypedAfterError(false);
         } else if (errorMsg.includes("Password already set")) {
           setStep("add-details");
         } else {
           toast.error(errorMsg);
+          setApiErrorMessage(errorMsg);
+          setHasTypedAfterError(false);
         }
       }
       setLoading(false);
@@ -410,7 +439,17 @@ export default function SignupPage() {
       // Skip it only for "add-details" step when submitting final form
       if (!(step === "add-details" && submit === "submit") && formData.emailOrMobile) {
         try {
-          validData = buildInputData(formData.emailOrMobile);
+          // If in phone mode, prepend country code before building input data
+          let finalEmailOrMobile = formData.emailOrMobile.trim();
+          if (isPhoneMode && phoneCountryCode && finalEmailOrMobile) {
+            if (finalEmailOrMobile.startsWith('+')) {
+              const cleanedNumber = finalEmailOrMobile.replace(/^\+\d{1,4}\s*/, '');
+              finalEmailOrMobile = `${phoneCountryCode}${cleanedNumber}`;
+            } else {
+              finalEmailOrMobile = `${phoneCountryCode}${finalEmailOrMobile}`;
+            }
+          }
+          validData = buildInputData(finalEmailOrMobile);
         } catch (error: any) {
           return {
             data: null,
@@ -704,7 +743,17 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const url = API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC;
-      const validData = buildInputData(formData.emailOrMobile);
+      // If in phone mode, prepend country code before building input data
+      let finalEmailOrMobile = formData.emailOrMobile.trim();
+      if (isPhoneMode && phoneCountryCode && finalEmailOrMobile) {
+        if (finalEmailOrMobile.startsWith('+')) {
+          const cleanedNumber = finalEmailOrMobile.replace(/^\+\d{1,4}\s*/, '');
+          finalEmailOrMobile = `${phoneCountryCode}${cleanedNumber}`;
+        } else {
+          finalEmailOrMobile = `${phoneCountryCode}${finalEmailOrMobile}`;
+        }
+      }
+      const validData = buildInputData(finalEmailOrMobile);
       
       // Create FormData for file upload
       const formDataPayload = new FormData();
@@ -861,7 +910,132 @@ export default function SignupPage() {
               handleChange,
               handleBlur,
               handleSubmit,
-            }) => (
+              setFieldValue,
+            }) => {
+              // Clear error when user starts typing
+              const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                let newValue = e.target.value;
+                
+                // Mark that user has started typing after error
+                if (apiErrorMessage && !hasTypedAfterError) {
+                  setHasTypedAfterError(true);
+                  setApiErrorMessage(null);
+                }
+                
+                // First, check if this looks like an email - if so, skip phone mode entirely
+                const looksLikeEmail = newValue.includes('@');
+                
+                // If it's an email, just use regular email handling
+                if (looksLikeEmail) {
+                  // Exit phone mode if we're in it
+                  if (isPhoneMode) {
+                    setIsPhoneMode(false);
+                  }
+                  // Use regular email/text input handling
+                  handleChange(e);
+                  setFormData((prev) => ({
+                    ...prev,
+                    emailOrMobile: newValue,
+                  }));
+                  return; // Exit early for email input
+                }
+                
+                // Helper function to extract number from value (handles country code prefix)
+                const extractNumber = (value: string): string => {
+                  if (phoneCountryCode) {
+                    const codePrefix = `${phoneCountryCode} `;
+                    if (value.startsWith(codePrefix)) {
+                      return value.substring(codePrefix.length).replace(/\D/g, '');
+                    } else if (value.startsWith(phoneCountryCode)) {
+                      return value.substring(phoneCountryCode.length).replace(/\D/g, '');
+                    }
+                  }
+                  // Try to detect any country code pattern (+ followed by 1-4 digits)
+                  const countryCodeMatch = value.match(/^\+(\d{1,4})\s*/);
+                  if (countryCodeMatch) {
+                    return value.substring(countryCodeMatch[0].length).replace(/\D/g, '');
+                  }
+                  // No country code, just extract digits
+                  return value.replace(/\D/g, '');
+                };
+                
+                // If already in phone mode, extract the number part first
+                let cleanedNumber = '';
+                if (isPhoneMode && phoneCountryCode) {
+                  cleanedNumber = extractNumber(newValue);
+                } else {
+                  // Not in phone mode yet - only check for phone mode if value starts with digits
+                  if (checkIfPhoneMode(newValue)) {
+                    cleanedNumber = extractNumber(newValue);
+                  } else {
+                    // Not a phone number, treat as regular input
+                    handleChange(e);
+                    setFormData((prev) => ({
+                      ...prev,
+                      emailOrMobile: newValue,
+                    }));
+                    return; // Exit early for non-phone input
+                  }
+                }
+                
+                // Check if we should switch to phone mode or stay in phone mode
+                const shouldBePhoneMode = cleanedNumber.length >= 3;
+                
+                // If switching to phone mode, activate it
+                if (shouldBePhoneMode && !isPhoneMode) {
+                  setIsPhoneMode(true);
+                }
+                
+                // If exiting phone mode (was in phone mode but now shouldn't be)
+                if (!shouldBePhoneMode && isPhoneMode) {
+                  setIsPhoneMode(false);
+                  setFieldValue('emailOrMobile', '', false);
+                  setFormData((prev) => ({
+                    ...prev,
+                    emailOrMobile: '',
+                  }));
+                  return; // Exit early to avoid processing further
+                }
+                
+                // If in phone mode or entering phone mode, handle phone number
+                if (shouldBePhoneMode && (isPhoneMode || phoneCountryCode)) {
+                  const numberToStore = cleanedNumber;
+                  setFieldValue('emailOrMobile', numberToStore, false);
+                  setFormData((prev) => ({
+                    ...prev,
+                    emailOrMobile: numberToStore,
+                  }));
+                } else if (!shouldBePhoneMode) {
+                  // Not in phone mode - handle as regular email/text input
+                  if (newValue.startsWith('+')) {
+                    setFieldValue('emailOrMobile', '', false);
+                    setFormData((prev) => ({
+                      ...prev,
+                      emailOrMobile: '',
+                    }));
+                  } else {
+                    handleChange(e);
+                    setFormData((prev) => ({
+                      ...prev,
+                      emailOrMobile: newValue,
+                    }));
+                  }
+                }
+              };
+              
+              // Get display value for phone mode (show country code + number)
+              const getDisplayValue = () => {
+                if (isPhoneMode && phoneCountryCode && values.emailOrMobile) {
+                  return `${phoneCountryCode} ${values.emailOrMobile}`;
+                }
+                return values.emailOrMobile || '';
+              };
+              
+              // Determine if field should show error border (API error and user hasn't typed yet)
+              const showApiErrorBorder = !!apiErrorMessage && !hasTypedAfterError;
+              const displayErrorMessage = apiErrorMessage || 'Please enter valid email/mobile number and password';
+              
+              return (
               <Form>
                 <Typography
                   sx={{
@@ -900,49 +1074,79 @@ export default function SignupPage() {
                 >
                   Email / Mobile No
                 </Typography>
-                <Field name="emailOrMobile">
-                  {({ field, meta }: FieldProps) => (
-                    <TextField
-                      {...field}
-                      sx={{
-                        m: 0,
-                        mb: 3,
-                        "& .MuiFormHelperText-root": {
-                          fontWeight: 400,
-                          fontSize: "16px",
-                          lineHeight: "140%",
-                          letterSpacing: "0%",
-                          color: "#EF5350",
-                          marginTop: "12px !important",
-                          marginLeft: "0 !important",
-                          marginRight: "0 !important",
-                          marginBottom: "0 !important",
-                        },
-                      }}
-                      fullWidth
-                      placeholder="Enter Email/ Mobile No"
-                      onChange={(e) => {
-                        handleChange(e);
-                        setFormData((prev) => ({
-                          ...prev,
-                          emailOrMobile: e.target.value,
-                        }));
-                      }}
-                      onBlur={handleBlur}
-                      error={!!(meta.touched && meta.error)}
-                      helperText={(meta.touched && meta.error) || ""}
-                      margin="normal"
-                      FormHelperTextProps={{
-                        sx: {
-                          marginTop: "12px",
-                          marginLeft: 0,
-                          marginRight: 0,
-                          marginBottom: 0,
-                        },
-                      }}
-                    />
+                <Box sx={{ display: "flex", gap: "10px", alignItems: "flex-start", mb: 3 }}>
+                  {/* Conditionally render country code selector */}
+                  {isPhoneMode && (
+                    <Box sx={{ width: "auto", flexShrink: 0 }}>
+                      <CountrySelectDropdown
+                        value={countryCode}
+                        onChange={(newCountryCode, dialCode) => {
+                          setCountryCode(newCountryCode);
+                          setPhoneCountryCode(`+${dialCode}`);
+                        }}
+                        error={!!(touched.emailOrMobile && formikErrors.emailOrMobile) || showApiErrorBorder}
+                        defaultCountry="us"
+                        preferredCountries={["in", "us"]}
+                      />
+                    </Box>
                   )}
-                </Field>
+                  <Box sx={{ flex: 1 }}>
+                    <Field name="emailOrMobile">
+                      {({ field, meta }: FieldProps) => (
+                        <TextField
+                          name={field.name}
+                          value={getDisplayValue()}
+                          sx={{
+                            m: 0,
+                            "& .MuiOutlinedInput-root": {
+                              "& fieldset": {
+                                borderColor: showApiErrorBorder ? "#ef4444" : undefined,
+                              },
+                              "&:hover fieldset": {
+                                borderColor: showApiErrorBorder ? "#ef4444" : undefined,
+                              },
+                              "&.Mui-focused fieldset": {
+                                borderColor: showApiErrorBorder ? "#ef4444" : undefined,
+                              },
+                            },
+                            "& .MuiFormHelperText-root": {
+                              fontWeight: 400,
+                              fontSize: "16px",
+                              lineHeight: "140%",
+                              letterSpacing: "0%",
+                              color: "#EF5350",
+                              marginTop: "12px !important",
+                              marginLeft: "0 !important",
+                              marginRight: "0 !important",
+                              marginBottom: "0 !important",
+                            },
+                          }}
+                          fullWidth
+                          placeholder={isPhoneMode ? "Enter Mobile No" : "Enter Email/ Mobile No"}
+                          onChange={handleFieldChange}
+                          onBlur={handleBlur}
+                          error={!!(meta.touched && meta.error) || showApiErrorBorder}
+                          helperText={meta.touched && meta.error ? meta.error : (showApiErrorBorder && displayErrorMessage ? displayErrorMessage : '')}
+                          margin="normal"
+                          type={isPhoneMode ? "tel" : "text"}
+                          inputProps={{
+                            pattern: undefined,
+                            inputMode: isPhoneMode ? "numeric" : "text",
+                            maxLength: isPhoneMode ? 20 : undefined,
+                          }}
+                          FormHelperTextProps={{
+                            sx: {
+                              marginTop: "12px",
+                              marginLeft: 0,
+                              marginRight: 0,
+                              marginBottom: 0,
+                            },
+                          }}
+                        />
+                      )}
+                    </Field>
+                  </Box>
+                </Box>
                 <Button
                   type="submit"
                   fullWidth
@@ -964,7 +1168,8 @@ export default function SignupPage() {
                   Continue
                 </Button>
               </Form>
-            )}
+              );
+            }}
           </Formik>
         );
 
