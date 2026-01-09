@@ -440,7 +440,7 @@ export default function Header({
                       //     : "none",
                       borderColor: "primary.main",
                       borderRadius: 0,
-                      pb: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? 1 : 0,
+                      // pb: pathname === ROUTES.PROFESSIONAL_DASHBOARD ? 1 : 0,
                       "&:hover": {
                         bgcolor: "transparent",
                         color: "primary.main",
