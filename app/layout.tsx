@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Lato } from "next/font/google";
 import "./globals.css";
-import Providers from "@/components/providers/Providers";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ReduxProvider from "@/lib/redux/ReduxProvider";
+import ClientProviders from "@/components/ClientProviders";
 
 
 
@@ -30,11 +27,9 @@ export default function RootLayout({
       <body
         className={`${lato.variable} antialiased`}
       >
-        <Providers>
-          <ReduxProvider>
-            {children}
-          </ReduxProvider>
-        </Providers>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );

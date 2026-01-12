@@ -1,17 +1,148 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card, Box, Typography, Button, Avatar } from "@mui/material";
+import React, { useState, useEffect, useCallback } from "react";
+import { Card, Box, Typography, Button, Avatar, CircularProgress } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import EditProfile from "./EditProfile";
 import { UseSelector } from "react-redux";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
+
+interface UserData {
+  id: string;
+  email: string;
+  phone_number: string;
+  password: string;
+  address: string;
+  longitude: number | null;
+  created_at: string;
+  lang: string;
+  first_name: string;
+  phone_country_code: string;
+  last_name: string;
+  role: string;
+  service_provider_type: string | null;
+  profile_photo_id: string | null;
+  profile_photo_url: string | null;
+  latitude: number | null;
+  is_deleted: boolean;
+  updated_at: string;
+  year_of_experience?: number;
+}
+
+interface GetUserApiResponse {
+  status: string;
+  message: string;
+  data: {
+    user: UserData;
+  };
+}
 
 export default function ProfileOverview() {
   const [isEditMode, setIsEditMode] = useState(false);
-  let role  = localStorage.getItem("role")
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const role = localStorage.getItem("role");
+
+  const fetchUserData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
+      
+      if (response.success && response.data) {
+        const apiData = response.data;
+        if (apiData.data?.user) {
+          setUserData(apiData.data.user);
+          // Update role in localStorage if needed
+          if (apiData.data.user.role) {
+            localStorage.setItem("role", apiData.data.user.role);
+          }
+        } else {
+          setError("User data not found");
+        }
+      } else {
+        setError("Failed to load user data");
+      }
+    } catch (err) {
+      console.error("Error fetching user data:", err);
+      setError("Failed to load user data");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
+
   if (isEditMode) {
-    return <EditProfile onCancel={() => setIsEditMode(false)} />;
+    return (
+      <EditProfile
+        onCancel={() => setIsEditMode(false)}
+        onSuccess={() => {
+          fetchUserData(); // Refresh user data after successful update
+        }}
+      />
+    );
   }
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !userData) {
+    return (
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+        }}
+      >
+        <Typography sx={{ color: "error.main" }}>
+          {error || "Failed to load user data"}
+        </Typography>
+      </Box>
+    );
+  }
+
+  // Helper functions to format data
+  const getFullName = () => {
+    return `${userData.first_name || ""} ${userData.last_name || ""}`.trim() || "Unknown";
+  };
+
+  const getPhoneNumber = () => {
+    const countryCode = userData.phone_country_code || "";
+    const phoneNumber = userData.phone_number || "";
+    if (countryCode && phoneNumber) {
+      return `${countryCode} ${phoneNumber}`;
+    }
+    return phoneNumber || "N/A";
+  };
+
+  const getDisplayName = () => {
+    return getFullName();
+  };
+
+  const getLocation = () => {
+    return userData.address || "N/A";
+  };
 
   return (
     <Box
@@ -37,8 +168,8 @@ export default function ProfileOverview() {
         }}
       >
         <Avatar
-          src="/icons/testimonilas-1.png"
-          alt="Bessie Carter"
+          src={userData.profile_photo_url || "/icons/testimonilas-1.png"}
+          alt={getDisplayName()}
           sx={{
             width: "8.125rem",
             height: "8.125rem",
@@ -65,7 +196,7 @@ export default function ProfileOverview() {
                   fontSize: { xs: "1.5rem", md: "2rem" },
                 }}
               >
-                Bessie Carter
+                {getDisplayName()}
               </Typography>
               <Typography
                 variant="body1"
@@ -75,7 +206,7 @@ export default function ProfileOverview() {
                   fontWeight: 400,
                 }}
               >
-                Manchester, Kentucky 39495
+                {getLocation()}
               </Typography>
             </Box>
             <Button
@@ -155,7 +286,7 @@ export default function ProfileOverview() {
                   fontSize: "1rem",
                 }}
               >
-                Bessie Cooper
+                {getFullName()}
               </Typography>
             </Box>
             <Box>
@@ -178,35 +309,34 @@ export default function ProfileOverview() {
                   fontSize: "1rem",
                 }}
               >
-                +11 (480) 555-0103
+                {getPhoneNumber()}
               </Typography>
             </Box>
-            {
-              role != "elderly_user" && 
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: "text.secondary",
-                      mb: 0.5,
-                      fontSize: "0.85rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    Year of Experience
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: "text.primary",
-                      fontWeight: 400,
-                      fontSize: "1rem",
-                    }}
-                  >
-                    4
-                  </Typography>
-                </Box>
-            }
+            {userData.role !== "elderly_user" && (
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "text.secondary",
+                    mb: 0.5,
+                    fontSize: "0.85rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  Year of Experience
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "text.primary",
+                    fontWeight: 400,
+                    fontSize: "1rem",
+                  }}
+                >
+                  {userData.year_of_experience || "N/A"}
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -230,7 +360,7 @@ export default function ProfileOverview() {
                   fontSize: "1rem",
                 }}
               >
-                michael.mitc@example.com
+                {userData.email || "N/A"}
               </Typography>
             </Box>
             <Box>
@@ -253,7 +383,7 @@ export default function ProfileOverview() {
                   fontSize: "1rem",
                 }}
               >
-                4517 Washington Ave. Manchester, Kentucky 39495
+                {userData.address || "N/A"}
               </Typography>
             </Box>
           </Box>

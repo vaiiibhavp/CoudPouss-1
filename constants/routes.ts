@@ -9,27 +9,12 @@ export const ROUTES = {
   SIGNUP: '/signup',
   RESET_PASSWORD: '/reset-password',
   
-  // Professional Signup Routes
-  SIGNUP_PROFESSIONAL_ENTER_CONTACT: '/signup-professional/enter-contact',
-  SIGNUP_PROFESSIONAL_VERIFY_OTP: '/signup-professional/verify-otp',
-  SIGNUP_PROFESSIONAL_CREATE_PASSWORD: '/signup-professional/create-password',
-  SIGNUP_PROFESSIONAL_ADD_DETAILS: '/signup-professional/add-details',
-  
-  // Professional Reset Password Routes
-  RESET_PASSWORD_PROFESSIONAL_ENTER_EMAIL: '/reset-password-professional/enter-email',
-  RESET_PASSWORD_PROFESSIONAL_VERIFY_OTP: '/reset-password-professional/verify-otp',
-  RESET_PASSWORD_PROFESSIONAL_SET_PASSWORD: '/reset-password-professional/set-password',
-  
-  // Professional Onboarding Routes (after signup)
-  PROFESSIONAL_ONBOARDING_SELECT_PLAN: '/professional-onboarding/select-plan',
-  PROFESSIONAL_ONBOARDING_REVIEW_PLAN: '/professional-onboarding/review-plan',
-  PROFESSIONAL_ONBOARDING_PAYMENT_MODE: '/professional-onboarding/payment-mode',
-  PROFESSIONAL_ONBOARDING_ADDITIONAL_DETAILS: '/professional-onboarding/additional-details',
-  PROFESSIONAL_ONBOARDING_SELECT_CATEGORY: '/professional-onboarding/select-category',
-  PROFESSIONAL_ONBOARDING_BANK_DETAILS: '/professional-onboarding/bank-details',
+  // Professional Reset Password Route
+  RESET_PASSWORD_PROFESSIONAL: '/reset-password-professional',
   
   DASHBOARD: '/dashboard',
   PROFESSIONAL_DASHBOARD: '/professional/dashboard',
+  PROFESSIONAL_HOME: '/professional/home',
   PROFESSIONAL_EXPLORE_REQUESTS: '/professional/explore-requests',
   PROFESSIONAL_TASK_MANAGEMENT: '/professional/task-management',
   PROFESSIONAL_PROFILE: '/professional/profile',
@@ -43,7 +28,8 @@ export const ROUTES = {
   PERSONAL_CARE: '/services/personal-care',
   TECH_SUPPORT: '/services/tech-support',
   CHAT: '/chat',
-  Favorite:"/favorites"
+  Favorite: "/favorites",
+  HELP_CENTER: '/help-center',
 } as const;
 
 export type Route = typeof ROUTES[keyof typeof ROUTES];

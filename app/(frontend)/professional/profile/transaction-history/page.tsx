@@ -124,7 +124,7 @@ export default function TransactionHistoryPage() {
         showAuthButtons={false}
         showUserIcons={true}
         showMyRequests={false}
-        homeRoute="/professional/dashboard"
+        homeRoute="/professional/home"
       /> */}
 
       <Container maxWidth="lg" sx={{ py: 6 }}>

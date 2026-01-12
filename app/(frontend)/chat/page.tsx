@@ -110,7 +110,6 @@ export default function ChatPage() {
   const handleSendMessage = () => {
     if (messageInput.trim()) {
       // TODO: Implement message sending logic
-      console.log("Sending message:", messageInput);
       setMessageInput("");
     }
   };

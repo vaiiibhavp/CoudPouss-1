@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Typography,
@@ -16,88 +16,173 @@ import {
   Select,
   MenuItem,
   FormControl,
+  CircularProgress,
 } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material/Select";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
-const transactions = [
-  {
-    id: "1",
-    elderName: "Jane Cooper",
-    avatar: "/icons/testimonilas-1.png",
-    transactionId: "T1234567890",
-    totalAmount: "€129.20",
-    paymentDate: "3 Aug 2024 - 11:30AM",
-    paymentStatus: "Completed",
-  },
-  {
-    id: "2",
-    elderName: "Jane Cooper",
-    avatar: "/icons/testimonilas-1.png",
-    transactionId: "T1234567890",
-    totalAmount: "€129.20",
-    paymentDate: "3 Aug 2024 - 11:30AM",
-    paymentStatus: "Completed",
-  },
-  {
-    id: "3",
-    elderName: "Wade Warren",
-    avatar: "/icons/testimonilas-1.png",
-    transactionId: "T1234567890",
-    totalAmount: "€189.20",
-    paymentDate: "3 Aug 2024 - 11:30AM",
-    paymentStatus: "Completed",
-  },
-  {
-    id: "4",
-    elderName: "Wade Warren",
-    avatar: "/icons/testimonilas-1.png",
-    transactionId: "T1234567890",
-    totalAmount: "€189.20",
-    paymentDate: "3 Aug 2024 - 11:30AM",
-    paymentStatus: "Completed",
-  },
-  {
-    id: "5",
-    elderName: "Jenny Wilson",
-    avatar: "/icons/testimonilas-1.png",
-    transactionId: "T1234567890",
-    totalAmount: "€169.20",
-    paymentDate: "3 Aug 2024 - 11:30AM",
-    paymentStatus: "Completed",
-  },
-  {
-    id: "6",
-    elderName: "Jenny Wilson",
-    avatar: "/icons/testimonilas-1.png",
-    transactionId: "T1234567890",
-    totalAmount: "€169.20",
-    paymentDate: "3 Aug 2024 - 11:30AM",
-    paymentStatus: "Completed",
-  },
-  {
-    id: "7",
-    elderName: "Jane Cooper",
-    avatar: "/icons/testimonilas-1.png",
-    transactionId: "T1234567890",
-    totalAmount: "€39.20",
-    paymentDate: "3 Aug 2024 - 11:30AM",
-    paymentStatus: "Completed",
-  },
-  {
-    id: "8",
-    elderName: "Jane Cooper",
-    avatar: "/icons/testimonilas-1.png",
-    transactionId: "T1234567890",
-    totalAmount: "€39.20",
-    paymentDate: "3 Aug 2024 - 11:30AM",
-    paymentStatus: "Completed",
-  },
-];
+interface Transaction {
+  id: string;
+  elderName: string;
+  avatar: string;
+  transactionId: string;
+  totalAmount: string;
+  paymentDate: string;
+  paymentStatus: string;
+}
+
+interface ApiTransaction {
+  id?: string;
+  transaction_id?: string;
+  transactionId?: string;
+  elder_name?: string;
+  elderName?: string;
+  name?: string;
+  avatar?: string;
+  profile_picture?: string;
+  profilePicture?: string;
+  total_amount?: number | string;
+  totalAmount?: number | string;
+  amount?: number | string;
+  payment_date?: string;
+  paymentDate?: string;
+  created_at?: string;
+  createdAt?: string;
+  payment_status?: string;
+  paymentStatus?: string;
+  status?: string;
+}
+
+interface TransactionsApiResponse {
+  message?: string;
+  data?: {
+    Transactions?: ApiTransaction[];
+    transactions?: ApiTransaction[];
+  };
+  success?: boolean;
+  status_code?: number;
+}
+
+// Helper function to format date
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return "N/A";
+  
+  try {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString("default", { month: "short" });
+    const year = date.getFullYear();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, "0");
+    
+    return `${day} ${month} ${year} - ${displayHours}:${displayMinutes}${ampm}`;
+  } catch {
+    return dateString;
+  }
+};
+
+// Helper function to format amount
+const formatAmount = (amount?: number | string): string => {
+  if (amount === undefined || amount === null) return "€0.00";
+  
+  const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(numAmount)) return "€0.00";
+  
+  return `€${numAmount.toFixed(2)}`;
+};
+
+// Helper function to get status color
+const getStatusColor = (status: string): string => {
+  const lowerStatus = status.toLowerCase();
+  if (lowerStatus === "completed") return "#10B981";
+  if (lowerStatus === "pending") return "#F59E0B";
+  if (lowerStatus === "failed") return "#EF4444";
+  return "#10B981"; // default to green
+};
+
+// Helper function to map API response to component format
+const mapApiTransactionToTransaction = (apiTransaction: ApiTransaction): Transaction => {
+  const id = apiTransaction.id || apiTransaction.transaction_id || apiTransaction.transactionId || "";
+  const elderName = apiTransaction.elder_name || apiTransaction.elderName || apiTransaction.name || "Unknown";
+  const avatar = apiTransaction.avatar || apiTransaction.profile_picture || apiTransaction.profilePicture || "/icons/testimonilas-1.png";
+  const transactionId = apiTransaction.transaction_id || apiTransaction.transactionId || apiTransaction.id || "";
+  const totalAmount = formatAmount(apiTransaction.total_amount || apiTransaction.totalAmount || apiTransaction.amount);
+  
+  const dateString = apiTransaction.payment_date || apiTransaction.paymentDate || apiTransaction.created_at || apiTransaction.createdAt;
+  const paymentDate = formatDate(dateString);
+  
+  const paymentStatus = apiTransaction.payment_status || apiTransaction.paymentStatus || apiTransaction.status || "Completed";
+  
+  return {
+    id,
+    elderName,
+    avatar,
+    transactionId,
+    totalAmount,
+    paymentDate,
+    paymentStatus,
+  };
+};
 
 export default function TransactionsHistory() {
   const [status, setStatus] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [date, setDate] = useState("");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTransactions = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Build query parameters
+      const params = new URLSearchParams();
+      params.append("section", "transactions");
+      if (status) {
+        params.append("status", status);
+      }
+      // Add payment method and date filters if API supports them
+      if (paymentMethod) {
+        params.append("payment_method", paymentMethod);
+      }
+      if (date) {
+        params.append("date", date);
+      }
+
+      const endpoint = `${API_ENDPOINTS.PROFILE.USER_PROFILE}?${params.toString()}`;
+      const response = await apiGet<TransactionsApiResponse>(endpoint);
+
+      if (response.success && response.data) {
+        const apiData = (response.data.data || response.data) as any;
+        const apiTransactions: ApiTransaction[] = apiData?.Transactions || apiData?.transactions || [];
+        
+        if (Array.isArray(apiTransactions) && apiTransactions.length > 0) {
+          const mappedTransactions = apiTransactions.map(mapApiTransactionToTransaction);
+          setTransactions(mappedTransactions);
+        } else {
+          setTransactions([]);
+        }
+      } else {
+        setError("Failed to load transactions");
+        setTransactions([]);
+      }
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+      setError("Failed to load transactions");
+      setTransactions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [status, paymentMethod, date]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const handleStatusChange = (event: SelectChangeEvent) => {
     setStatus(event.target.value);
@@ -355,7 +440,28 @@ export default function TransactionsHistory() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {transactions.map((transaction, index) => (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <Typography sx={{ color: "error.main" }}>{error}</Typography>
+                </TableCell>
+              </TableRow>
+            ) : transactions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <Typography sx={{ color: "text.secondary" }}>
+                    No transactions found
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              transactions.map((transaction, index) => (
               <TableRow
                 key={transaction.id}
                 sx={{
@@ -453,7 +559,7 @@ export default function TransactionsHistory() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: "#10B981",
+                      color: getStatusColor(transaction.paymentStatus),
                       fontWeight: 400,
                       fontSize: "14px",
                       lineHeight: "18px",
@@ -463,7 +569,8 @@ export default function TransactionsHistory() {
                   </Typography>
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

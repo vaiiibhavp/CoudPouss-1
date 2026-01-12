@@ -1,72 +1,147 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import {
-  Box,
-
-  Typography,
-  Button,
-
-} from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
+import CreateServiceRequestModal from "@/components/CreateServiceRequestModal";
+
+interface Category {
+  id: string;
+  category_name: string;
+  category_logo: string;
+}
+
+interface CategoriesApiResponse {
+  message: string;
+  data: {
+    categories: Category[];
+  };
+  success: boolean;
+  status_code: number;
+}
+
+interface Banner {
+  url: string | null;
+  category_name: string;
+  file_name: string | null;
+  file_type: string | null;
+}
+
+interface Subcategory {
+  id: string;
+  subcategory_name: string;
+  image: string | null;
+}
+
+interface SubcategoriesApiResponse {
+  message: string;
+  data: {
+    Banner: Banner | null;
+    subcategories: Subcategory[];
+  };
+  success: boolean;
+  status_code: number;
+}
 
 export default function TechSupportPage() {
   const router = useRouter();
 
-  // Check if user is authenticated on mount
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [subcategories, setSubcategories] = useState<
+    Record<string, Subcategory[]>
+  >({});
+  const [subcategoriesLoading, setSubcategoriesLoading] = useState<
+    Record<string, boolean>
+  >({});
+  const [banners, setBanners] = useState<Record<string, Banner | null>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
+
+  // Memoized function to handle modal close
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedCategoryId("");
+    setSelectedSubcategoryId("");
+  }, []);
+
+  const fetchSubcategories = useCallback(async (categoryId: string) => {
+    setSubcategoriesLoading((prev) => ({ ...prev, [categoryId]: true }));
+    try {
+      const endpoint = `${API_ENDPOINTS.HOME.HOME}/${categoryId}`;
+      const response = await apiGet<SubcategoriesApiResponse>(endpoint);
+
+      if (response.success && response.data?.data) {
+        const apiData = response.data.data;
+        if (Array.isArray(apiData.subcategories)) {
+          setSubcategories((prev) => ({
+            ...prev,
+            [categoryId]: apiData.subcategories,
+          }));
+        }
+        setBanners((prev) => ({
+          ...prev,
+          [categoryId]: apiData.Banner,
+        }));
+      }
+    } catch (error) {
+      console.error(
+        `Error fetching subcategories for category ${categoryId}:`,
+        error
+      );
+    } finally {
+      setSubcategoriesLoading((prev) => ({ ...prev, [categoryId]: false }));
+    }
+  }, []);
+
+  // Fetch categories for transport service
+  const fetchCategories = useCallback(async () => {
+    setCategoriesLoading(true);
+    try {
+      const serviceName = "tech support";
+      const endpoint = `${
+        API_ENDPOINTS.HOME.HOME
+      }?service_name=${encodeURIComponent(serviceName)}`;
+      const response = await apiGet<CategoriesApiResponse>(endpoint);
+
+      if (response.success && response.data?.data?.categories) {
+        const apiCategories = response.data.data.categories;
+        setCategories(apiCategories);
+        apiCategories.forEach((category) => {
+          fetchSubcategories(category.id);
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, [fetchSubcategories]);
+
+  // Check if user is authenticated on mount and load data
   useEffect(() => {
     const storedInitial = localStorage.getItem("userInitial");
     const storedEmail = localStorage.getItem("userEmail");
 
-    // If user details are not present, redirect to login
     if (!storedInitial || !storedEmail) {
       router.push(ROUTES.LOGIN);
+      return;
     }
-  }, [router]);
 
-  // Transport service cards data
-  const transportServices = [
-    {
-      id: 1,
-      title: "Rent a Truck",
-      image: "/image/service-image-2.png",
-    },
-    {
-      id: 2,
-      title: "Moving Help",
-      image: "/image/service-image-2.png",
-    },
-    {
-      id: 3,
-      title: "Get rid of bulky items",
-      image: "/image/service-image-2.png",
-    },
-    {
-      id: 4,
-      title: "Other Moving Job",
-      image: "/image/service-image-2.png",
-    },
-    {
-      id: 5,
-      title: "Moving Appliance",
-      image: "/image/service-image-2.png",
-    },
-    {
-      id: 6,
-      title: "Packing Your Boxes",
-      image: "/image/service-image-2.png",
-    },
-  ];
+    fetchCategories();
+  }, [router, fetchCategories]);
 
-
-
+  const primaryCategoryId = categories[0]?.id;
+  const heroBanner = primaryCategoryId ? banners[primaryCategoryId] : null;
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
-
-
       {/* Hero Section - Transport Banner */}
       <Box sx={{ pt: "5rem", px: "5rem" }}>
         <Box
@@ -80,10 +155,9 @@ export default function TechSupportPage() {
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-              // minHeight: { xs: 300, md: 400 },
             }}
           >
-            {/* Left Side - Brown Background with Text */}
+            {/* Left Side - Text */}
             <Box
               sx={{
                 bgcolor: "#2F3C44",
@@ -104,7 +178,6 @@ export default function TechSupportPage() {
                 Seeking expert Tech
               </Typography>
               <Typography
-
                 sx={{
                   mb: "0.375rem",
                   fontWeight: 600,
@@ -128,7 +201,7 @@ export default function TechSupportPage() {
                 sx={{
                   lineHeight: "1.75rem",
                   fontSize: "1.188rem",
-                  cursor: "pointer"
+                  cursor: "pointer",
                 }}
               >
                 Book Now
@@ -141,12 +214,14 @@ export default function TechSupportPage() {
                 position: "relative",
                 width: "100%",
                 height: "100%",
-                // minHeight: { xs: 300, md: 400 },
+                minHeight: { xs: 300, md: 400 },
               }}
             >
               <Image
-                src="/image/tech-support-hero-section.png"
-                alt="Transport Service"
+                src={
+                  heroBanner?.url || "/image/tech-support-hero-section.png"
+                }
+                alt={heroBanner?.category_name || "Transport Service"}
                 fill
                 style={{ objectFit: "cover" }}
                 priority
@@ -170,96 +245,217 @@ export default function TechSupportPage() {
             All Services
           </Typography>
 
-          {/* Service Cards Grid - 2 rows, 3 columns */}
-
-
           <Box sx={{ mt: 8 }}>
-            {[
-              "DIY Services",
-              "Gardening",
-
-            ].map((serviceName) => (
-              <Box key={serviceName} sx={{ mb: "3.75rem" }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 3,
-                    overflowX: "auto",
-                    pb: 2,
-                    "&::-webkit-scrollbar": {
-                      display: "none",
-                    },
-                    scrollbarWidth: "none",
-                  }}
-                >
-                  {transportServices.map((card) => (
+            {categoriesLoading ? (
+              <Box
+                sx={{
+                  mb: "3.75rem",
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, minmax(0, 1fr))",
+                    md: "repeat(3, minmax(0, 1fr))",
+                  },
+                  gap: 3,
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <Box
+                    key={`loading-${index}`}
+                    sx={{
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      bgcolor: "#EAF0F35C",
+                      p: "0.75rem",
+                    }}
+                  >
                     <Box
-                      key={`${serviceName}-${card.id}`}
                       sx={{
-                        minWidth: "25rem",
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        bgcolor: "#EAF0F35C",
-                        p: "0.75rem"
+                        width: "100%",
+                        height: "225px",
+                        bgcolor: "grey.200",
+                        borderRadius: "0.75rem",
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            ) : categories.length > 0 ? (
+              categories.map((category) => {
+                const categorySubcategories = subcategories[category.id] || [];
+                const isLoading = subcategoriesLoading[category.id];
+
+                return (
+                  <Box key={category.id} sx={{ mb: "3.75rem" }}>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          sm: "repeat(2, minmax(0, 1fr))",
+                          md: "repeat(3, minmax(0, 1fr))",
+                        },
+                        gap: 3,
                       }}
                     >
-                      <Box
-                        sx={{
-                          width: "100%",
-                          bgcolor: "grey.200",
-                          borderRadius: "0.75rem",
-                          overflow: "hidden"
-                        }}
-                      >
-                        <Image
-                          src={card.image}
-                          alt={card.title}
-                          width={376}
-                          height={225}
-                          style={{ objectFit: "cover" }}
-                        />
-                      </Box>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          bgcolor: "white",
-                          px: "1.25rem",
-                          py: "0.969rem",
-                          borderRadius: "0.75rem",
-                          mt: "0.5rem"
-                        }}
-                      >
-                        <Typography sx={{ color: "primary.normal", fontSize: "1.125rem", lineHeight: "2rem" }}>
-                          {card.title}
-                        </Typography>
-                        <Button
-                          variant="contained"
-                          size="small"
+                      {isLoading ? (
+                        Array.from({ length: 6 }).map((_, index) => (
+                          <Box
+                            key={`loading-${category.id}-${index}`}
+                            sx={{
+                              borderRadius: 2,
+                              overflow: "hidden",
+                              bgcolor: "#EAF0F35C",
+                              p: "0.75rem",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: "100%",
+                                height: "225px",
+                                bgcolor: "grey.200",
+                                borderRadius: "0.75rem",
+                              }}
+                            />
+                          </Box>
+                        ))
+                      ) : categorySubcategories.length > 0 ? (
+                        categorySubcategories.map((subcategory) => (
+                          <Box
+                            key={subcategory.id}
+                            sx={{
+                              borderRadius: 2,
+                              overflow: "hidden",
+                              bgcolor: "#EAF0F35C",
+                              p: "0.75rem",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: "100%",
+                                height: "225px",
+                                bgcolor: "grey.200",
+                                borderRadius: "0.75rem",
+                                overflow: "hidden",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {subcategory.image ? (
+                                <Image
+                                  src={subcategory.image}
+                                  alt={subcategory.subcategory_name}
+                                  width={376}
+                                  height={225}
+                                  style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                                />
+                              ) : (
+                                <Box
+                                  sx={{
+                                    width: "100%",
+                                    height: "100%",
+                                    bgcolor: "grey.300",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{ color: "text.secondary" }}
+                                  >
+                                    {subcategory.subcategory_name}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                bgcolor: "white",
+                                px: "1.25rem",
+                                py: "0.969rem",
+                                borderRadius: "0.75rem",
+                                mt: "0.5rem",
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  color: "primary.normal",
+                                  fontSize: "1.125rem",
+                                  lineHeight: "2rem",
+                                }}
+                              >
+                                {subcategory.subcategory_name}
+                              </Typography>
+                              <Button
+                                variant="contained"
+                                size="small"
+                                onClick={() => {
+                                  setSelectedCategoryId(category.id);
+                                  setSelectedSubcategoryId(subcategory.id);
+                                  setIsModalOpen(true);
+                                }}
+                                sx={{
+                                  bgcolor: "primary.normal",
+                                  color: "white",
+                                  textTransform: "none",
+                                  borderRadius: 1,
+                                  fontSize: "0.85rem",
+                                  py: 0.75,
+                                  textWrap: "nowrap",
+                                  lineHeight:"1.125rem",
+                                  px:"12px"
+                                }}
+                                endIcon={
+                                  <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />
+                                }
+                              >
+                                Create Request
+                              </Button>
+                            </Box>
+                          </Box>
+                        ))
+                      ) : (
+                        <Box
                           sx={{
-                            bgcolor: "primary.normal",
-                            color: "white",
-                            textTransform: "none",
-                            borderRadius: 2,
-                            fontSize: "0.85rem",
-                            py: 0.75,
+                            gridColumn: "1 / -1",
+                            py: 4,
+                            textAlign: "center",
+                            color: "text.secondary",
                           }}
                         >
-                          Create Request
-                        </Button>
-                      </Box>
+                          <Typography>No subcategories available</Typography>
+                        </Box>
+                      )}
                     </Box>
-                  ))}
-                </Box>
-              </Box>
-            ))}
+                  </Box>
+                );
+              })
+            ) : (
+              <Typography
+                sx={{
+                  color: "#787878",
+                  textAlign: "center",
+                  py: 4,
+                }}
+              >
+                No categories available
+              </Typography>
+            )}
           </Box>
         </Box>
       </Box>
 
-
+      {/* Create Service Request Modal */}
+      <CreateServiceRequestModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        preSelectedCategoryId={selectedCategoryId}
+        preSelectedSubcategoryId={selectedSubcategoryId}
+      />
     </Box>
   );
 }
-
