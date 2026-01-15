@@ -2,7 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Box, Container, Typography, Card, Button, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Container,
+  Typography,
+  Card,
+  Button,
+  CircularProgress,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Footer from "@/components/Footer";
@@ -57,8 +64,18 @@ interface ApiResponse {
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
   const day = date.getDate();
   const month = months[date.getMonth()];
@@ -80,7 +97,7 @@ const calculateTimeAgo = (dateString: string, timeString: string): string => {
   const [hours, minutes] = timeString.split(":");
   const date = new Date(dateString);
   date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-  
+
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
@@ -102,17 +119,20 @@ const calculateTimeAgo = (dateString: string, timeString: string): string => {
 };
 
 // Transform API response to ServiceRequest format
-const transformServiceRequest = (apiRequest: ApiServiceRequest): ServiceRequest => {
+const transformServiceRequest = (
+  apiRequest: ApiServiceRequest
+): ServiceRequest => {
   // Format cost - remove trailing zeros if it's a whole number
   const cost = apiRequest.estimated_cost;
-  const formattedCost = cost % 1 === 0 
-    ? `€${cost.toFixed(0)}` 
-    : `€${cost.toFixed(2)}`;
-  
+  const formattedCost =
+    cost % 1 === 0 ? `€${cost.toFixed(0)}` : `€${cost.toFixed(2)}`;
+
   return {
     id: apiRequest.service_id,
     title: apiRequest.subcategory_info.sub_category_name.name,
-    image: apiRequest.subcategory_info.sub_category_name.img_url || "/image/main.png",
+    image:
+      apiRequest.subcategory_info.sub_category_name.img_url ||
+      "/image/main.png",
     date: formatDate(apiRequest.date),
     time: formatTime(apiRequest.time),
     serviceProvider: apiRequest.category_info.category_name.name,
@@ -134,8 +154,10 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       try {
-        const response = await apiGet<ApiResponse>(API_ENDPOINTS.SERVICE_REQUEST.OPEN_SERVICES);
-        
+        const response = await apiGet<ApiResponse>(
+          API_ENDPOINTS.SERVICE_REQUEST.OPEN_SERVICES
+        );
+
         if (response.success && response.data) {
           const apiData = response.data.data || response.data;
           if (Array.isArray(apiData)) {
@@ -146,7 +168,9 @@ export default function DashboardPage() {
             setServiceRequests([]);
           }
         } else {
-          setError(response.error?.message || "Failed to fetch service requests");
+          setError(
+            response.error?.message || "Failed to fetch service requests"
+          );
           setServiceRequests([]);
         }
       } catch (err) {
@@ -216,7 +240,7 @@ export default function DashboardPage() {
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       {/* Hero Section */}
-      <Box
+      {/* <Box
         sx={{
           mt: "9.375rem",
           px: "5.0625rem",
@@ -239,7 +263,7 @@ export default function DashboardPage() {
               justifyContent: "space-between",
             }}
           >
-            {/* Professional Image */}
+
 
             <Image
               src="/image/worker-with-side.png"
@@ -251,7 +275,7 @@ export default function DashboardPage() {
               }}
             />
 
-            {/* Stats Content */}
+
             <Box>
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
@@ -260,8 +284,8 @@ export default function DashboardPage() {
                   variant="h1"
                   fontWeight="bold"
                   sx={{
-                    fontSize: "6.077rem", // 97.23px
-                    lineHeight: "4.052rem", // 64.83px
+                    fontSize: "6.077rem",
+                    lineHeight: "4.052rem",
                     letterSpacing: "0rem",
                     color: "#FFFFFF",
                   }}
@@ -271,8 +295,8 @@ export default function DashboardPage() {
                 <Typography
                   fontWeight="600"
                   sx={{
-                    fontSize: "2.532rem", // 40.51px
-                    lineHeight: "3.039rem", // 48.61px
+                    fontSize: "2.532rem", 
+                    lineHeight: "3.039rem", 
                     letterSpacing: "0rem",
                     color: "#FFFFFF",
                     whiteSpace: "pre-line",
@@ -285,8 +309,8 @@ export default function DashboardPage() {
                 <Typography
                   sx={{
                     color: "#EAF0F3",
-                    fontSize: "1.519rem", // 24.31px
-                    lineHeight: "2.279rem", // 36.46px
+                    fontSize: "1.519rem", 
+                    lineHeight: "2.279rem",     
                     letterSpacing: "0rem",
                     fontWeight: 400,
                     maxWidth: "28.125rem",
@@ -312,10 +336,26 @@ export default function DashboardPage() {
             />
           </Box>
         </Box>
+      </Box> */}
+
+      <Box
+        sx={{
+          px: { xs: "1rem", md: "5.063rem" },
+        }}
+      >
+        <Image
+          src="/image/professionalHomeBanner.png"
+          alt="Professional"
+          style={{
+            width: "100%",
+          }}
+          width={1278}
+          height={514}
+        />
       </Box>
 
       {/* Explore Service Requests Section */}
-      <Box sx={{ mt: "3.688rem", px: "5.063rem" }}>
+      <Box sx={{ mt: "3.688rem", px: { xs: "1rem", md: "5.063rem" } }}>
         <Box
           sx={{
             display: "flex",
@@ -452,7 +492,7 @@ export default function DashboardPage() {
       </Box>
 
       {/* Recent Tasks Section */}
-      <Box sx={{ px: "5.063rem", mt: "3rem",mb:"9.25rem" }}>
+      <Box sx={{ px: { xs: "1rem", md: "5.063rem" }, mt: "3rem", mb: "9.25rem" }}>
         <Box
           sx={{
             display: "flex",

@@ -1,27 +1,68 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Avatar,
   Box,
   Button,
-  FormControl,
   IconButton,
-  MenuItem,
-  Select,
   TextField,
   Typography,
+  CircularProgress,
 } from "@mui/material";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
-import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 import Image from "next/image";
+import { apiGet, apiPatch, apiPostFormData } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
+import CountrySelectDropdown from "@/components/CountrySelectDropdown";
+import { defaultCountries, parseCountry } from "react-international-phone";
+import { toast } from "sonner";
 
 type ProfessionalEditProfileProps = {
   onCancel?: () => void;
-  onSubmit?: (formData: FormState) => void;
+  onSuccess?: () => void;
 };
+
+interface UserData {
+  id: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  first_name: string;
+  phone_country_code: string;
+  last_name: string;
+  profile_photo_url: string | null;
+}
+
+interface ProviderInfo {
+  id: string;
+  services_provider_id: string;
+  bio?: string;
+  experience_speciality?: string;
+  achievements?: string;
+  years_of_experience?: number;
+  is_docs_verified: boolean;
+  docs_status: string;
+  [key: string]: any;
+}
+
+interface GetUserApiResponse {
+  status: string;
+  message: string;
+  data: {
+    user: UserData;
+    provider_info?: ProviderInfo;
+    past_work_files?: string[];
+  };
+}
+
+interface PastWorkImage {
+  id: string;
+  file: File | null;
+  preview: string | null;
+  existingUrl?: string;
+}
 
 const inputStyles = {
   "& .MuiOutlinedInput-root": {
@@ -47,31 +88,121 @@ const inputStyles = {
   },
 };
 
-const initialFormState = {
-  fullName: "Bessie Cooper",
-  email: "michael.mitc@example.com",
-  countryCode: "+91",
-  mobileNumber: "(480) 555-0103",
-  address: "4517 Washington Ave. Manchester, Kentucky 39495",
-  yearsOfExperience: 4,
-  bio: "Hi, I'm Bessie — with over 6 years of experience in expert TV mounting and reliable plumbing solutions. I specialize in mounting TVs, shelves, mirrors with precision and care",
-  specialties:
-    "Hi, I'm Bessie — with over 6 years of experience in expert TV mounting and reliable plumbing solutions. I specialize in mounting TVs, shelves, mirrors with precision and care",
-  achievements:
-    'Bessie Cooper has successfully completed over 150 projects, showcasing her expertise in TV mounting and plumbing. Her dedication to quality and customer satisfaction has earned her numerous accolades, including the "Best Service Provider" award in 2022. Clients consistently praise her attention to detail and professionalism, making her a top choice for home improvement services.',
-};
-
-type FormState = typeof initialFormState;
+// Helper function to convert dial code to iso2 country code
+function dialCodeToIso2(dialCode: string): string {
+  if (!dialCode) return "us";
+  const cleanDialCode = dialCode.replace("+", "");
+  const allCountries = defaultCountries.map((country) => parseCountry(country));
+  const country = allCountries.find((c) => c.dialCode === cleanDialCode);
+  return country?.iso2 || "us";
+}
 
 export default function ProfessionalEditProfile({
   onCancel,
-  onSubmit,
+  onSuccess,
 }: ProfessionalEditProfileProps) {
-  const [formData, setFormData] = useState<FormState>(initialFormState);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [providerInfo, setProviderInfo] = useState<ProviderInfo | null>(null);
+  const [pastWorkImages, setPastWorkImages] = useState<PastWorkImage[]>([]);
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
 
-  const handleChange = <K extends keyof FormState>(
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    countryCode: "in", // iso2 country code like "in", "us"
+    dialCode: "+91", // dial code like "+91", "+1"
+    mobileNumber: "",
+    address: "",
+    yearsOfExperience: 0,
+    bio: "",
+    specialties: "",
+    achievements: "",
+  });
+
+  // Fetch user data on mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setLoading(true);
+      try {
+        const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
+        
+        if (response.success && response.data) {
+          const apiData = response.data;
+          if (apiData.data?.user) {
+            const user = apiData.data.user;
+            setUserData(user);
+            
+            // Set provider info if available
+            if (apiData.data.provider_info) {
+              setProviderInfo(apiData.data.provider_info);
+            }
+            
+            // Initialize form data
+            const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+            const dialCode = user.phone_country_code || "+91";
+            const iso2 = dialCodeToIso2(dialCode);
+            
+            setFormData({
+              fullName,
+              email: user.email || "",
+              countryCode: iso2,
+              dialCode: dialCode,
+              mobileNumber: user.phone_number || "",
+              address: user.address || "",
+              yearsOfExperience: apiData.data.provider_info?.years_of_experience || 0,
+              bio: apiData.data.provider_info?.bio || "",
+              specialties: apiData.data.provider_info?.experience_speciality || "",
+              achievements: apiData.data.provider_info?.achievements || "",
+            });
+
+            // Set profile photo preview
+            if (user.profile_photo_url) {
+              setProfilePhotoPreview(user.profile_photo_url);
+            }
+
+            // Initialize past work images
+            if (apiData.data.past_work_files && Array.isArray(apiData.data.past_work_files)) {
+              const images: PastWorkImage[] = apiData.data.past_work_files.map((url, index) => ({
+                id: `existing-${index}`,
+                file: null,
+                preview: null,
+                existingUrl: url,
+              }));
+              // Add empty slots if less than 2
+              while (images.length < 2) {
+                images.push({
+                  id: `new-${images.length}`,
+                  file: null,
+                  preview: null,
+                });
+              }
+              setPastWorkImages(images);
+            } else {
+              // Initialize with 2 empty slots
+              setPastWorkImages([
+                { id: "new-0", file: null, preview: null },
+                { id: "new-1", file: null, preview: null },
+              ]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        alert("Failed to load user data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, []);
+
+  const handleChange = <K extends keyof typeof formData>(
     field: K,
-    value: FormState[K]
+    value: typeof formData[K]
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -83,55 +214,236 @@ export default function ProfessionalEditProfile({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit?.(formData);
+  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const renderUploadSlot = (id: string) => (
-    <Box
-      component="label"
-      htmlFor={id}
-      sx={{
-        position: "relative",
-        height: "9rem", // 144px fixed height
-        borderRadius: 2,
-        border: "0.0625rem dashed #DCDDDD",
-        color: "#5E5E5E",
-        cursor: "pointer",
-        display: "block",
-        overflow: "hidden",
-        transition: "border-color 150ms ease, background-color 150ms ease",
-      }}
-    >
-      <input id={id} type="file" hidden />
+  const handlePastWorkImageChange = (id: string, file: File | null) => {
+    setPastWorkImages((prev) =>
+      prev.map((img) => {
+        if (img.id === id) {
+          const preview = file ? URL.createObjectURL(file) : null;
+          return { ...img, file, preview };
+        }
+        return img;
+      })
+    );
+  };
+
+  const uploadProfilePhoto = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (userData?.email) {
+      formData.append("email", userData.email);
+    }
+
+    const response = await apiPostFormData(API_ENDPOINTS.AUTH.UPLOAD_PROFILE_PIC, formData);
+    if (!response.success) {
+      throw new Error(response.error?.message || "Failed to upload profile photo");
+    }
+    return response;
+  };
+
+  const uploadPastWorkFiles = async (files: File[]) => {
+    if (files.length === 0) return;
+
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("past_work_photos", file);
+    });
+
+    const response = await apiPostFormData(API_ENDPOINTS.PROFILE.UPLOAD_FILES, formData);
+    if (!response.success) {
+      throw new Error(response.error?.message || "Failed to upload past work images");
+    }
+    return response;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      // Split full name into first and last name
+      const nameParts = formData.fullName.trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      // Prepare profile update payload
+      const updatePayload = {
+        user_data: {
+          name: formData.fullName.trim(),
+          address: formData.address.trim(),
+          phone_number: formData.mobileNumber.trim(),
+          phone_country_code: formData.dialCode,
+        },
+        provider_data: {
+          bio: formData.bio.trim(),
+          experience_speciality: formData.specialties.trim(),
+          achievements: formData.achievements.trim(),
+          years_of_experience: formData.yearsOfExperience,
+        },
+      };
+
+      // Update profile
+      const updateResponse = await apiPatch(API_ENDPOINTS.PROFILE.UPDATE_PROFILE, updatePayload);
+
+      if (!updateResponse.success) {
+        throw new Error(updateResponse.error?.message || "Failed to update profile");
+      }
+
+      // Upload profile photo if a new file is selected
+      if (profilePhotoFile) {
+        try {
+          await uploadProfilePhoto(profilePhotoFile);
+        } catch (photoError) {
+          console.error("Error uploading profile photo:", photoError);
+          // Don't throw - profile update succeeded, photo upload failed
+        }
+      }
+
+      // Upload past work images
+      const filesToUpload = pastWorkImages
+        .map((img) => img.file)
+        .filter((file): file is File => file !== null);
+
+      if (filesToUpload.length > 0) {
+        try {
+          await uploadPastWorkFiles(filesToUpload);
+        } catch (uploadError) {
+          console.error("Error uploading past work images:", uploadError);
+          // Don't throw - profile update succeeded, upload failed
+        }
+      }
+
+      // Show success toast
+      toast.success("Profile updated successfully");
+
+      // Call success callback to refresh data
+      onSuccess?.();
+      onCancel?.();
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast.error(error.message || "Failed to update profile. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const renderUploadSlot = (image: PastWorkImage) => {
+    const hasImage = image.preview || image.existingUrl;
+
+    return (
       <Box
+        component="label"
+        htmlFor={image.id}
         sx={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 1,
-          textAlign: "center",
-          px: 2,
+          position: "relative",
+          height: "9rem",
+          borderRadius: 2,
+          border: "0.0625rem dashed #DCDDDD",
+          color: "#5E5E5E",
+          cursor: "pointer",
+          display: "block",
+          overflow: "hidden",
+          transition: "border-color 150ms ease, background-color 150ms ease",
+          "&:hover": {
+            borderColor: "#2C6587",
+          },
         }}
       >
-          <Image
-            src="/icons/folder-upload-line.png"
-            alt="Upload"
-            width={24}
-            height={24}
-            style={{ objectFit: "contain" }}
-            priority
-          />
-          <Typography sx={{ color: "#818285", fontSize: "0.875rem", lineHeight: "1.5rem" }}>
-          upload from device
-        </Typography>
+        <input
+          id={image.id}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0] || null;
+            handlePastWorkImageChange(image.id, file);
+          }}
+        />
+        {hasImage ? (
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <Image
+              src={image.preview || image.existingUrl || ""}
+              alt="Past work"
+              fill
+              style={{ objectFit: "cover" }}
+            />
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 1,
+              textAlign: "center",
+              px: 2,
+            }}
+          >
+            <Image
+              src="/icons/folder-upload-line.png"
+              alt="Upload"
+              width={24}
+              height={24}
+              style={{ objectFit: "contain" }}
+              priority
+            />
+            <Typography sx={{ color: "#818285", fontSize: "0.875rem", lineHeight: "1.5rem" }}>
+              upload from device
+            </Typography>
+          </Box>
+        )}
       </Box>
-    </Box>
-  );
+    );
+  };
+
+  const getInitials = () => {
+    if (formData.fullName) {
+      return formData.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return "U";
+  };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "400px",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -161,53 +473,66 @@ export default function ProfessionalEditProfile({
           gap: "1.5rem",
         }}
       >
+        <Box
+          sx={{
+            p: "1.5rem",
+            display: "flex",
+            alignItems: "center",
+            borderRadius: "0.75rem",
+            border: "0.0625rem solid #EAF5F4",
+            bgcolor: "#FFFFFF",
+          }}
+        >
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              gap: 2,
-              flexWrap: "wrap",
-              p: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
-              borderRadius: "0.75rem",
-              border: "0.0625rem solid #EAF5F4",
-              bgcolor: "#FFFFFF",
+              gap: 1,
             }}
           >
             <Avatar
+              src={profilePhotoPreview || undefined}
               sx={{
-                width: { xs: "4rem", sm: "4.5rem", md: "5rem" },
-                height: { xs: "4rem", sm: "4.5rem", md: "5rem" },
+                width: "5rem",
+                height: "5rem",
                 bgcolor: "#E0E0E0",
                 color: "#616161",
-                fontSize: { xs: "1.25rem", md: "1.5rem" },
+                fontSize: "1.5rem",
                 fontWeight: 500,
               }}
             >
-              BC
+              {!profilePhotoPreview ? getInitials() : null}
             </Avatar>
-          <Box>
-            <Typography
-              sx={{ color: "#131313", fontSize: "1.125rem", fontWeight: 600 }}
-            >
-              Bessie Cooper
-            </Typography>
-            <Typography
-              component="button"
-              type="button"
+            <Box
               sx={{
-                color: "#2F6B8E",
-                fontSize: "0.9rem",
-                fontWeight: 400,
-                textDecoration: "underline",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                "&:hover": { textDecoration: "underline" },
+                display: "flex",
+                alignItems: "center",
               }}
             >
-              Edit picture or avatar
-            </Typography>
+              <input
+                accept="image/*"
+                style={{ display: "none" }}
+                id="profile-photo-upload"
+                type="file"
+                onChange={handleProfilePhotoChange}
+              />
+              <label htmlFor="profile-photo-upload">
+                <Typography
+                  component="span"
+                  sx={{
+                    color: "#2F6B8E",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  Edit picture or avatar
+                </Typography>
+              </label>
+            </Box>
           </Box>
         </Box>
 
@@ -282,8 +607,14 @@ export default function ProfessionalEditProfile({
                   fullWidth
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  sx={inputStyles}
+                  disabled
+                  sx={{
+                    ...inputStyles,
+                    "& .MuiOutlinedInput-root": {
+                      ...inputStyles["& .MuiOutlinedInput-root"],
+                      backgroundColor: "#F5F5F5",
+                    },
+                  }}
                 />
               </Box>
 
@@ -300,39 +631,26 @@ export default function ProfessionalEditProfile({
                   Mobile Number
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                  <FormControl
-                    sx={{
-                      minWidth: 80,
-
-                      ...inputStyles,
-                      "& .MuiSelect-select": {
-                        padding: "0.625rem 1rem",
-                        fontSize: "1rem",
-                        fontWeight: 500,
-                      },
-                      "& .MuiSelect-icon": { color: "#131313" },
-                    }}
-                  >
-                    <Select
+                  <Box>
+                    <CountrySelectDropdown
                       value={formData.countryCode}
-                      onChange={(e) =>
-                        handleChange("countryCode", e.target.value)
-                      }
-                      IconComponent={KeyboardArrowDownIcon}
-                    >
-                      <MenuItem value="+91">+91</MenuItem>
-                      <MenuItem value="+1">+1</MenuItem>
-                      <MenuItem value="+44">+44</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <TextField
-                    fullWidth
-                    value={formData.mobileNumber}
-                    onChange={(e) =>
-                      handleChange("mobileNumber", e.target.value)
-                    }
-                    sx={inputStyles}
-                  />
+                      onChange={(countryCode, dialCode) => {
+                        handleChange("countryCode", countryCode);
+                        handleChange("dialCode", `+${dialCode}`);
+                      }}
+                      error={false}
+                      defaultCountry="in"
+                      preferredCountries={["in", "us"]}
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <TextField
+                      fullWidth
+                      value={formData.mobileNumber}
+                      onChange={(e) => handleChange("mobileNumber", e.target.value)}
+                      sx={inputStyles}
+                    />
+                  </Box>
                 </Box>
               </Box>
 
@@ -533,31 +851,44 @@ export default function ProfessionalEditProfile({
                 gap: "1.125rem",
               }}
             >
-              {["past-work-1", "past-work-2"].map((id) => (
-                <React.Fragment key={id}>{renderUploadSlot(id)}</React.Fragment>
+              {pastWorkImages.map((image) => (
+                <React.Fragment key={image.id}>{renderUploadSlot(image)}</React.Fragment>
               ))}
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "flex-end", gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: "flex-end",
+              gap: 2,
+            }}
+          >
             <Button
               type="button"
               onClick={onCancel}
+              disabled={submitting}
               sx={{
                 backgroundColor: "#FFFFFF",
                 border: "1px solid #214C65",
                 borderRadius: "0.75rem",
                 color: "#214C65",
-                fontSize: { xs: "1rem", md: "1.1875rem" }, // 19px
+                fontSize: { xs: "1rem", md: "1.1875rem" },
                 fontWeight: 700,
-                lineHeight: "1.25rem", // 20px
+                lineHeight: "1.25rem",
                 letterSpacing: "1%",
-                padding: { xs: "0.875rem 2rem", md: "0.625rem 3.75rem" }, // 10px top/bottom, 60px left/right
+                padding: { xs: "0.875rem 2rem", md: "0.625rem 3.75rem" },
                 textTransform: "none",
                 width: { xs: "100%", sm: "auto" },
                 "&:hover": {
                   backgroundColor: "#FFFFFF",
                   borderColor: "#214C65",
+                },
+                "&:disabled": {
+                  backgroundColor: "#F5F5F5",
+                  borderColor: "#D5D5D5",
+                  color: "#999999",
                 },
               }}
             >
@@ -565,24 +896,29 @@ export default function ProfessionalEditProfile({
             </Button>
             <Button
               type="submit"
+              disabled={submitting}
               sx={{
                 backgroundColor: "#2F6B8E",
                 border: "none",
                 borderRadius: "0.75rem",
                 color: "#FFFFFF",
-                fontSize: { xs: "1rem", md: "1.1875rem" }, // 19px
+                fontSize: { xs: "1rem", md: "1.1875rem" },
                 fontWeight: 700,
-                lineHeight: "1.25rem", // 20px
+                lineHeight: "1.25rem",
                 letterSpacing: "1%",
-                padding: { xs: "0.875rem 2rem", md: "0.625rem 3.75rem" }, // 10px top/bottom, 60px left/right
+                padding: { xs: "0.875rem 2rem", md: "0.625rem 3.75rem" },
                 textTransform: "none",
                 width: { xs: "100%", sm: "auto" },
                 "&:hover": {
                   backgroundColor: "#2F6B8E",
                 },
+                "&:disabled": {
+                  backgroundColor: "#CCCCCC",
+                  color: "#666666",
+                },
               }}
             >
-              Update
+              {submitting ? "Updating..." : "Update"}
             </Button>
           </Box>
         </Box>

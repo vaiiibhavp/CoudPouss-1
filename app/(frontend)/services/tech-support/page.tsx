@@ -62,7 +62,8 @@ export default function TechSupportPage() {
   const [banners, setBanners] = useState<Record<string, Banner | null>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] =
+    useState<string>("");
 
   // Memoized function to handle modal close
   const handleCloseModal = useCallback(() => {
@@ -152,13 +153,13 @@ export default function TechSupportPage() {
           }}
         >
           <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-            }}
+          // sx={{
+          //   display: "grid",
+          //   gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          // }}
           >
             {/* Left Side - Text */}
-            <Box
+            {/* <Box
               sx={{
                 bgcolor: "#2F3C44",
                 color: "white",
@@ -206,25 +207,20 @@ export default function TechSupportPage() {
               >
                 Book Now
               </Typography>
-            </Box>
+            </Box> */}
 
             {/* Right Side - Image */}
             <Box
               sx={{
-                position: "relative",
                 width: "100%",
                 height: "100%",
-                minHeight: { xs: 300, md: 400 },
               }}
             >
               <Image
-                src={
-                  heroBanner?.url || "/image/tech-support-hero-section.png"
-                }
+                src={"/image/techSupportBanner.png"}
                 alt={heroBanner?.category_name || "Transport Service"}
-                fill
-                style={{ objectFit: "cover" }}
-                priority
+                height={278}
+                width={1248}
               />
             </Box>
           </Box>
@@ -348,7 +344,11 @@ export default function TechSupportPage() {
                                   alt={subcategory.subcategory_name}
                                   width={376}
                                   height={225}
-                                  style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                                  style={{
+                                    objectFit: "cover",
+                                    width: "100%",
+                                    height: "100%",
+                                  }}
                                 />
                               ) : (
                                 <Box
@@ -361,9 +361,7 @@ export default function TechSupportPage() {
                                     justifyContent: "center",
                                   }}
                                 >
-                                  <Typography
-                                    sx={{ color: "text.secondary" }}
-                                  >
+                                  <Typography sx={{ color: "text.secondary" }}>
                                     {subcategory.subcategory_name}
                                   </Typography>
                                 </Box>
@@ -406,8 +404,8 @@ export default function TechSupportPage() {
                                   fontSize: "0.85rem",
                                   py: 0.75,
                                   textWrap: "nowrap",
-                                  lineHeight:"1.125rem",
-                                  px:"12px"
+                                  lineHeight: "1.125rem",
+                                  px: "12px",
                                 }}
                                 endIcon={
                                   <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />
