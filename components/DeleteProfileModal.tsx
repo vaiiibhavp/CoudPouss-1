@@ -66,7 +66,7 @@ export default function DeleteProfileModal({
           }}
         >
           <Image
-            src="/icons/Warning.png"
+            src="/icons/WarningFigma.png"
             alt="Warning"
             width={60}
             height={60}

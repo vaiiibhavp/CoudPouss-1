@@ -16,6 +16,8 @@ import { ROUTES } from "@/constants/routes";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ServiceRequestCard from "@/components/ServiceRequestCard";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 export default function ExploreRequestsPage() {
   const router = useRouter();
@@ -35,7 +37,8 @@ export default function ExploreRequestsPage() {
   }) => (
     <Box
       sx={{
-        minWidth: 150,
+        minWidth: { xs: "100%", sm: 150 },
+        width: { xs: "100%", sm: "auto" },
         bgcolor: "white",
         borderRadius: "0.625rem",
         border: "0.7px solid #BECFDA",
@@ -81,7 +84,7 @@ export default function ExploreRequestsPage() {
           alignItems: "center",
         }}
       >
-        <Image src="/icons/chevron-down.png" alt="Open" width={24} height={24} />
+        <Image src="/icons/chevron-down.png" alt="Open" width={20} height={20} />
       </Box>
     </Box>
   );
@@ -107,89 +110,101 @@ export default function ExploreRequestsPage() {
     }
   }, [router]);
 
-  // Service request data - expanded to 6 items
-  const allServiceRequests = [
-    {
-      id: 1,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-      category: "DIY",
-    },
-    {
-      id: 2,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "Gardening Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-      category: "Gardening",
-    },
-    {
-      id: 3,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-      category: "DIY",
-    },
-    {
-      id: 4,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-      category: "DIY",
-    },
-    {
-      id: 5,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-      category: "DIY",
-    },
-    {
-      id: 6,
-      title: "Furniture Assembly",
-      image: "/image/main.png",
-      date: "16 Aug, 2025",
-      time: "10:00 am",
-      serviceProvider: "DIY Services",
-      location: "Paris 75001",
-      estimatedCost: "€499",
-      timeAgo: "2 hours ago",
-      category: "DIY",
-    },
-  ];
+  // serviceRequests is populated from API `/quote_request/open-services`
+
+  const [serviceRequests, setServiceRequests] = useState<any[] | null>(null);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [requestsError, setRequestsError] = useState<string | null>(null);
+
+  // Map various API response shapes to card props
+  const mapApiToCard = (item: any) => {
+    const id = item.service_id || item.id || item.request_id || Math.random();
+
+    const subName = item?.subcategory_info?.sub_category_name?.name || item?.subcategory_name || item?.service_name;
+    const catName = item?.category_info?.category_name?.name || item?.category || item?.type;
+
+    const title = subName || item.title || catName || "Service Request";
+
+    // Prefer subcategory image, then category logo, then fallback
+    const image =
+      item?.subcategory_info?.sub_category_name?.img_url ||
+      item?.subcategory_info?.sub_category_name?.img ||
+      item?.category_info?.category_name?.logo_url ||
+      item?.image ||
+      "/image/main.png";
+
+    const date = item.date || item.request_date || item.created_at || "";
+    const time = item.time || item.request_time || "";
+
+    const serviceProvider = item.service_provider || item.provider_name || item.provider || "";
+
+    const location = item.location || item.address || "";
+
+    const estimated = item.estimated_cost ?? item.estimatedPrice ?? item.budget ?? item.price ?? item.amount ?? 0;
+    const estimatedCost = typeof estimated === "number" ? `€${estimated}` : estimated;
+
+    // Build a readable timeAgo/date label: prefer date+time, else created_at
+    const timeAgo = date ? (time ? `${date} ${time}` : date) : (item.created_at ? new Date(item.created_at).toLocaleString() : "");
+
+    const category = catName || "";
+
+    return {
+      id,
+      title,
+      image,
+      date,
+      time,
+      serviceProvider,
+      location,
+      estimatedCost,
+      timeAgo,
+      category,
+      categoryLogo: item?.category_info?.category_name?.logo_url || item?.category_logo || "",
+    };
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchOpenServices = async () => {
+      setLoadingRequests(true);
+      setRequestsError(null);
+      try {
+        const res = await apiGet<any>(API_ENDPOINTS.SERVICE_REQUEST.OPEN_SERVICES);
+        if (!mounted) return;
+        if (res.success && res.data) {
+          // support common shapes: res.data.data, res.data.open_services, res.data.requests, res.data
+          const payload = (res.data.data || res.data) as any;
+          const list = payload?.open_services || payload?.requests || payload?.services || payload?.data || payload?.results || payload?.items || payload?.quote_requests || payload?.open || payload?.rows || payload?.openServices || payload?.OpenRequests || payload?.Transactions || payload;
+          const arr = Array.isArray(list) ? list : (Array.isArray(payload) ? payload : []);
+          if (arr.length > 0) {
+            setServiceRequests(arr.map(mapApiToCard));
+          } else {
+            setServiceRequests([]);
+          }
+        } else {
+          setRequestsError(res.error?.message || "Failed to load requests");
+          setServiceRequests([]);
+        }
+      } catch (err) {
+        console.error(err);
+        setRequestsError("Failed to load requests");
+        setServiceRequests([]);
+      } finally {
+        setLoadingRequests(false);
+      }
+    };
+
+    fetchOpenServices();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       {/* Main Content */}
       <Box
         sx={{
-          px: "5rem",
-          mt: "2.5rem",
+          px: { xs: 2, sm: 4, md: "5rem" },
+          mt: { xs: 3, md: "2.5rem" },
         }}
       >
         {/* Page Title */}
@@ -197,10 +212,10 @@ export default function ExploreRequestsPage() {
           sx={{
             color: "#2C6587",
             fontWeight: 700,
-            fontSize: "1.5rem", // 24px
-            lineHeight: "1.75rem", // 28px
+            fontSize: { xs: "1.25rem", md: "1.5rem" },
+            lineHeight: { xs: "1.5rem", md: "1.75rem" },
             letterSpacing: "0rem",
-            mb: 4,
+            mb: { xs: 3, md: 4 },
           }}
         >
           Explore Requests
@@ -210,10 +225,11 @@ export default function ExploreRequestsPage() {
         <Box
           sx={{
             display: "flex",
-            gap: 2,
-            mb: 4,
+            gap: { xs: 2, md: 2 },
+            mb: { xs: 3, md: 4 },
             justifyContent: "space-between",
-            flexWrap: { xs: "wrap", md: "nowrap" },
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "stretch", md: "center" },
           }}
         >
           {/* Search Bar */}
@@ -271,7 +287,14 @@ export default function ExploreRequestsPage() {
               },
             }}
           />
-          <Box sx={{ display: "flex", gap: "1.25rem" }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: { xs: 2, md: "1.25rem" },
+              width: { xs: "100%", md: "auto" },
+              flexWrap: { xs: "wrap", md: "nowrap" },
+            }}
+          >
             <CustomSelect
               value={serviceFilter}
               onChange={setServiceFilter}
@@ -311,38 +334,55 @@ export default function ExploreRequestsPage() {
             display: "grid",
             gridTemplateColumns: {
               xs: "1fr",
-              sm: "repeat(auto-fill, minmax(18.75rem, 20rem))",
+              sm: "repeat(2, 1fr)",
+              md: "repeat(3, 1fr)",
             },
-            gap: 3,
-            mb: 4,
-            justifyContent: "space-between",
+            gap: { xs: "16px", md: "28px" },
+            mb: { xs: 3, md: 4 },
+            alignItems: "start",
           }}
         >
-          {allServiceRequests.map((request) => (
-            <ServiceRequestCard
-              key={request.id}
-              id={request.id}
-              title={request.title}
-              image={request.image}
-              date={request.date}
-              time={request.time}
-              serviceProvider={request.serviceProvider}
-              location={request.location}
-              estimatedCost={request.estimatedCost}
-              timeAgo={request.timeAgo}
-            />
-          ))}
+          {loadingRequests ? (
+            <Box sx={{ gridColumn: '1/-1', display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Typography>Loading requests...</Typography>
+            </Box>
+          ) : requestsError ? (
+            <Box sx={{ gridColumn: '1/-1', display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Typography color="error">{requestsError}</Typography>
+            </Box>
+          ) : serviceRequests && serviceRequests.length === 0 ? (
+            <Box sx={{ gridColumn: '1/-1', display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Typography color="text.secondary">No open requests found</Typography>
+            </Box>
+          ) : (
+            serviceRequests?.map((request) => (
+              <ServiceRequestCard
+                key={request.id}
+                id={request.id}
+                title={request.title}
+                image={request.image}
+                date={request.date}
+                time={request.time}
+                serviceProvider={request.serviceProvider}
+                location={request.location}
+                estimatedCost={request.estimatedCost}
+                timeAgo={request.timeAgo}
+                category={request.category}
+                categoryLogo={request.categoryLogo}
+              />
+            ))
+          )}
         </Box>
 
         {/* Load More Button */}
-        <Box sx={{ display: "flex", justifyContent: "center", mt: "1.75rem", mb:"2.688rem" }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: { xs: 2, md: "1.75rem" }, mb:{ xs:3, md:"2.688rem" } }}>
           <Button
             variant="outlined"
             sx={{
               borderColor: "#214C65",
               color: "#214C65",
               textTransform: "none",
-              px: 4,
+              px: { xs: 3, md: 4 },
               py: 1.5,
               borderRadius: "0.75rem",
               fontWeight: 600,

@@ -144,6 +144,8 @@ export default function ProfileOverview() {
     return userData.address || "N/A";
   };
 
+  
+
   return (
     <Box
       sx={{
@@ -311,6 +313,66 @@ export default function ProfileOverview() {
               >
                 {getPhoneNumber()}
               </Typography>
+            </Box>
+            <Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "text.secondary",
+                  mb: 0.5,
+                  fontSize: "0.85rem",
+                  fontWeight: 500,
+                }}
+              >
+                Preferred Language
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  px: "1rem",
+                  py: "0.75rem",
+                  borderRadius: "14px",
+                  border: "1px solid #E0E0E0",
+                  bgcolor: "#FFFFFF",
+                  minHeight: "2.5rem",
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "#2C6587",
+                    fontWeight: 600,
+                    fontSize: "16px",
+                    lineHeight: "150%",
+                    letterSpacing: "0%",
+                  }}
+                >
+                  French
+                </Typography>
+                <Box
+                  sx={{
+                    width: "1.25rem",
+                    height: "1.25rem",
+                    borderRadius: "50%",
+                    border: "2px solid #2C6587",
+                    bgcolor: "#2C6587",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: "0.5rem",
+                      height: "0.5rem",
+                      borderRadius: "50%",
+                      bgcolor: "#FFFFFF",
+                    }}
+                  />
+                </Box>
+              </Box>
             </Box>
             {userData.role !== "elderly_user" && (
               <Box>

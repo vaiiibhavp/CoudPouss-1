@@ -151,80 +151,19 @@ export default function PersonalCarePage() {
             mb: 6,
           }}
         >
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-            }}
-          >
-            {/* Left Side - Text */}
+          <Box>
+            {/* Banner Image */}
             <Box
               sx={{
-                bgcolor: "#2F3C44",
-                color: "white",
-                p: { xs: 4, md: "3.75rem" },
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: { xs: "2rem", md: "2.5rem", lineHeight: "140%" },
-                  color: "white",
-                }}
-              >
-                Looking to enhance well
-              </Typography>
-              <Typography
-                sx={{
-                  mb: "0.375rem",
-                  fontWeight: 600,
-                  color: "white",
-                  fontSize: { xs: "2rem", md: "2.5rem", lineHeight: "140%" },
-                }}
-              >
-                being?
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  mb: "1rem",
-                  color: "rgba(255,255,255,0.9)",
-                  fontSize: { xs: "0.9rem", md: "0.75rem" },
-                }}
-              >
-                Lorem Ipsum
-              </Typography>
-              <Typography
-                sx={{
-                  lineHeight: "1.75rem",
-                  fontSize: "1.188rem",
-                  cursor: "pointer",
-                }}
-              >
-                Book Now
-              </Typography>
-            </Box>
-
-            {/* Right Side - Image */}
-            <Box
-              sx={{
-                position: "relative",
                 width: "100%",
                 height: "100%",
-                minHeight: { xs: 300, md: 400 },
               }}
             >
               <Image
-                src={
-                  heroBanner?.url || "/image/personal-care-hero-section.png"
-                }
+                src={"/image/personalCareServiceBanner.png"}
                 alt={heroBanner?.category_name || "Personal Care Service"}
-                fill
-                style={{ objectFit: "cover" }}
-                priority
+                height={278}
+                width={1248}
               />
             </Box>
           </Box>
