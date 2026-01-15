@@ -176,7 +176,7 @@ export default function RatingsReviews() {
   return (
     <Box
       sx={{
-        p: 4,
+
         borderRadius: 3,
         flex: 1,
         display: "flex",

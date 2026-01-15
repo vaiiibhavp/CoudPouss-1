@@ -8,6 +8,8 @@ import {
   Container,
   Typography,
   Button,
+  Snackbar,
+  Alert,
   Card,
   AppBar,
   Toolbar,
@@ -16,7 +18,6 @@ import {
   Menu,
   Divider,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import MenuIcon from "@mui/icons-material/Menu";
 import MessageIcon from "@mui/icons-material/Message";
@@ -28,6 +29,7 @@ import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
+import SignOutModal from "./SignOutModal";
 import { logout, setUserFromStorage } from "@/lib/redux/authSlice";
 import { AppDispatch, RootState } from "@/lib/redux/store";
 import { Lato } from "next/font/google";
@@ -88,6 +90,35 @@ interface SearchApiResponse {
   status_code: number;
 }
 
+interface UserDetails {
+  id: string;
+  email: string;
+  phone_number: string;
+  phone_country_code: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  service_provider_type: string | null;
+  profile_photo_id: string | null;
+  profile_photo_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  address: string;
+  lang: string;
+  is_deleted: boolean;
+  is_docs_verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface GetUserApiResponse {
+  status: string;
+  message: string;
+  data: {
+    user: UserDetails;
+  };
+}
+
 // Helper function to map service names to routes and icons
 const getServiceRouteAndIcon = (
   serviceName: string
@@ -138,6 +169,9 @@ export default function Header({
   const [profileMenuAnchor, setProfileMenuAnchor] =
     useState<null | HTMLElement>(null);
   const [bookServiceModalOpen, setBookServiceModalOpen] = useState(false);
+  const [signOutModalOpen, setSignOutModalOpen] = useState(false);
+  const [signoutSnackbarOpen, setSignoutSnackbarOpen] = useState(false);
+  const [signoutSnackbarMessage, setSignoutSnackbarMessage] = useState("");
   const [isAccountUnderVerification, setIsAccountUnderVerification] =
     useState(false);
   const [services, setServices] = useState<Service[]>([]);
@@ -146,6 +180,8 @@ export default function Header({
   const [searchResults, setSearchResults] = useState<SearchService[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [hasRequests, setHasRequests] = useState(false);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [userDetailsLoading, setUserDetailsLoading] = useState(false);
   const servicesMenuCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoveringServicesRef = useRef(false);
 
@@ -153,6 +189,41 @@ export default function Header({
     // Sync Redux state with localStorage on component mount
     dispatch(setUserFromStorage());
   }, [dispatch]);
+
+  // Fetch user details when authenticated
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!isAuthenticated) {
+        setUserDetails(null);
+        setIsAccountUnderVerification(false);
+        return;
+      }
+
+      setUserDetailsLoading(true);
+      try {
+        const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
+        
+        if (response.success && response.data) {
+          const apiData = response.data;
+          if (apiData.data?.user) {
+            const user = apiData.data.user;
+            setUserDetails(user);
+            // Set verification status based on is_docs_verified
+            // If is_docs_verified is false, account is under verification (show message)
+            // If is_docs_verified is true, account is verified (hide message)
+            setIsAccountUnderVerification(user.is_docs_verified === false);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+        setIsAccountUnderVerification(false);
+      } finally {
+        setUserDetailsLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, [isAuthenticated]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -262,10 +333,22 @@ export default function Header({
     };
   }, [searchTerm, isAuthenticated]);
 
+  const handleLogoutClick = () => {
+    setSignOutModalOpen(true);
+    handleProfileMenuClose();
+  };
+
   const handleLogout = () => {
+    // perform logout and show a success toast before redirecting
     dispatch(logout());
-    // After logout, navigate to home page (not /home since user is logged out)
-    router.push(ROUTES.HOME);
+    setSignoutSnackbarMessage("Sign out successful");
+    setSignoutSnackbarOpen(true);
+    // close modal if open
+    setSignOutModalOpen(false);
+    // wait a short moment so user sees the toast, then redirect
+    setTimeout(() => {
+      router.push(ROUTES.HOME);
+    }, 800);
   };
 
   const handleServicesMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -365,7 +448,7 @@ export default function Header({
             width: "100%",
 
             py: "28px",
-            px: "80px",
+            px: { xs: "16px", md: "80px" },
           }}
         >
           <Box
@@ -747,7 +830,7 @@ export default function Header({
                           gap: 2,
                         }}
                       >
-                        {services.map((service) => {
+                        {/* {services.map((service) => {
                           const { route, icon } = getServiceRouteAndIcon(
                             service.name
                           );
@@ -822,7 +905,20 @@ export default function Header({
                               </Box>
                             </Box>
                           );
-                        })}
+                        })} */}
+
+                        <Box sx={{ cursor: "pointer" }}>
+                          <Image src="/image/HomeServiceBox.png" alt="services" width={183} height={158} />
+                        </Box>
+                        <Box sx={{ cursor: "pointer" }}>
+                          <Image src="/image/TransportSercviceBox.png" alt="services" width={183} height={158} />
+                        </Box>
+                        <Box sx={{ cursor: "pointer" }}>
+                          <Image src="/image/personalServiceBox.png" alt="services" width={183} height={158} />
+                        </Box>
+                        <Box sx={{ cursor: "pointer" }}>
+                          <Image src="/image/techSupportBox.png" alt="services" width={183} height={158} />
+                        </Box>
                       </Box>
                     ) : (
                       <Box
@@ -1439,9 +1535,22 @@ export default function Header({
                         fontSize: "1rem",
                         cursor: "pointer",
                         textDecoration: "none",
+                        overflow: "hidden",
+                        position: "relative",
                       }}
                     >
-                      {user.initial}
+                      {userDetails?.profile_photo_url ? (
+                        <Image
+                          src={userDetails.profile_photo_url}
+                          alt={`${userDetails.first_name} ${userDetails.last_name}`}
+                          fill
+                          style={{ objectFit: "cover" }}
+                        />
+                      ) : (
+                        userDetails
+                          ? `${userDetails.first_name?.[0] || ""}${userDetails.last_name?.[0] || ""}`.toUpperCase() || user?.initial
+                          : user?.initial
+                      )}
                     </Box>
                     <IconButton
                       onClick={handleProfileMenuOpen}
@@ -1487,7 +1596,9 @@ export default function Header({
                           mb: "0.25rem",
                         }}
                       >
-                        Cameron Williamson
+                        {userDetails
+                          ? `${userDetails.first_name || ""} ${userDetails.last_name || ""}`.trim() || "User"
+                          : "User"}
                       </Typography>
                       <Button
                         component={Link}
@@ -1513,7 +1624,8 @@ export default function Header({
                         View my profile
                       </Button>
 
-                      {isAccountUnderVerification && (
+                      {isAccountUnderVerification && 
+                       (userDetails?.role === "service_provider" || userRole === "service_provider") && (
                         <Box
                           sx={{
                             display: "flex",
@@ -1558,106 +1670,211 @@ export default function Header({
                           marginTop: "0.9rem",
                         }}
                       >
-                        <Button
-                          component={Link}
-                          href={ROUTES.MY_REQUESTS}
-                          onClick={handleProfileMenuClose}
-                          sx={{
-                            textTransform: "none",
-                            color: "#989898",
-                            fontSize: "1rem",
-                            lineHeight: "1.125rem",
-                            p: 0,
-                            justifyContent: "flex-start",
-                            minWidth: "auto",
-                            "&:hover": {
-                              bgcolor: "transparent",
-                              color: "#2F6B8E",
-                            },
-                          }}
-                        >
-                          My Requests
-                        </Button>
-                        <Button
-                          component={Link}
-                          href={ROUTES.Favorite}
-                          onClick={handleProfileMenuClose}
-                          sx={{
-                            textTransform: "none",
-                            color: "#989898",
-                            fontSize: "1rem",
-                            lineHeight: "1.125rem",
-                            p: 0,
-                            justifyContent: "flex-start",
-                            minWidth: "auto",
-                            "&:hover": {
-                              bgcolor: "transparent",
-                              color: "#2F6B8E",
-                            },
-                          }}
-                        >
-                          My Favorite Professionals
-                        </Button>
-                        <Button
-                          component={Link}
-                          href={ROUTES.PROFILE}
-                          onClick={handleProfileMenuClose}
-                          sx={{
-                            textTransform: "none",
-                            color: "#989898",
-                            fontSize: "1rem",
-                            lineHeight: "1.125rem",
-                            p: 0,
-                            justifyContent: "flex-start",
-                            minWidth: "auto",
-                            "&:hover": {
-                              bgcolor: "transparent",
-                              color: "#2F6B8E",
-                            },
-                          }}
-                        >
-                          My Transactions
-                        </Button>
-                        <Button
-                          component={Link}
-                          href={ROUTES.HELP_CENTER}
-                          onClick={handleProfileMenuClose}
-                          sx={{
-                            textTransform: "none",
-                            color: "#989898",
-                            fontSize: "1rem",
-                            lineHeight: "1.125rem",
-                            p: 0,
-                            justifyContent: "flex-start",
-                            minWidth: "auto",
-                            "&:hover": {
-                              bgcolor: "transparent",
-                              color: "#2F6B8E",
-                            },
-                          }}
-                        >
-                          Help Center
-                        </Button>
-                        <Divider color={"#E7E7E7"} />
-
-                        <Button
-                          onClick={handleLogout}
-                          sx={{
-                            textTransform: "none",
-                            p: 0,
-                            mb: "0.9rem",
-                            justifyContent: "flex-start",
-                            "&:hover": {
-                              bgcolor: "transparent",
-                              color: "#2F6B8E",
-                            },
-                            color: "primary.normal",
-                            lineHeight: "1.125rem",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Sign Out
-                        </Button>
+                        {(userDetails?.role === "service_provider" || userRole === "service_provider") ? (
+                          <>
+                            <Button
+                              component={Link}
+                              href={ROUTES.PROFESSIONAL_PROFILE}
+                              onClick={handleProfileMenuClose}
+                              sx={{
+                                textTransform: "none",
+                                color: "#989898",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                p: 0,
+                                justifyContent: "flex-start",
+                                minWidth: "auto",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                              }}
+                            >
+                              My Earnings
+                            </Button>
+                            <Button
+                              component={Link}
+                              href={ROUTES.PROFESSIONAL_PROFILE}
+                              onClick={handleProfileMenuClose}
+                              sx={{
+                                textTransform: "none",
+                                color: "#989898",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                p: 0,
+                                justifyContent: "flex-start",
+                                minWidth: "auto",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                              }}
+                            >
+                              Manage Services
+                            </Button>
+                            <Button
+                              component={Link}
+                              href={ROUTES.PROFESSIONAL_PROFILE}
+                              onClick={handleProfileMenuClose}
+                              sx={{
+                                textTransform: "none",
+                                color: "#989898",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                p: 0,
+                                justifyContent: "flex-start",
+                                minWidth: "auto",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                              }}
+                            >
+                              Manage Subscription
+                            </Button>
+                            <Button
+                              component={Link}
+                              href={ROUTES.PROFESSIONAL_PROFILE}
+                              onClick={handleProfileMenuClose}
+                              sx={{
+                                textTransform: "none",
+                                color: "#989898",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                p: 0,
+                                justifyContent: "flex-start",
+                                minWidth: "auto",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                              }}
+                            >
+                              Ratings & Reviews
+                            </Button>
+                            <Divider color={"#E7E7E7"} />
+                            <Button
+                              onClick={handleLogoutClick}
+                              sx={{
+                                textTransform: "none",
+                                p: 0,
+                                mb: "0.9rem",
+                                justifyContent: "flex-start",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                                color: "primary.normal",
+                                lineHeight: "1.125rem",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Sign Out
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              component={Link}
+                              href={ROUTES.MY_REQUESTS}
+                              onClick={handleProfileMenuClose}
+                              sx={{
+                                textTransform: "none",
+                                color: "#989898",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                p: 0,
+                                justifyContent: "flex-start",
+                                minWidth: "auto",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                              }}
+                            >
+                              My Requests
+                            </Button>
+                            <Button
+                              component={Link}
+                              href={ROUTES.Favorite}
+                              onClick={handleProfileMenuClose}
+                              sx={{
+                                textTransform: "none",
+                                color: "#989898",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                p: 0,
+                                justifyContent: "flex-start",
+                                minWidth: "auto",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                              }}
+                            >
+                              My Favorite Professionals
+                            </Button>
+                            <Button
+                              component={Link}
+                              href={ROUTES.PROFILE}
+                              onClick={handleProfileMenuClose}
+                              sx={{
+                                textTransform: "none",
+                                color: "#989898",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                p: 0,
+                                justifyContent: "flex-start",
+                                minWidth: "auto",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                              }}
+                            >
+                              My Transactions
+                            </Button>
+                            <Button
+                              component={Link}
+                              href={ROUTES.HELP_CENTER}
+                              onClick={handleProfileMenuClose}
+                              sx={{
+                                textTransform: "none",
+                                color: "#989898",
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                p: 0,
+                                justifyContent: "flex-start",
+                                minWidth: "auto",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                              }}
+                            >
+                              Help Center
+                            </Button>
+                            <Divider color={"#E7E7E7"} />
+                            <Button
+                              onClick={handleLogoutClick}
+                              sx={{
+                                textTransform: "none",
+                                p: 0,
+                                mb: "0.9rem",
+                                justifyContent: "flex-start",
+                                "&:hover": {
+                                  bgcolor: "transparent",
+                                  color: "#2F6B8E",
+                                },
+                                color: "primary.normal",
+                                lineHeight: "1.125rem",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Sign Out
+                            </Button>
+                          </>
+                        )}
                       </Box>
                     </Box>
                   </Menu>
@@ -1666,6 +1883,7 @@ export default function Header({
 
               {/* Mobile Menu */}
               <IconButton
+                onClick={(e) => handleProfileMenuOpen(e)}
                 sx={{
                   display: { md: "none" },
                   color: "text.primary",
@@ -1683,51 +1901,66 @@ export default function Header({
               alignItems: "center",
               mt: 2,
               width: "100%",
-              minWidth: { xs: "100%", sm: "381px" },
-              borderRadius: 2,
-              border: "1px solid",
-              borderColor: "grey.300",
-              overflow: "hidden",
               position: "relative",
             }}
           >
-            <InputBase
-              placeholder="What are you looking for?"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+            <Box
               sx={{
-                flex: 1,
-                px: 2,
-                py: 1,
-                "& .MuiInputBase-input": {
-                  color: "text.primary",
-                  fontSize: "0.95rem",
-                },
-                "& .MuiInputBase-input::placeholder": {
-                  color: "text.secondary",
-                  opacity: 1,
-                },
-              }}
-            />
-            <IconButton
-              sx={{
-                bgcolor: "primary.main",
-                borderRadius: 0,
-                color: "white",
-                "&:hover": {
-                  bgcolor: "primary.dark",
-                },
+                display: "flex",
+                alignItems: "center",
+                width: "100%",
+                minWidth: { xs: "100%", sm: "381px" },
+                bgcolor: "grey.50",
+                borderRadius: 2,
+                border: "0.0625rem solid",
+                borderColor: "grey.300",
+                overflow: "hidden",
+                paddingRight: "1rem",
               }}
             >
-              <SearchIcon />
-            </IconButton>
+              <InputBase
+                placeholder="What are you looking for?"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{
+                  flex: 1,
+                  px: 2,
+                  py: 1,
+                  "& .MuiInputBase-input": {
+                    color: "text.primary",
+                    fontSize: "0.95rem",
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: "text.secondary",
+                    opacity: 1,
+                  },
+                }}
+              />
+              <IconButton
+                sx={{
+                  bgcolor: "primary.normal",
+                  borderRadius: "50%",
+                  color: "white",
+                  "&:hover": {
+                    bgcolor: "primary.dark",
+                  },
+                }}
+              >
+                <Image
+                  src={"/icons/searhIcon.png"}
+                  alt="Search Icon"
+                  width={16}
+                  height={16}
+                />
+              </IconButton>
+            </Box>
             {(searchLoading ||
               searchResults.length > 0 ||
               searchTerm.trim()) && (
               <Box
                 sx={{
                   position: "absolute",
-                  top: "105%",
+                  top: "110%",
                   left: 0,
                   width: "100%",
                   bgcolor: "white",
@@ -1735,7 +1968,7 @@ export default function Header({
                   borderRadius: 2,
                   boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                   zIndex: 1300,
-                  maxHeight: 260,
+                  maxHeight: 320,
                   overflowY: "auto",
                   p: 1,
                   "&::-webkit-scrollbar": {
@@ -1776,8 +2009,8 @@ export default function Header({
                     >
                       <Box
                         sx={{
-                          width: 32,
-                          height: 32,
+                          width: 36,
+                          height: 36,
                           borderRadius: 1,
                           overflow: "hidden",
                           flexShrink: 0,
@@ -1793,8 +2026,8 @@ export default function Header({
                             "/icons/home_assistance_icon_home.svg"
                           }
                           alt={item.category_name}
-                          width={28}
-                          height={28}
+                          width={32}
+                          height={32}
                           style={{ objectFit: "cover" }}
                         />
                       </Box>
@@ -1825,6 +2058,25 @@ export default function Header({
         open={bookServiceModalOpen}
         onClose={() => setBookServiceModalOpen(false)}
       />
+      <SignOutModal
+        open={signOutModalOpen}
+        onClose={() => setSignOutModalOpen(false)}
+        onConfirm={handleLogout}
+      />
+      <Snackbar
+        open={signoutSnackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSignoutSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSignoutSnackbarOpen(false)}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {signoutSnackbarMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

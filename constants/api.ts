@@ -40,6 +40,7 @@ export const API_ENDPOINTS = {
   PROFILE: {
     USER_PROFILE: `${API_BASE_URL}profile_module/user_profile`,
     UPDATE_PROFILE: `${API_BASE_URL}profile_module/profile`,
+    UPLOAD_FILES: `${API_BASE_URL}profile_module/upload-files`,
   },
   SERVICES: {
     LIST: `${API_BASE_URL}/services`,
@@ -57,6 +58,9 @@ export const API_ENDPOINTS = {
     GET_SERVICES: `${API_BASE_URL}service_confirmation/service_accept/get_services`,
     GET_SERVICE_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/get_service`,
     OPEN_SERVICES: `${API_BASE_URL}quote_request/open-services`,
+  },
+    QOUTE_REQUEST: {
+    GET_ALL_QOUTES: `${API_BASE_URL}quote_accept/service-provider/quotes`,
   },
 } as const;
 

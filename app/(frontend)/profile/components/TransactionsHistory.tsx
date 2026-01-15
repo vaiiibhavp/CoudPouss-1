@@ -17,10 +17,17 @@ import {
   MenuItem,
   FormControl,
   CircularProgress,
+  TextField,
+  Button,
+  Popover,
 } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material/Select";
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import { DateRange } from 'react-date-range';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
 
 interface Transaction {
   id: string;
@@ -90,31 +97,43 @@ const formatAmount = (amount?: number | string): string => {
   if (amount === undefined || amount === null) return "€0.00";
   
   const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
-  if (isNaN(numAmount)) return "€0.00";
+  if (isNaN(numAmount as number)) return "€0.00";
   
-  return `€${numAmount.toFixed(2)}`;
-};
+  return `€${(numAmount as number).toFixed(2)}`;
+}
+
 
 // Helper function to get status color
 const getStatusColor = (status: string): string => {
+  if (!status) return "#10B981";
   const lowerStatus = status.toLowerCase();
-  if (lowerStatus === "completed") return "#10B981";
+  if (lowerStatus === "success" || lowerStatus === "completed") return "#10B981";
   if (lowerStatus === "pending") return "#F59E0B";
   if (lowerStatus === "failed") return "#EF4444";
-  return "#10B981"; // default to green
+  return "#10B981"; // default
 };
-
 // Helper function to map API response to component format
 const mapApiTransactionToTransaction = (apiTransaction: ApiTransaction): Transaction => {
   const id = apiTransaction.id || apiTransaction.transaction_id || apiTransaction.transactionId || "";
   const elderName = apiTransaction.elder_name || apiTransaction.elderName || apiTransaction.name || "Unknown";
-  const avatar = apiTransaction.avatar || apiTransaction.profile_picture || apiTransaction.profilePicture || "/icons/testimonilas-1.png";
-  const transactionId = apiTransaction.transaction_id || apiTransaction.transactionId || apiTransaction.id || "";
+  const avatar =
+    apiTransaction.avatar ||
+    // support various API property names
+    (apiTransaction as any).profile_photo_url ||
+    apiTransaction.profile_picture ||
+    apiTransaction.profilePicture ||
+    "/icons/testimonilas-1.png";
+  const transactionId =
+    apiTransaction.transaction_id ||
+    apiTransaction.transactionId ||
+    (apiTransaction as any).stripe_payment_intent_id ||
+    apiTransaction.id ||
+    "";
   const totalAmount = formatAmount(apiTransaction.total_amount || apiTransaction.totalAmount || apiTransaction.amount);
-  
+
   const dateString = apiTransaction.payment_date || apiTransaction.paymentDate || apiTransaction.created_at || apiTransaction.createdAt;
   const paymentDate = formatDate(dateString);
-  
+
   const paymentStatus = apiTransaction.payment_status || apiTransaction.paymentStatus || apiTransaction.status || "Completed";
   
   return {
@@ -131,7 +150,8 @@ const mapApiTransactionToTransaction = (apiTransaction: ApiTransaction): Transac
 export default function TransactionsHistory() {
   const [status, setStatus] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [date, setDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,8 +170,11 @@ export default function TransactionsHistory() {
       if (paymentMethod) {
         params.append("payment_method", paymentMethod);
       }
-      if (date) {
-        params.append("date", date);
+      if (startDate) {
+        params.append("start_date", startDate);
+      }
+      if (endDate) {
+        params.append("end_date", endDate);
       }
 
       const endpoint = `${API_ENDPOINTS.PROFILE.USER_PROFILE}?${params.toString()}`;
@@ -178,7 +201,7 @@ export default function TransactionsHistory() {
     } finally {
       setLoading(false);
     }
-  }, [status, paymentMethod, date]);
+  }, [status, paymentMethod, startDate, endDate]);
 
   useEffect(() => {
     fetchTransactions();
@@ -192,14 +215,41 @@ export default function TransactionsHistory() {
     setPaymentMethod(event.target.value);
   };
 
-  const handleDateChange = (event: SelectChangeEvent) => {
-    setDate(event.target.value);
+  // Popover state for date picker and date-range selection state
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const openDatePopover = Boolean(anchorEl);
+  const [selectionRange, setSelectionRange] = useState<any[]>([{ startDate: new Date(), endDate: new Date(), key: 'selection' }]);
+
+  const handleOpenDatePopover = (e: React.MouseEvent<HTMLElement>) => {
+    // sync selectionRange with current start/end
+    const s = startDate ? new Date(startDate) : new Date();
+    const en = endDate ? new Date(endDate) : s;
+    setSelectionRange([{ startDate: s, endDate: en, key: 'selection' }]);
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleCloseDatePopover = () => setAnchorEl(null);
+
+  const handleApplyDates = () => {
+    const sel = selectionRange[0];
+    if (sel && sel.startDate && sel.endDate) {
+      const fmt = (d: Date) => d.toISOString().slice(0, 10);
+      setStartDate(fmt(sel.startDate));
+      setEndDate(fmt(sel.endDate));
+    }
+    handleCloseDatePopover();
+  };
+
+  const handleClearDates = () => {
+    setStartDate("");
+    setEndDate("");
+    handleCloseDatePopover();
   };
 
   return (
     <Box
       sx={{
-        p: 4,
+        
         borderRadius: 3,
         flex: 1,
         display: "flex",
@@ -274,8 +324,8 @@ export default function TransactionsHistory() {
                 <MenuItem value="" sx={{ fontSize: "16px", color: "#818285" }}>
                   Status
                 </MenuItem>
-                <MenuItem value="completed" sx={{ fontSize: "16px" }}>
-                  Completed
+                <MenuItem value="success" sx={{ fontSize: "16px" }}>
+                  Success
                 </MenuItem>
                 <MenuItem value="pending" sx={{ fontSize: "16px" }}>
                   Pending
@@ -318,55 +368,51 @@ export default function TransactionsHistory() {
                 <MenuItem value="card" sx={{ fontSize: "16px" }}>
                   Card
                 </MenuItem>
-                <MenuItem value="bank" sx={{ fontSize: "16px" }}>
+                <MenuItem value="wallet" sx={{ fontSize: "16px" }}>
+                  Wallet
+                </MenuItem>
+                <MenuItem value="bank_transfer" sx={{ fontSize: "16px" }}>
                   Bank Transfer
                 </MenuItem>
-                <MenuItem value="paypal" sx={{ fontSize: "16px" }}>
-                  PayPal
-                </MenuItem>
               </Select>
             </FormControl>
-            <FormControl>
-              <Select
-                value={date}
-                onChange={handleDateChange}
-                displayEmpty
+            <Box>
+              <Button
+                onClick={handleOpenDatePopover}
+                endIcon={<ArrowDropDownIcon />}
                 sx={{
-                  borderRadius: "4px",
-                  border: "1px solid #DCDDDD",
-                  padding: "10px 16px",
-                  minWidth: 120,
-                  fontSize: "16px",
-                  lineHeight: "100%",
-                  letterSpacing: "0%",
-                  color: "#818285",
-                  fontWeight: 500,
-                  backgroundColor: "#FFFFFF",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    border: "none",
-                  },
-                  "& .MuiSelect-icon": {
-                    color: "#818285",
-                  },
-                  "& .MuiSelect-select": {
-                    padding: 0,
-                  },
+                  borderRadius: '4px',
+                  border: '1px solid #DCDDDD',
+                  padding: '7px',
+                  fontSize: '16px',
+                  textTransform: 'none',
+                  color: startDate || endDate ? '#545454' : '#818285',
+                  backgroundColor: '#FFFFFF',
                 }}
               >
-                <MenuItem value="" sx={{ fontSize: "16px", color: "#818285" }}>
-                  Date
-                </MenuItem>
-                <MenuItem value="today" sx={{ fontSize: "16px" }}>
-                  Today
-                </MenuItem>
-                <MenuItem value="week" sx={{ fontSize: "16px" }}>
-                  This Week
-                </MenuItem>
-                <MenuItem value="month" sx={{ fontSize: "16px" }}>
-                  This Month
-                </MenuItem>
-              </Select>
-            </FormControl>
+                {startDate && endDate ? `${startDate} - ${endDate}` : 'Date'}
+              </Button>
+              <Popover
+                open={openDatePopover}
+                anchorEl={anchorEl}
+                onClose={handleCloseDatePopover}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+              >
+                <Box sx={{ p: 1 }}>
+                  <DateRange
+                    ranges={selectionRange}
+                    onChange={(ranges: any) => setSelectionRange([ranges.selection])}
+                    moveRangeOnFirstSelection={false}
+                    editableDateInputs={true}
+                  />
+                  <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <Button onClick={handleClearDates} color="inherit">Clear</Button>
+                    <Button onClick={handleApplyDates} variant="contained">Apply</Button>
+                  </Box>
+                </Box>
+              </Popover>
+            </Box>
           </Box>
         </Box>
         <Table

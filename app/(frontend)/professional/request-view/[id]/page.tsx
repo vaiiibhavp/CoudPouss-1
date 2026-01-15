@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import {
   Box,
   Container,
@@ -21,8 +23,13 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import VideocamIcon from "@mui/icons-material/Videocam";
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import CloseIcon from '@mui/icons-material/Close';
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
+import { apiGet, apiPostFormData, apiPost } from "@/lib/api";
+import { toast } from 'sonner';
+import CircularProgress from '@mui/material/CircularProgress';
 import { ROUTES } from "@/constants/routes";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -32,9 +39,16 @@ export default function RequestViewPage() {
   const router = useRouter();
   const params = useParams();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [quoteAmount, setQuoteAmount] = useState("");
-  const [personalizedMessage, setPersonalizedMessage] = useState("");
+  // formik will manage quote amount and message
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Supporting files (images / pdf) and their previews
+  const [supportFiles, setSupportFiles] = useState<File[]>([]);
+  const [supportFilePreviews, setSupportFilePreviews] = useState<Array<string | null>>([]);
+
+  // Video file + preview
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -46,50 +60,245 @@ export default function RequestViewPage() {
     }
   }, [router]);
 
-  // Mock data - in real app, fetch based on params.id
-  const requestData = {
-    id: params.id,
-    title: "Furniture Assembly",
-    category: "DIY",
-    serviceProvider: "DIY Services",
-    date: "16 Aug, 2025",
-    time: "10:00 am",
-    location: "4517 Washington Ave. Manchester, Kentucky 39495",
-    timeAgo: "2 hours ago",
-    description:
-      "Transform your space with our expert furniture assembly services. Our skilled team will handle everything from unpacking to setup, ensuring your new pieces are perfectly assembled and ready for use. We specialize in a wide range of furniture types, including flat-pack items, complete modular systems, and custom installations. Enjoy a hassle-free experience with professional assembly that saves you time and effort in your newly furnished area. Schedule your assembly today and let us help you create the perfect environment!",
-    clientName: "Wade Warren",
-    clientAvatar: "/image/main.png",
-    images: [
-      "/image/main.png",
-      "/image/main.png",
-      "/image/main.png",
-      "/image/main.png",
-    ],
+  // Dynamic request data fetched from API
+  const [requestData, setRequestData] = useState<any | null>(null);
+  const [loadingRequest, setLoadingRequest] = useState<boolean>(true);
+  const [requestError, setRequestError] = useState<string | null>(null);
+
+  // File upload handlers
+  const handleSupportFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Create preview URL for images
+      let previewURL: string | null = null;
+      if (file.type.startsWith("image/")) {
+        previewURL = URL.createObjectURL(file);
+      }
+
+      setSupportFiles((prev) => {
+        const newFiles = [...prev];
+        newFiles[index] = file;
+        return newFiles;
+      });
+
+      setSupportFilePreviews((prev) => {
+        const newPreviews = [...prev];
+        // Clean up old preview URL if it exists
+        if (newPreviews[index]) {
+          URL.revokeObjectURL(newPreviews[index]!);
+        }
+        newPreviews[index] = previewURL;
+        return newPreviews;
+      });
+    }
   };
 
+  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Create preview URL for video
+      let previewURL: string | null = null;
+      if (file.type.startsWith("video/")) {
+        previewURL = URL.createObjectURL(file);
+      }
+
+      setVideoFile(file);
+      
+      // Clean up old video preview URL if it exists
+      if (videoPreview) {
+        URL.revokeObjectURL(videoPreview);
+      }
+      setVideoPreview(previewURL);
+    }
+  };
+
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      supportFilePreviews.forEach((url) => {
+        if (url) URL.revokeObjectURL(url);
+      });
+      if (videoPreview) {
+        URL.revokeObjectURL(videoPreview);
+      }
+    };
+  }, [supportFilePreviews, videoPreview]);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchRequest = async () => {
+      setLoadingRequest(true);
+      setRequestError(null);
+      try {
+        if (!params?.id) {
+          setRequestError("Invalid request id");
+          setRequestData(null);
+          return;
+        }
+
+        const res = await apiGet<any>(`quote_request/service-info/${params.id}`);
+        if (!mounted) return;
+        if (res.success && res.data) {
+          const payload = (res.data.data || res.data) as any;
+          // payload is expected to be the object described in the API sample
+          const item = payload || {};
+
+          const mapped = {
+            id: item.service_id || item.serviceId || item.id || params.id,
+            title:
+              item?.subcategory_info?.sub_category_name?.name ||
+              item?.subcategory_info?.sub_category_name ||
+              item?.service_description?.slice(0, 60) ||
+              "Service Request",
+            category:
+              (item?.category_info?.category_name &&
+                (typeof item.category_info.category_name === "string"
+                  ? item.category_info.category_name
+                  : item.category_info.category_name?.name)) ||
+              item?.category_info?.category_name ||
+              "",
+            categoryLogo:
+              item?.category_info?.category_name?.logo_url ||
+              item?.category_info?.category_logo_url ||
+              item?.category_info?.category_logo ||
+              "",
+            serviceProvider: "",
+            date: item.date || "",
+            time: item.time || "",
+            location: item?.about_client?.address || item.location || "",
+            timeAgo: "",
+            description: item.service_description || item.description || "",
+            clientName: item?.about_client?.name || "",
+            clientAvatar:
+              item?.about_client?.profile_photo || item?.about_client?.profile_photo_url || "",
+            images: item.job_photos || item.jobPhotos || item.job_photos || [],
+            estimatedCost:
+              typeof item.estimated_cost === "number"
+                ? `€${item.estimated_cost.toFixed(2)}`
+                : item.estimated_cost || "",
+          };
+
+          setRequestData(mapped);
+        } else {
+          setRequestError(res.error?.message || "Failed to load request");
+          setRequestData(null);
+        }
+      } catch (err) {
+        console.error(err);
+        setRequestError("Failed to load request");
+        setRequestData(null);
+      } finally {
+        setLoadingRequest(false);
+      }
+    };
+
+    fetchRequest();
+    return () => {
+      mounted = false;
+    };
+  }, [params?.id]);
+
   const handlePreviousImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === 0 ? requestData.images.length - 1 : prev - 1
-    );
+    setCurrentImageIndex((prev) => {
+      const len = requestData?.images?.length || 0;
+      if (len === 0) return 0;
+      return prev === 0 ? len - 1 : prev - 1;
+    });
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === requestData.images.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const handleSubmitQuote = () => {
-    // Handle quote submission
-    console.log("Quote submitted:", {
-      amount: quoteAmount,
-      message: personalizedMessage,
+    setCurrentImageIndex((prev) => {
+      const len = requestData?.images?.length || 0;
+      if (len === 0) return 0;
+      return prev === len - 1 ? 0 : prev + 1;
     });
-
-    // Open success modal
-    setIsModalOpen(true);
   };
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const uploadFileAndGetId = async (file: File): Promise<string | null> => {
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await apiPostFormData<any>('quote_request/upload-job-file', fd);
+      if (res.success && res.data) {
+        const data = res.data;
+        return data?.id || data?.storage_key || (data?.data && (data.data.id || data.data.storage_key)) || null;
+      }
+      return null;
+    } catch (err) {
+      console.error('Upload error', err);
+      return null;
+    }
+  };
+
+  const handleSubmitQuote = async (values: { quoteAmount: string; personalizedMessage: string }) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const photoIds: string[] = [];
+      const filesToUpload = supportFiles.filter(Boolean) as File[];
+      for (const f of filesToUpload) {
+        const id = await uploadFileAndGetId(f);
+        if (id) photoIds.push(id);
+        else {
+          toast.error('Failed to upload an attachment');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      const videoIds: string[] = [];
+      if (videoFile) {
+        const vid = await uploadFileAndGetId(videoFile);
+        if (vid) videoIds.push(vid);
+        else {
+          toast.error('Failed to upload video');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      const numericAmount = parseFloat((values.quoteAmount || '').toString().replace(/[^0-9.\-]/g, '')) || 0;
+      const payload = {
+        servicesid: requestData?.id || params?.id,
+        provider_quote_amount: numericAmount,
+        offer_photoids: photoIds,
+        offer_videoids: videoIds,
+        description: values.personalizedMessage,
+      };
+
+      const submitRes = await apiPost<any>('quote_request/quoterequest', payload);
+      if (submitRes.success && submitRes.data) {
+        const message = submitRes.data?.message || (submitRes.data?.data && submitRes.data.data.message) || 'Quote sent successfully';
+        toast.success(message);
+        setIsModalOpen(true);
+      } else {
+        const errMsg = submitRes.error?.message || 'Failed to submit quote';
+        toast.error(errMsg);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const formik = useFormik({
+    initialValues: { quoteAmount: '', personalizedMessage: '' },
+    validationSchema: Yup.object({
+      quoteAmount: Yup.string()
+        .required('Quote amount is required')
+        .test('is-number', 'Enter a valid amount greater than 0', (val) => {
+          if (!val) return false;
+          const n = parseFloat(val.replace(/[^0-9.\-]/g, ''));
+          return !isNaN(n) && n > 0;
+        }),
+      personalizedMessage: Yup.string().max(1000, 'Message is too long'),
+    }),
+    onSubmit: handleSubmitQuote,
+  });
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -97,6 +306,18 @@ export default function RequestViewPage() {
     // router.push(ROUTES.PROFESSIONAL_EXPLORE_REQUESTS);
   };
 
+  // Auto-close the submitted modal after 2 seconds
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const t = setTimeout(() => {
+      setIsModalOpen(false);
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [isModalOpen]);
+
+
+
+  
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh", overflowX: "hidden" }}>
       {/* Main Content */}
@@ -194,7 +415,7 @@ export default function RequestViewPage() {
                     letterSpacing: 0,
                   }}
                 >
-                  {requestData.category}
+                    {requestData?.category || ""}
                 </Typography>
               </Box>
 
@@ -208,8 +429,8 @@ export default function RequestViewPage() {
                 }}
               >
                 <Image
-                  src={requestData.images[currentImageIndex]}
-                  alt={requestData.title}
+                  src={requestData?.images?.[currentImageIndex] || requestData?.images?.[0] || "/image/main.png"}
+                  alt={requestData?.title || "Service Image"}
                   fill
                   style={{ objectFit: "cover" }}
                 />
@@ -256,7 +477,7 @@ export default function RequestViewPage() {
 
             {/* Thumbnail Images */}
             <Box sx={{ display: "flex", gap: "1.25rem", mb: "1.5rem" }}>
-              {requestData.images.map((image, index) => (
+              {(requestData?.images || []).map((image: string, index: number) => (
                 <Box
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
@@ -286,173 +507,6 @@ export default function RequestViewPage() {
                   />
                 </Box>
               ))}
-            </Box>
-
-            {/* Exchange Product and Quantity */}
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "1.5rem",
-                mb: 4,
-              }}
-            >
-              {/* Exchange Product */}
-              <Box
-                sx={{
-                  border: "1px solid #E6E6E6",
-                  borderRadius: "0.75rem", // 12px
-                  p: "13px 16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                  bgcolor: "white",
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: "#555555",
-                    fontWeight: 500,
-                    fontSize: "1.125rem", // 18px
-                    lineHeight: "100%",
-                    letterSpacing: 0,
-                  }}
-                >
-                  Exchange Product
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "#0F232F",
-                    fontWeight: 800,
-                    fontSize: "1.6875rem", // 27px
-                    lineHeight: "2rem", // 32px
-                    letterSpacing: "0.03em",
-                    textAlign: "left",
-                  }}
-                >
-                  Shoes
-                </Typography>
-              </Box>
-
-              {/* Quantity */}
-              <Box
-                sx={{
-                  border: "1px solid #E6E6E6",
-                  borderRadius: "0.75rem",
-                  p: "13px 16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                  bgcolor: "white",
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: "#555555",
-                    fontWeight: 500,
-                    fontSize: "1.125rem", // 18px
-                    lineHeight: "100%",
-                    letterSpacing: 0,
-                  }}
-                >
-                  Quantity
-                </Typography>
-                <Typography
-                  sx={{
-                    color: "#0F232F",
-                    fontWeight: 800,
-                    fontSize: "1.6875rem", // 27px
-                    lineHeight: "2rem", // 32px
-                    letterSpacing: "0.03em",
-                    textAlign: "left",
-                  }}
-                >
-                  2 Units
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Product Images */}
-            <Box
-              sx={{
-                mb: 4,
-                border: "1px solid #E6E6E6",
-                borderRadius: "0.75rem", // 12px
-                pt: "13px",
-                pb: "13px",
-                pl: "16px",
-                pr: "16px",
-                bgcolor: "white",
-              }}
-            >
-              <Typography
-                sx={{
-                  color: "#555555",
-                  fontWeight: 500,
-                  fontSize: "1.125rem", // 18px
-                  lineHeight: "1", // 100%
-                  letterSpacing: 0,
-                  mb: 3,
-                }}
-              >
-                Product Images
-              </Typography>
-              <Box sx={{ display: "flex", gap: "12px" }}>
-                <Box
-                  sx={{
-                    position: "relative",
-                    flex: 1,
-                    height: "9rem",
-                    borderRadius: "0.5rem",
-                    overflow: "hidden",
-                    border: "1px solid #E6E6E6",
-                    bgcolor: "#FAFAFA",
-                    p: 0,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: "relative",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  >
-                    <Image
-                      src="/image/main.png"
-                      alt="Product 1"
-                      fill
-                      style={{ objectFit: "cover" }}
-                    />
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    position: "relative",
-                    flex: 1,
-                    height: "9rem",
-                    borderRadius: "0.5rem",
-                    overflow: "hidden",
-                    border: "1px solid #E6E6E6",
-                    bgcolor: "#FAFAFA",
-                    p: 0,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: "relative",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  >
-                    <Image
-                      src="/image/main.png"
-                      alt="Product 2"
-                      fill
-                      style={{ objectFit: "cover" }}
-                    />
-                  </Box>
-                </Box>
-              </Box>
             </Box>
 
             {/* Service Description */}
@@ -486,7 +540,7 @@ export default function RequestViewPage() {
                   textAlign: "justify",
                 }}
               >
-                {requestData.description}
+                {requestData?.description || ""}
               </Typography>
             </Box>
 
@@ -513,8 +567,8 @@ export default function RequestViewPage() {
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center", gap: "24px" }}>
                 <Avatar
-                  src={requestData.clientAvatar}
-                  alt={requestData.clientName}
+                  src={requestData?.clientAvatar || "/image/main.png"}
+                  alt={requestData?.clientName || "Client"}
                   sx={{ width: 48, height: 48 }}
                 />
                 <Typography
@@ -522,7 +576,7 @@ export default function RequestViewPage() {
                   fontWeight="600"
                   sx={{ color: "#1F2937" }}
                 >
-                  {requestData.clientName}
+                  {requestData?.clientName || ""}
                 </Typography>
               </Box>
             </Box>
@@ -553,7 +607,7 @@ export default function RequestViewPage() {
                   fontWeight="600"
                   sx={{ color: "#2F6B8E" }}
                 >
-                  {requestData.title}
+                  {requestData?.title || ""}
                 </Typography>
                 <Typography
                   sx={{
@@ -564,7 +618,7 @@ export default function RequestViewPage() {
                     letterSpacing: 0,
                   }}
                 >
-                  {requestData.timeAgo}
+                  {requestData?.timeAgo || `${requestData?.date || ""}${requestData?.time ? `, ${requestData.time}` : ""}`}
                 </Typography>
               </Box>
 
@@ -600,7 +654,7 @@ export default function RequestViewPage() {
                       letterSpacing: 0,
                     }}
                   >
-                    {requestData.serviceProvider}
+                    {requestData?.serviceProvider || ""}
                   </Typography>
                 </Box>
                 <Box
@@ -621,7 +675,7 @@ export default function RequestViewPage() {
                       letterSpacing: 0,
                     }}
                   >
-                    {requestData.date}
+                    {requestData?.date || ""}
                   </Typography>
                 </Box>
                 <Box
@@ -642,7 +696,7 @@ export default function RequestViewPage() {
                       letterSpacing: 0,
                     }}
                   >
-                    {requestData.time}
+                    {requestData?.time || ""}
                   </Typography>
                 </Box>
                 <Box
@@ -667,7 +721,7 @@ export default function RequestViewPage() {
                       letterSpacing: 0,
                     }}
                   >
-                    {requestData.location}
+                    {requestData?.location || ""}
                   </Typography>
                 </Box>
               </Box>
@@ -704,8 +758,9 @@ export default function RequestViewPage() {
                 <TextField
                   fullWidth
                   placeholder="€ 499.00"
-                  value={quoteAmount}
-                  onChange={(e) => setQuoteAmount(e.target.value)}
+                  {...formik.getFieldProps('quoteAmount')}
+                  error={Boolean(formik.touched.quoteAmount && formik.errors.quoteAmount)}
+                  helperText={formik.touched.quoteAmount && formik.errors.quoteAmount}
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       borderRadius: 2,
@@ -740,8 +795,15 @@ export default function RequestViewPage() {
                   multiline
                   rows={3}
                   placeholder="Enter description here..."
-                  value={personalizedMessage}
-                  onChange={(e) => setPersonalizedMessage(e.target.value)}
+                  {...formik.getFieldProps('personalizedMessage')}
+                  error={Boolean(
+                    formik.touched.personalizedMessage && formik.errors.personalizedMessage
+                  )}
+                  helperText={
+                    formik.touched.personalizedMessage && formik.errors.personalizedMessage
+                      ? String(formik.errors.personalizedMessage)
+                      : undefined
+                  }
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "0.75rem", // 12px
@@ -791,108 +853,293 @@ export default function RequestViewPage() {
                   gap: "10px",
                 }}
               >
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    sx={{
+                {/* First Upload Box */}
+                <Button
+                  variant="outlined"
+                  component="label"
+                  sx={{
                     flex: 1,
                     minWidth: { xs: "100%", sm: "calc(50% - 5px)" },
                     height: "144px",
-                    borderColor: "#D5D5D5",
-                      color: "#6B7280",
-                      textTransform: "none",
+                    borderColor: supportFiles[0] ? "#2F6B8E" : "#D5D5D5",
+                    color: "#6B7280",
+                    textTransform: "none",
                     py: "10px",
                     borderRadius: "12px",
-                      borderStyle: "dashed",
-                      "&:hover": {
+                    borderStyle: supportFiles[0] ? "solid" : "dashed",
+                    position: "relative",
+                    overflow: "hidden",
+                    p: 0,
+                    "&:hover": {
                       borderColor: "#214C65",
-                      bgcolor: "rgba(33, 76, 101, 0.04)",
-                      },
-                    }}
-                  >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "8px",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  >
-                    <Image
-                      src="/icons/folder-upload-line.png"
-                      alt="Upload"
-                      width={24}
-                      height={24}
-                    />
-                    <Typography
+                      bgcolor: supportFiles[0] ? "transparent" : "rgba(33, 76, 101, 0.04)",
+                    },
+                  }}
+                >
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleSupportFileChange(e, 0)}
+                  />
+                  {supportFiles[0] ? (
+                    supportFilePreviews[0] && supportFiles[0].type.startsWith("image/") ? (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                        }}
+                      >
+                        <Image
+                          src={supportFilePreviews[0]}
+                          alt="Preview"
+                          fill
+                          style={{ objectFit: "cover", borderRadius: "8px" }}
+                        />
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 8,
+                            left: 8,
+                            right: 8,
+                            bgcolor: "rgba(0,0,0,0.6)",
+                            borderRadius: 1,
+                            p: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            color="white"
+                            sx={{ fontSize: "0.75rem", textAlign: "center" }}
+                          >
+                            {supportFiles[0].name.length > 20
+                              ? `${supportFiles[0].name.substring(0, 20)}...`
+                              : supportFiles[0].name}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px",
+                          bgcolor: "#FBFBFB",
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <Box sx={{ position: "relative", mb: 0.5 }}>
+                          <Image
+                            src="/icons/folder-upload-line.png"
+                            alt="file uploaded"
+                            width={24}
+                            height={24}
+                          />
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "#2F6B8E",
+                            fontWeight: 300,
+                            fontSize: "0.75rem",
+                            lineHeight: "1",
+                            letterSpacing: 0,
+                            textAlign: "center",
+                            px: 1,
+                          }}
+                        >
+                          {supportFiles[0].name.length > 20
+                            ? `${supportFiles[0].name.substring(0, 20)}...`
+                            : supportFiles[0].name}
+                        </Typography>
+                      </Box>
+                    )
+                  ) : (
+                    <Box
                       sx={{
-                        color: "#818285",
-                        fontWeight: 300,
-                        fontSize: "0.75rem", // 12px
-                        lineHeight: "1", // 100%
-                        letterSpacing: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
+                        width: "100%",
+                        height: "100%",
                       }}
                     >
-                      upload from device
-                    </Typography>
+                      <Image
+                        src="/icons/folder-upload-line.png"
+                        alt="Upload"
+                        width={24}
+                        height={24}
+                      />
+                      <Typography
+                        sx={{
+                          color: "#818285",
+                          fontWeight: 300,
+                          fontSize: "0.75rem",
+                          lineHeight: "1",
+                          letterSpacing: 0,
+                        }}
+                      >
+                        upload from device
+                      </Typography>
                     </Box>
-                    <input type="file" hidden multiple accept="image/*,.pdf" />
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    sx={{
+                  )}
+                </Button>
+                
+                {/* Second Upload Box */}
+                <Button
+                  variant="outlined"
+                  component="label"
+                  sx={{
                     flex: 1,
                     minWidth: { xs: "100%", sm: "calc(50% - 5px)" },
                     height: "144px",
-                    borderColor: "#D5D5D5",
-                      color: "#6B7280",
-                      textTransform: "none",
+                    borderColor: supportFiles[1] ? "#2F6B8E" : "#D5D5D5",
+                    color: "#6B7280",
+                    textTransform: "none",
                     py: "10px",
                     borderRadius: "12px",
-                      borderStyle: "dashed",
-                      "&:hover": {
+                    borderStyle: supportFiles[1] ? "solid" : "dashed",
+                    position: "relative",
+                    overflow: "hidden",
+                    p: 0,
+                    "&:hover": {
                       borderColor: "#214C65",
-                      bgcolor: "rgba(33, 76, 101, 0.04)",
-                      },
-                    }}
-                  >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "8px",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  >
-                    <Image
-                      src="/icons/folder-upload-line.png"
-                      alt="Upload"
-                      width={24}
-                      height={24}
-                    />
-                    <Typography
+                      bgcolor: supportFiles[1] ? "transparent" : "rgba(33, 76, 101, 0.04)",
+                    },
+                  }}
+                >
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*,.pdf"
+                    onChange={(e) => handleSupportFileChange(e, 1)}
+                  />
+                  {supportFiles[1] ? (
+                    supportFilePreviews[1] && supportFiles[1].type.startsWith("image/") ? (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                        }}
+                      >
+                        <Image
+                          src={supportFilePreviews[1]}
+                          alt="Preview"
+                          fill
+                          style={{ objectFit: "cover", borderRadius: "8px" }}
+                        />
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 8,
+                            left: 8,
+                            right: 8,
+                            bgcolor: "rgba(0,0,0,0.6)",
+                            borderRadius: 1,
+                            p: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            color="white"
+                            sx={{ fontSize: "0.75rem", textAlign: "center" }}
+                          >
+                            {supportFiles[1].name.length > 20
+                              ? `${supportFiles[1].name.substring(0, 20)}...`
+                              : supportFiles[1].name}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px",
+                          bgcolor: "#FBFBFB",
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <Box sx={{ position: "relative", mb: 0.5 }}>
+                          <Image
+                            src="/icons/folder-upload-line.png"
+                            alt="file uploaded"
+                            width={24}
+                            height={24}
+                          />
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "#2F6B8E",
+                            fontWeight: 300,
+                            fontSize: "0.75rem",
+                            lineHeight: "1",
+                            letterSpacing: 0,
+                            textAlign: "center",
+                            px: 1,
+                          }}
+                        >
+                          {supportFiles[1].name.length > 20
+                            ? `${supportFiles[1].name.substring(0, 20)}...`
+                            : supportFiles[1].name}
+                        </Typography>
+                      </Box>
+                    )
+                  ) : (
+                    <Box
                       sx={{
-                        color: "#818285",
-                        fontWeight: 300,
-                        fontSize: "0.75rem", // 12px
-                        lineHeight: "1", // 100%
-                        letterSpacing: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
+                        width: "100%",
+                        height: "100%",
                       }}
                     >
-                      upload from device
-                    </Typography>
+                      <Image
+                        src="/icons/folder-upload-line.png"
+                        alt="Upload"
+                        width={24}
+                        height={24}
+                      />
+                      <Typography
+                        sx={{
+                          color: "#818285",
+                          fontWeight: 300,
+                          fontSize: "0.75rem",
+                          lineHeight: "1",
+                          letterSpacing: 0,
+                        }}
+                      >
+                        upload from device
+                      </Typography>
                     </Box>
-                    <input type="file" hidden multiple accept="image/*,.pdf" />
-                  </Button>
-                </Box>
+                  )}
+                </Button>
               </Box>
+            </Box>
 
               {/* Upload Video */}
               <Box sx={{ mb: 3 }}>
@@ -914,48 +1161,166 @@ export default function RequestViewPage() {
                   sx={{
                     width: "100%",
                     height: "144px",
-                    borderColor: "#D5D5D5",
+                    borderColor: videoFile ? "#2F6B8E" : "#D5D5D5",
                     color: "#6B7280",
                     textTransform: "none",
                     py: "10px",
                     borderRadius: "12px",
-                    borderStyle: "dashed",
+                    borderStyle: videoFile ? "solid" : "dashed",
+                    position: "relative",
+                    overflow: "hidden",
+                    p: 0,
                     "&:hover": {
                       borderColor: "#214C65",
-                      bgcolor: "rgba(33, 76, 101, 0.04)",
+                      bgcolor: videoFile ? "transparent" : "rgba(33, 76, 101, 0.04)",
                     },
                   }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "8px",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  >
-                    <Image
-                      src="/icons/folder-upload-line.png"
-                      alt="Upload Video"
-                      width={24}
-                      height={24}
-                    />
-                    <Typography
+                  <input type="file" hidden accept="video/*" onChange={handleVideoFileChange} />
+                  {videoFile ? (
+                    videoPreview && videoFile.type.startsWith("video/") ? (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                        }}
+                      >
+                        {/* Video preview with play button overlay */}
+                        <Box
+                          sx={{
+                            width: "100%",
+                            height: "100%",
+                            position: "relative",
+                            borderRadius: "8px",
+                            overflow: "hidden",
+                            bgcolor: "#000",
+                          }}
+                        >
+                          <video
+                            src={videoPreview}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
+                              width: 48,
+                              height: 48,
+                              borderRadius: "50%",
+                              bgcolor: "rgba(255, 255, 255, 0.8)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                            }}
+                          >
+                            <PlayArrowIcon sx={{ fontSize: 24 }} />
+                          </Box>
+                        </Box>
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 8,
+                            left: 8,
+                            right: 8,
+                            bgcolor: "rgba(0,0,0,0.6)",
+                            borderRadius: 1,
+                            p: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            color="white"
+                            sx={{ fontSize: "0.75rem", textAlign: "center" }}
+                          >
+                            {videoFile.name.length > 20
+                              ? `${videoFile.name.substring(0, 20)}...`
+                              : videoFile.name}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "8px",
+                          bgcolor: "#FBFBFB",
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <Box sx={{ position: "relative", mb: 0.5 }}>
+                          <Image
+                            src="/icons/folder-upload-line.png"
+                            alt="file uploaded"
+                            width={24}
+                            height={24}
+                          />
+                        </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "#2F6B8E",
+                            fontWeight: 300,
+                            fontSize: "0.75rem",
+                            lineHeight: "1",
+                            letterSpacing: 0,
+                            textAlign: "center",
+                            px: 1,
+                          }}
+                        >
+                          {videoFile.name.length > 20
+                            ? `${videoFile.name.substring(0, 20)}...`
+                            : videoFile.name}
+                        </Typography>
+                      </Box>
+                    )
+                  ) : (
+                    <Box
                       sx={{
-                        color: "#818285",
-                        fontWeight: 300,
-                        fontSize: "0.75rem", // 12px
-                        lineHeight: "1", // 100%
-                        letterSpacing: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
+                        width: "100%",
+                        height: "100%",
                       }}
                     >
-                      upload from device
-                    </Typography>
-                  </Box>
-                  <input type="file" hidden accept="video/*" />
+                      <Image
+                        src="/icons/folder-upload-line.png"
+                        alt="Upload Video"
+                        width={24}
+                        height={24}
+                      />
+                      <Typography
+                        sx={{
+                          color: "#818285",
+                          fontWeight: 300,
+                          fontSize: "0.75rem",
+                          lineHeight: "1",
+                          letterSpacing: 0,
+                        }}
+                      >
+                        upload from device
+                      </Typography>
+                    </Box>
+                  )}
                 </Button>
               </Box>
 
@@ -963,7 +1328,8 @@ export default function RequestViewPage() {
               <Button
                 variant="contained"
                 fullWidth
-                onClick={handleSubmitQuote}
+                onClick={() => formik.handleSubmit()}
+                disabled={isSubmitting || !formik.isValid}
                 sx={{
                   bgcolor: "#214C65",
                   color: "#FFFFFF",
@@ -979,7 +1345,7 @@ export default function RequestViewPage() {
                   },
                 }}
               >
-                Submit Quote
+                {isSubmitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Submit Quote'}
               </Button>
             </Box>
           </Box>
