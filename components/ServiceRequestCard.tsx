@@ -46,7 +46,7 @@ export default function ServiceRequestCard({
       onClick={handleCardClick}
       sx={{
         borderRadius: "1.25rem", // 20px
-        bgcolor: "#EAF0F33D",
+        bgcolor: "#EAF0F3",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -261,6 +261,10 @@ export default function ServiceRequestCard({
                 lineHeight: "1.125rem",
                 fontWeight: 500,
                 letterSpacing: "0rem",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth:"100%"
               }}
             >
               {location}

@@ -428,12 +428,14 @@ export default function RequestViewPage() {
                   bgcolor: "#F3F4F6",
                 }}
               >
-                <Image
-                  src={requestData?.images?.[currentImageIndex] || requestData?.images?.[0] || "/image/main.png"}
-                  alt={requestData?.title || "Service Image"}
-                  fill
-                  style={{ objectFit: "cover" }}
-                />
+                {(requestData?.images?.[currentImageIndex] || requestData?.images?.[0]) && (
+                  <Image
+                    src={requestData?.images?.[currentImageIndex] || requestData?.images?.[0]}
+                    alt={requestData?.title || "Service Image"}
+                    fill
+                    style={{ objectFit: "cover" }}
+                  />
+                )}
               </Box>
 
               {/* Navigation Arrows */}
