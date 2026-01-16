@@ -30,9 +30,10 @@ interface QuoteSentData {
 
 interface QuoteSentSectionProps {
   data: QuoteSentData;
+  setSelectedQuots:any;
 }
 
-export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
+export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSectionProps) {
   const router = useRouter();
 
   return (
@@ -40,7 +41,7 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
       {/* Back Button */}
       <Button
         startIcon={<ArrowBackIcon sx={{ color: "#424242" }} />}
-        onClick={() => router.push(ROUTES.PROFESSIONAL_EXPLORE_REQUESTS)}
+        onClick={() => setSelectedQuots(null)}
         sx={{
           color: "#214C65",
           fontWeight: 500,
@@ -153,7 +154,7 @@ export default function QuoteSentSection({ data }: QuoteSentSectionProps) {
                 gap: "1rem",
               }}
             >
-              {data.jobPhotos.map((photo, index) => (
+              {data?.jobPhotos?.map((photo, index) => (
                 <Box
                   key={index}
                   sx={{

@@ -46,9 +46,10 @@ interface AcceptedData {
 
 interface AcceptedSectionProps {
   data: AcceptedData;
+  setSelectedQuots: any;
 }
 
-export default function AcceptedSection({ data }: AcceptedSectionProps) {
+export default function AcceptedSection({ data,setSelectedQuots }: AcceptedSectionProps) {
   const router = useRouter();
   const [openLocationModal, setOpenLocationModal] = useState(false);
   const [locationShared, setLocationShared] = useState(false);
@@ -114,12 +115,13 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
     setServiceCompleted(true);
   };
 
+
   return (
     <Box>
       {/* Back Button */}
       <Button
         startIcon={<ArrowBackIcon sx={{ color: "#424242" }} />}
-        onClick={() => router.push(ROUTES.PROFESSIONAL_EXPLORE_REQUESTS)}
+        onClick={() => setSelectedQuots(null)}
         sx={{
           color: "#214C65",
           fontWeight: 500,
@@ -156,7 +158,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
             title={data.title}
             date={data.date}
             time={data.time}
-            serviceProvider="DIY Services"
+            serviceProvider={data.title || "Service"}
             location={data.location}
           />
 
@@ -630,7 +632,7 @@ export default function AcceptedSection({ data }: AcceptedSectionProps) {
                   letterSpacing: 0,
                 }}
               >
-                4517 Washington Ave. Manchester, Kentucky 39495
+                {data.location || "Address not available"}
               </Typography>
             </Box>
           </Box>

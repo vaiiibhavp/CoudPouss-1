@@ -3082,7 +3082,7 @@ export default function ProfessionalSignupPage() {
                 fullWidth
                 variant="text"
                 size="large"
-                onClick={() => setStep("additional-details")}
+                onClick={() => router.push("/professional/home")}
                 sx={{
                   color: "primary.dark",
                   bgcolor: "transparent",
