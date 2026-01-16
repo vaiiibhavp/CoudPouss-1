@@ -8,10 +8,10 @@ export const ROUTES = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   RESET_PASSWORD: '/reset-password',
-  
+
   // Professional Reset Password Route
   RESET_PASSWORD_PROFESSIONAL: '/reset-password-professional',
-  
+
   DASHBOARD: '/dashboard',
   PROFESSIONAL_DASHBOARD: '/professional/dashboard',
   PROFESSIONAL_HOME: '/professional/home',
@@ -19,6 +19,7 @@ export const ROUTES = {
   PROFESSIONAL_TASK_MANAGEMENT: '/professional/task-management',
   PROFESSIONAL_PROFILE: '/professional/profile',
   PROFESSIONAL_TRANSACTION_HISTORY: '/professional/profile/transaction-history',
+  PROFESSIONAL_CHAT: '/professional/chat',
   PROFILE: '/profile',
   MY_REQUESTS: '/my-requests',
   SERVICES: '/services',

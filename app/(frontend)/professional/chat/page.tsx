@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
+  Container,
   Typography,
   Avatar,
   Paper,
@@ -10,7 +11,12 @@ import {
   InputBase,
   useMediaQuery,
 } from "@mui/material";
+import MicIcon from "@mui/icons-material/Mic";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import SendIcon from "@mui/icons-material/Send";
+import SearchIcon from "@mui/icons-material/Search";
 import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -18,17 +24,14 @@ import { listenUsers } from "@/services/user.service";
 import theme from "@/lib/theme";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import {
+  buildThreadId,
+  ensureThreadDocument,
   sendTextMessage,
   subscribeToMessages,
   subscribeToThreads,
 } from "@/services/chatFirestore.service";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
-import { NoChatSelected } from "./components/NoChatSelected";
-import { formatTime } from "@/utils/utils";
-import { UserChat } from "./components/UserChat";
-import { ChatMessageItem } from "./components/ChatMessageItem ";
-import { GetUserApiResponse, ProviderInfo, UserData } from "./components/interfaces";
 
 interface Chat {
   id: string;
@@ -52,7 +55,47 @@ interface UIMessage {
   createdAt: string;
   photoURL?: string;
 }
+interface GetUserApiResponse {
+  status: string;
+  message: string;
+  data: {
+    user: UserData;
+    provider_info?: ProviderInfo;
+    past_work_files?: string[];
+  };
+}
+interface UserData {
+  id: string;
+  email: string;
+  phone_number: string;
+  password: string;
+  address: string;
+  longitude: number | null;
+  created_at: string;
+  lang: string;
+  first_name: string;
+  phone_country_code: string;
+  last_name: string;
+  role: string;
+  service_provider_type: string | null;
+  profile_photo_id: string | null;
+  profile_photo_url: string | null;
+  latitude: number | null;
+  is_deleted: boolean;
+  updated_at: string;
+}
 
+interface ProviderInfo {
+  id: string;
+  services_provider_id: string;
+  bio?: string;
+  experience_speciality?: string;
+  achievements?: string;
+  years_of_experience?: number;
+  is_docs_verified: boolean;
+  docs_status: string;
+  [key: string]: any;
+}
 export default function ChatPage() {
   const router = useRouter();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
@@ -81,6 +124,17 @@ export default function ChatPage() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const formatTime = (ts: any) => {
+    if (!ts) return "";
+    if (typeof ts === "string") return ts;
+    if (ts.toDate)
+      return ts.toDate().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    return "";
+  };
 
   const fetchUserData = useCallback(async () => {
     setLoading(true);
@@ -145,6 +199,9 @@ export default function ChatPage() {
     return activeChat.participantsMeta?.[otherUserId] || null;
   }, [activeChat, userData]);
 
+  // useEffect(() => {
+  //   seedUsers();
+  // }, []);
   useEffect(() => {
     if (!selectedChat || !userData) return;
 
@@ -175,7 +232,14 @@ export default function ChatPage() {
     return () => unsubscribe();
   }, [userData]);
 
+  // useEffect(() => {
+  //   if (!selectedChat && chatUsers.length > 0) {
+  //     setSelectedChat(chatUsers[0].id);
+  //   }
+  // }, [chatUsers, selectedChat]);
+
   const handleSendMessage = async () => {
+    // Use a regex to check if the message contains at least one non-whitespace character
     if (!messageInput.replace(/\s/g, "").length || !userData || !selectedChat)
       return;
 
@@ -197,6 +261,29 @@ export default function ChatPage() {
       console.error("Failed to send:", error);
       setMessageInput(textToSend); // Restore on error
     }
+  };
+
+  const handleStartChat = async (otherUser: any) => {
+    console.log("userData", userData);
+
+    if (!userData) return;
+
+    const threadId = buildThreadId(userData.id, otherUser.user_id);
+
+    await ensureThreadDocument(threadId, [
+      {
+        user_id: userData.id,
+        name: userData.first_name + " " + userData.last_name,
+        avatarUrl: userData.profile_photo_url || "",
+      },
+      {
+        user_id: otherUser.user_id,
+        name: otherUser.name,
+        avatarUrl: otherUser.avatarUrl,
+      },
+    ]);
+
+    setSelectedChat(threadId);
   };
 
   return (
@@ -359,13 +446,98 @@ export default function ChatPage() {
                     const otherUser = chat.participantsMeta?.[otherUserId];
                     const isActive = selectedChat === chat.id;
                     return (
-                      <UserChat
-                        chat={chat}
-                        setSelectedChat={setSelectedChat}
-                        isActive={isActive}
-                        userData={userData}
-                        otherUser={otherUser}
-                      />
+                      <Box
+                        key={chat.id}
+                        onClick={() => setSelectedChat(chat.id)}
+                        sx={{
+                          p: 2,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          cursor: "pointer",
+                          position: "relative", // For the active indicator
+                          bgcolor: isActive ? "grey.100" : "transparent",
+                          transition: "background-color 0.2s",
+                          "&:hover": {
+                            bgcolor: isActive ? "grey.100" : "grey.50",
+                          },
+                          "&::after": isActive
+                            ? {
+                                content: '""',
+                                position: "absolute",
+                                left: 0,
+                                top: "15%",
+                                height: "70%",
+                                width: "4px",
+                                bgcolor: "primary.main",
+                                borderRadius: "0 4px 4px 0",
+                              }
+                            : {},
+                        }}
+                      >
+                        <Avatar
+                          src={otherUser?.avatarUrl}
+                          sx={{ width: 48, height: 48 }} // Standard size
+                        >
+                          {otherUser?.name?.[0] || "?"}
+                        </Avatar>
+
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "baseline", // Better alignment for text and time
+                              mb: 0.5,
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight={isActive ? 700 : 600}
+                              noWrap
+                            >
+                              {otherUser?.name || "Unknown User"}
+                            </Typography>
+
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: isActive
+                                  ? "primary.main"
+                                  : "text.secondary",
+                                fontWeight: isActive ? 600 : 400,
+                                fontSize: "0.7rem",
+                              }}
+                            >
+                              {formatTime(chat.updatedAt)}
+                            </Typography>
+                          </Box>
+
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: isActive
+                                ? "text.primary"
+                                : "text.secondary",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              fontSize: "0.85rem",
+                              // If the user sent the last message, prefix it
+                              fontWeight:
+                                chat.lastMessageSenderId !== userData?.id &&
+                                isActive
+                                  ? 600
+                                  : 400,
+                            }}
+                          >
+                            {chat.lastMessageSenderId === userData?.id
+                              ? "You: "
+                              : ""}
+                            {chat.lastMessage || "No messages yet"}
+                          </Typography>
+                        </Box>
+                      </Box>
                     );
                   })
                 )}
@@ -430,7 +602,73 @@ export default function ChatPage() {
                     }}
                   >
                     {messages.map((message) => (
-                      <ChatMessageItem key={message.id} message={message} />
+                      <Box
+                        key={message.id}
+                        sx={{
+                          display: "flex",
+                          alignItems: "flex-end",
+                          gap: 1.5,
+                          flexDirection:
+                            message.sender === "user" ? "row-reverse" : "row",
+                        }}
+                      >
+                        <Avatar
+                          src={message.photoURL}
+                          sx={{ width: 36, height: 36 }}
+                        />
+
+                        <Box
+                          sx={{
+                            maxWidth: "70%",
+                            minWidth: 0,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems:
+                              message.sender === "user"
+                                ? "flex-end"
+                                : "flex-start",
+                          }}
+                        >
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 2,
+                              bgcolor:
+                                message.sender === "user"
+                                  ? "#F5F5F5"
+                                  : "#EAF0F3",
+                              color: "#0F232F",
+                              maxWidth: "100%",
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
+                            }}
+                          >
+                            <Typography variant="body2" fontSize={16}>
+                              {message.text}
+                            </Typography>
+
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                mt: 0.5,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: "text.secondary",
+                                  fontSize: "0.75rem",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {formatTime(message.createdAt)}
+                              </Typography>
+                            </Box>
+                          </Paper>
+                        </Box>
+                      </Box>
                     ))}
                   </Box>
 
@@ -522,3 +760,47 @@ export default function ChatPage() {
     </Box>
   );
 }
+
+const NoChatSelected = () => (
+  <Box
+    sx={{
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      bgcolor: "#F8F9FA", // Light neutral background
+      textAlign: "center",
+      p: 3,
+    }}
+  >
+    <Box
+      sx={{
+        width: 120,
+        height: 120,
+        bgcolor: "primary.light",
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        mb: 2,
+        opacity: 0.8,
+      }}
+    >
+      <Image
+        src="/icons/sendMsg.png"
+        width={60}
+        height={60}
+        alt="Select Chat"
+        style={{ opacity: 0.5 }}
+      />
+    </Box>
+    <Typography variant="h5" fontWeight={600} gutterBottom>
+      Your Messages
+    </Typography>
+    <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 300 }}>
+      Select a conversation from the left to start chatting or view your
+      history.
+    </Typography>
+  </Box>
+);

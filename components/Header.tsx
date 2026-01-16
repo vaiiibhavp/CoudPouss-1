@@ -201,8 +201,10 @@ export default function Header({
 
       setUserDetailsLoading(true);
       try {
-        const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
-        
+        const response = await apiGet<GetUserApiResponse>(
+          API_ENDPOINTS.AUTH.GET_USER
+        );
+
         if (response.success && response.data) {
           const apiData = response.data;
           if (apiData.data?.user) {
@@ -439,7 +441,7 @@ export default function Header({
         elevation={0}
         sx={{
           bgcolor: "white",
-          zoom:0.9,
+          zoom: 0.9,
           borderBottom: "0.0625rem solid #DFE8ED",
         }}
       >
@@ -564,7 +566,7 @@ export default function Header({
                           : "text.secondary",
                       textTransform: "none",
                       display: { xs: "none", lg: "block" },
-                      
+
                       borderColor: "primary.main",
                       borderRadius: 0,
 
@@ -741,96 +743,95 @@ export default function Header({
 
               {!isProfessionalDashboard && (
                 <>
-                
-              <Box
-                onMouseEnter={handleServicesMenuOpen}
-                onMouseLeave={handleServicesButtonMouseLeave}
-                sx={{ display: "inline-block" }}
-              >
-                <Button
-                  // endIcon={<ExpandMoreIcon />}
-                  sx={{
-                    color: "text.secondary",
-                    textTransform: "none",
-                    padding: 0,
-                    paddingLeft: "2.5rem",
-                    textWrap: "nowrap",
-
-                    display: {
-                      xs: "none",
-                      lg: "flex",
-                      fontSize: "1rem",
-                      lineHeight: "1.125rem",
-                    },
-                    "&:hover": {
-                      bgcolor: "transparent",
-                      color: "primary.main",
-                    },
-                  }}
-                >
-                  Explore Services
-                </Button>
-                <Menu
-                  anchorEl={servicesMenuAnchor}
-                  open={Boolean(servicesMenuAnchor)}
-                  onClose={handleServicesMenuClose}
-                  MenuListProps={{
-                    onMouseLeave: handleServicesMenuMouseLeave,
-                    onMouseEnter: handleServicesMenuMouseEnter,
-                  }}
-                  PaperProps={{
-                    onMouseEnter: handleServicesMenuMouseEnter,
-                    onMouseLeave: handleServicesMenuMouseLeave,
-                    sx: {
-                      mt: 1.5,
-                      minWidth: 400,
-                      maxWidth: 500,
-                      borderRadius: 2,
-                      boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
-                      px: "2rem",
-                      py: "1.25rem",
-                      pointerEvents: "auto",
-                    },
-                  }}
-                  transformOrigin={{ horizontal: "left", vertical: "top" }}
-                  anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-                  disableAutoFocusItem
-                  disableEnforceFocus
-                >
-                  <Box>
-                    <Typography
+                  <Box
+                    onMouseEnter={handleServicesMenuOpen}
+                    onMouseLeave={handleServicesButtonMouseLeave}
+                    sx={{ display: "inline-block" }}
+                  >
+                    <Button
+                      // endIcon={<ExpandMoreIcon />}
                       sx={{
-                        color: "#555555",
-                        lineHeight: "1.125rem",
-                        mb: 2,
-                        fontSize: "1rem",
-                        fontWeight: 600,
+                        color: "text.secondary",
+                        textTransform: "none",
+                        padding: 0,
+                        paddingLeft: "2.5rem",
+                        textWrap: "nowrap",
+
+                        display: {
+                          xs: "none",
+                          lg: "flex",
+                          fontSize: "1rem",
+                          lineHeight: "1.125rem",
+                        },
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          color: "primary.main",
+                        },
                       }}
                     >
                       Explore Services
-                    </Typography>
-                    {servicesLoading ? (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          py: 4,
-                        }}
-                      >
-                        <Typography sx={{ color: "text.secondary" }}>
-                          Loading services...
+                    </Button>
+                    <Menu
+                      anchorEl={servicesMenuAnchor}
+                      open={Boolean(servicesMenuAnchor)}
+                      onClose={handleServicesMenuClose}
+                      MenuListProps={{
+                        onMouseLeave: handleServicesMenuMouseLeave,
+                        onMouseEnter: handleServicesMenuMouseEnter,
+                      }}
+                      PaperProps={{
+                        onMouseEnter: handleServicesMenuMouseEnter,
+                        onMouseLeave: handleServicesMenuMouseLeave,
+                        sx: {
+                          mt: 1.5,
+                          minWidth: 400,
+                          maxWidth: 500,
+                          borderRadius: 2,
+                          boxShadow: "0 0.25rem 1.25rem rgba(0,0,0,0.15)",
+                          px: "2rem",
+                          py: "1.25rem",
+                          pointerEvents: "auto",
+                        },
+                      }}
+                      transformOrigin={{ horizontal: "left", vertical: "top" }}
+                      anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
+                      disableAutoFocusItem
+                      disableEnforceFocus
+                    >
+                      <Box>
+                        <Typography
+                          sx={{
+                            color: "#555555",
+                            lineHeight: "1.125rem",
+                            mb: 2,
+                            fontSize: "1rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Explore Services
                         </Typography>
-                      </Box>
-                    ) : services.length > 0 ? (
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(2, 1fr)",
-                          gap: 2,
-                        }}
-                      >
-                        {/* {services.map((service) => {
+                        {servicesLoading ? (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              py: 4,
+                            }}
+                          >
+                            <Typography sx={{ color: "text.secondary" }}>
+                              Loading services...
+                            </Typography>
+                          </Box>
+                        ) : services.length > 0 ? (
+                          <Box
+                            sx={{
+                              display: "grid",
+                              gridTemplateColumns: "repeat(2, 1fr)",
+                              gap: 2,
+                            }}
+                          >
+                            {/* {services.map((service) => {
                           const { route, icon } = getServiceRouteAndIcon(
                             service.name
                           );
@@ -907,74 +908,96 @@ export default function Header({
                           );
                         })} */}
 
-                        <Box sx={{ cursor: "pointer" }}>
-                          <Image src="/image/HomeServiceBox.png" alt="services" width={183} height={158} />
-                        </Box>
-                        <Box sx={{ cursor: "pointer" }}>
-                          <Image src="/image/TransportSercviceBox.png" alt="services" width={183} height={158} />
-                        </Box>
-                        <Box sx={{ cursor: "pointer" }}>
-                          <Image src="/image/personalServiceBox.png" alt="services" width={183} height={158} />
-                        </Box>
-                        <Box sx={{ cursor: "pointer" }}>
-                          <Image src="/image/techSupportBox.png" alt="services" width={183} height={158} />
-                        </Box>
+                            <Box sx={{ cursor: "pointer" }}>
+                              <Image
+                                src="/image/HomeServiceBox.png"
+                                alt="services"
+                                width={183}
+                                height={158}
+                              />
+                            </Box>
+                            <Box sx={{ cursor: "pointer" }}>
+                              <Image
+                                src="/image/TransportSercviceBox.png"
+                                alt="services"
+                                width={183}
+                                height={158}
+                              />
+                            </Box>
+                            <Box sx={{ cursor: "pointer" }}>
+                              <Image
+                                src="/image/personalServiceBox.png"
+                                alt="services"
+                                width={183}
+                                height={158}
+                              />
+                            </Box>
+                            <Box sx={{ cursor: "pointer" }}>
+                              <Image
+                                src="/image/techSupportBox.png"
+                                alt="services"
+                                width={183}
+                                height={158}
+                              />
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              py: 4,
+                            }}
+                          >
+                            <Typography sx={{ color: "text.secondary" }}>
+                              No services available
+                            </Typography>
+                          </Box>
+                        )}
                       </Box>
-                    ) : (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          py: 4,
-                        }}
-                      >
-                        <Typography sx={{ color: "text.secondary" }}>
-                          No services available
-                        </Typography>
-                      </Box>
-                    )}
+                    </Menu>
                   </Box>
-                </Menu>
-              </Box>
 
-              <Box
-                sx={{
-                  py:"14px",
-                  bgColor:"red",
-                  marginLeft: "40px",
-                  borderBottom:
-                    pathname === ROUTES.MY_REQUESTS ? "0.125rem solid #2C6587 " : "none",
-                }}
-              >
-                <Button
-                  component={Link}
-                  href={ROUTES.MY_REQUESTS}
-                  sx={{
-                    p: 0,
+                  <Box
+                    sx={{
+                      py: "14px",
+                      bgColor: "red",
+                      marginLeft: "40px",
+                      borderBottom:
+                        pathname === ROUTES.MY_REQUESTS
+                          ? "0.125rem solid #2C6587 "
+                          : "none",
+                    }}
+                  >
+                    <Button
+                      component={Link}
+                      href={ROUTES.MY_REQUESTS}
+                      sx={{
+                        p: 0,
 
-                    textWrap: "nowrap",
-                    fontSize: "1rem",
-                    lineHeight: "20px",
-                    color:
-                      pathname === ROUTES.MY_REQUESTS
-                        ? "#2C6587"
-                        : "#555555",
-                    textTransform: "none",
-                    display: { xs: "none", lg: "block" },
+                        textWrap: "nowrap",
+                        fontSize: "1rem",
+                        lineHeight: "20px",
+                        color:
+                          pathname === ROUTES.MY_REQUESTS
+                            ? "#2C6587"
+                            : "#555555",
+                        textTransform: "none",
+                        display: { xs: "none", lg: "block" },
 
-                    borderColor: "primary.main",
-                    borderRadius: 0,
-                    "&:hover": {
-                      bgcolor: "transparent",
-                    },
-                  }}
-                >
-                  My Requests
-                </Button>
-              </Box>
-              </>
-               )} 
+                        borderColor: "primary.main",
+                        borderRadius: 0,
+                        "&:hover": {
+                          bgcolor: "transparent",
+                        },
+                      }}
+                    >
+                      My Requests
+                    </Button>
+                  </Box>
+                </>
+              )}
             </Box>
 
             {/* Action Buttons */}
@@ -1502,7 +1525,11 @@ export default function Header({
                   </Menu>
                   <IconButton
                     component={Link}
-                    href={ROUTES.CHAT}
+                    href={
+                      isProfessionalDashboard
+                        ? ROUTES.PROFESSIONAL_CHAT
+                        : ROUTES.CHAT
+                    }
                     sx={{
                       color: "text.secondary",
                       "&:hover": {
@@ -1546,10 +1573,12 @@ export default function Header({
                           fill
                           style={{ objectFit: "cover" }}
                         />
+                      ) : userDetails ? (
+                        `${userDetails.first_name?.[0] || ""}${
+                          userDetails.last_name?.[0] || ""
+                        }`.toUpperCase() || user?.initial
                       ) : (
-                        userDetails
-                          ? `${userDetails.first_name?.[0] || ""}${userDetails.last_name?.[0] || ""}`.toUpperCase() || user?.initial
-                          : user?.initial
+                        user?.initial
                       )}
                     </Box>
                     <IconButton
@@ -1597,7 +1626,9 @@ export default function Header({
                         }}
                       >
                         {userDetails
-                          ? `${userDetails.first_name || ""} ${userDetails.last_name || ""}`.trim() || "User"
+                          ? `${userDetails.first_name || ""} ${
+                              userDetails.last_name || ""
+                            }`.trim() || "User"
                           : "User"}
                       </Typography>
                       <Button
@@ -1624,40 +1655,41 @@ export default function Header({
                         View my profile
                       </Button>
 
-                      {isAccountUnderVerification && 
-                       (userDetails?.role === "service_provider" || userRole === "service_provider") && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: "0.5rem",
-                            padding: "0.75rem",
-                            borderRadius: "0.75rem",
-                            border: "0.5px solid #2C6587",
-                            mb: "0.875rem",
-                          }}
-                        >
-                          <Image
-                            src={"/icons/headerWarning.png"}
-                            alt="warning"
-                            width={42}
-                            height={42}
-                          />
-                          <Typography
+                      {isAccountUnderVerification &&
+                        (userDetails?.role === "service_provider" ||
+                          userRole === "service_provider") && (
+                          <Box
                             sx={{
-                              color: "#214C65",
-                              fontWeight: 700,
-                              fontSize: "1rem",
-                              lineHeight: "1.125rem",
-                              letterSpacing: 0,
-                              textAlign: "center",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              padding: "0.75rem",
+                              borderRadius: "0.75rem",
+                              border: "0.5px solid #2C6587",
+                              mb: "0.875rem",
                             }}
                           >
-                            Account under verification
-                          </Typography>
-                        </Box>
-                      )}
+                            <Image
+                              src={"/icons/headerWarning.png"}
+                              alt="warning"
+                              width={42}
+                              height={42}
+                            />
+                            <Typography
+                              sx={{
+                                color: "#214C65",
+                                fontWeight: 700,
+                                fontSize: "1rem",
+                                lineHeight: "1.125rem",
+                                letterSpacing: 0,
+                                textAlign: "center",
+                              }}
+                            >
+                              Account under verification
+                            </Typography>
+                          </Box>
+                        )}
                       <Divider color={"#E7E7E7"} />
 
                       {/* Menu Items */}
@@ -1670,7 +1702,8 @@ export default function Header({
                           marginTop: "0.9rem",
                         }}
                       >
-                        {(userDetails?.role === "service_provider" || userRole === "service_provider") ? (
+                        {userDetails?.role === "service_provider" ||
+                        userRole === "service_provider" ? (
                           <>
                             <Button
                               component={Link}
