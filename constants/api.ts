@@ -28,7 +28,7 @@ export const API_ENDPOINTS = {
     DELETE_PROFILE: `${API_BASE_URL}userService/auth/delete-profile`,
     SAVE_SERVICES: `${API_BASE_URL}userService/auth/services`,
   },
-  HOME:{
+  HOME: {
     HOME: `${API_BASE_URL}home_module/home`,
     ALL_CATEGORIES: `${API_BASE_URL}home_module/all_categories`,
     ALL_BANNERS: `${API_BASE_URL}home_module/all_banners`,
@@ -59,7 +59,12 @@ export const API_ENDPOINTS = {
     GET_SERVICE_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/get_service`,
     OPEN_SERVICES: `${API_BASE_URL}quote_request/open-services`,
   },
-    QOUTE_REQUEST: {
+  CANCEL_SERVICE: {
+    GET_CANCEL_DETAILS: (serviceId: string) => `${API_BASE_URL}service_request/service-info/${serviceId}`,
+    CANCEL_REQUEST: (serviceId: string) => `${API_BASE_URL}service_request/cancel/${serviceId}`,
+    CANCEL_REQUEST_BREAKDOWN: (serviceId: string) => `${API_BASE_URL}service_request/get-payment/${serviceId}`
+  },
+  QOUTE_REQUEST: {
     GET_ALL_QOUTES: `${API_BASE_URL}quote_accept/service-provider/quotes`,
   },
 } as const;

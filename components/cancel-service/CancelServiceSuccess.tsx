@@ -1,7 +1,36 @@
+import { formatDate, formatTime } from "@/utils/utils";
 import { Box, Typography } from "@mui/material";
 import Image from "next/image";
 
-export const CancelServiceSuccess = () => {
+export interface ServiceDetail {
+  service_id: string;
+  category_info: {
+    category_id: string;
+    category_name: {
+      name: string;
+      logo_url: string;
+    };
+  };
+  subcategory_info: {
+    sub_category_id: string;
+    sub_category_name: {
+      name: string;
+      img_url: string;
+    };
+  };
+  date: string; // ISO date (YYYY-MM-DD)
+  time: string; // HH:mm
+  location: string;
+}
+interface ServiceDetailInfo {
+  service?: ServiceDetail;
+}
+export const CancelServiceSuccess = ({ service }: ServiceDetailInfo) => {
+  console.log("service", service);
+
+  if (!service) return null;
+  const { category_info, subcategory_info, date, location, service_id, time } =
+    service;
   return (
     <Box
       width={"100%"}
@@ -19,7 +48,7 @@ export const CancelServiceSuccess = () => {
         fontSize={{ xs: 14, sm: 18 }}
         textAlign={"left"}
       >
-        Furniture Assembly
+        {subcategory_info.sub_category_name.name}
       </Typography>
       <Box
         sx={{
@@ -71,7 +100,7 @@ export const CancelServiceSuccess = () => {
               fontWeight: 400,
             }}
           >
-            16 Aug, 2025
+            {formatDate(date)}
           </Typography>
         </Box>
 
@@ -107,7 +136,7 @@ export const CancelServiceSuccess = () => {
               fontWeight: 400,
             }}
           >
-            10:00 am
+            {formatTime(time)}
           </Typography>
         </Box>
 
@@ -143,7 +172,7 @@ export const CancelServiceSuccess = () => {
               fontWeight: 400,
             }}
           >
-            DIY Services
+            {category_info.category_name.name}
           </Typography>
         </Box>
 
@@ -152,6 +181,7 @@ export const CancelServiceSuccess = () => {
             display: "flex",
             alignItems: "center",
             gap: { xs: 0.75, sm: 1 },
+            minWidth: 0,
           }}
         >
           <Image
@@ -177,9 +207,14 @@ export const CancelServiceSuccess = () => {
               letterSpacing: "0%",
               color: "#2C6587",
               fontWeight: 400,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              minWidth: 0,
             }}
+            title={location} // tooltip on hover (desktop)
           >
-            Paris, 75001
+            {location}
           </Typography>
         </Box>
       </Box>

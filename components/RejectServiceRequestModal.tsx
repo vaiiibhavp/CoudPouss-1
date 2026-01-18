@@ -14,17 +14,86 @@ import { CancelServiceConfirmation } from "./cancel-service/CancelServiceConfirm
 import { CancellationPaymentSummary } from "./cancel-service/CancellationPaymentSummary";
 import { CancelServiceSuccess } from "./cancel-service/CancelServiceSuccess";
 import CloseIcon from "@mui/icons-material/Close";
+import { apiGet, apiPost } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 interface RejectServiceRequestModalProps {
   open: boolean;
   onClose: () => void;
   onReject: (reason: string) => void;
+  serviceId: string;
+  onCancelSuccess: () => void;
 }
 
-const REASONS = [
-  "Price higher than competitors",
-  "Late response",
-  "Rejected for another reason",
-];
+export interface ServiceDetail {
+  service_id: string;
+  category_info: {
+    category_id: string;
+    category_name: {
+      name: string;
+      logo_url: string;
+    };
+  };
+  subcategory_info: {
+    sub_category_id: string;
+    sub_category_name: {
+      name: string;
+      img_url: string;
+    };
+  };
+  date: string; // ISO date (YYYY-MM-DD)
+  time: string; // HH:mm
+  location: string;
+}
+export interface CancellationBreakdown {
+  service_id: string;
+  cancellation_allowed: boolean;
+  is_within_48_hours: boolean;
+  is_professional: boolean;
+  hours_before_service: number;
+  service_fee: number;
+  total_amount: number;
+  total_refund: number;
+}
+const ActionButton = ({
+  variant,
+  onClick,
+  children,
+  colorType = "primary",
+  disabled = false,
+}: {
+  variant: "contained" | "outlined";
+  onClick: () => void;
+  children: React.ReactNode;
+  colorType?: "primary" | "danger";
+  disabled: boolean;
+}) => (
+  <Button
+    variant={variant}
+    fullWidth
+    onClick={onClick}
+    disabled={disabled}
+    sx={{
+      borderRadius: "0.75rem",
+      textTransform: "none",
+      fontWeight: colorType === "danger" ? 700 : 500,
+      fontSize: { xs: 16, sm: 19 },
+      padding: "0.625rem",
+      gap: "0.625rem",
+      ...(variant === "contained" && {
+        bgcolor: "#214C65",
+        "&:hover": { bgcolor: "#214C65", opacity: 0.9 },
+      }),
+      ...(colorType === "danger" && {
+        borderColor: "#C62828",
+        color: "#C62828",
+        "&:hover": { borderColor: "#C62828" },
+      }),
+    }}
+  >
+    {children}
+  </Button>
+);
+
 const ServiceHeaders = {
   1: "Are you sure you want to cancel your scheduled service with the expert?",
   2: "Are you sure you want to cancel your scheduled service with the expert?",
@@ -49,34 +118,100 @@ export default function RejectServiceRequestModal({
   open,
   onClose,
   onReject,
+  serviceId,
+  onCancelSuccess,
 }: RejectServiceRequestModalProps) {
   const [step, setStep] = useState<Step>(1);
+  const [service, setService] = useState<ServiceDetail>();
+  const [serviceBreakdown, setServiceBreakdown] =
+    useState<CancellationBreakdown>();
+  const [isCancelling, setIsCancelling] = useState(false);
 
+  useEffect(() => {
+    if (serviceId && open) {
+      const fetchData = async () => {
+        try {
+          const [details, breakdown] = await Promise.all([
+            apiGet<ServiceDetail>(
+              API_ENDPOINTS.CANCEL_SERVICE.GET_CANCEL_DETAILS(serviceId),
+            ),
+            apiGet<CancellationBreakdown>(
+              API_ENDPOINTS.CANCEL_SERVICE.CANCEL_REQUEST_BREAKDOWN(serviceId),
+            ),
+          ]);
+          if (details.success) setService(details.data);
+          if (breakdown.success) setServiceBreakdown(breakdown.data);
+        } catch (error) {
+          console.error("Fetch Error:", error);
+        }
+      };
+      fetchData();
+    }
+  }, [serviceId, open]);
 
-  const handleReject = () => {
-    // onReject();
-    onClose();
+  const cancelService = async () => {
+    if (isCancelling) return;
+    setIsCancelling(true);
+
+    try {
+      const response = await apiPost(
+        API_ENDPOINTS.CANCEL_SERVICE.CANCEL_REQUEST(serviceId),
+      );
+
+      if (response.success) {
+        setStep(4);
+        onCancelSuccess();
+      } else {
+        console.error("Cancel failed:");
+      }
+    } catch (error) {
+      console.error("Cancel API error:", error);
+    } finally {
+      setIsCancelling(false);
+    }
   };
+
   useEffect(() => {
     if (!open) {
       setStep(1);
+      setService(undefined);
+      setServiceBreakdown(undefined);
     }
   }, [open]);
-  const handleStep = () => {
+
+  const nextStep = async () => {
     if (step === 1) {
       setStep(2);
-    } else if (step === 2) {
-      // setStep(3);
-      setStep(4);
-    } else if (step === 3) {
-      setStep(4);
+      return;
+    }
+
+    if (step === 2) {
+      if (!serviceBreakdown) return;
+
+      if (serviceBreakdown.cancellation_allowed === false) {
+        setStep(3);
+        return;
+      }
+
+      await cancelService();
     }
   };
+
+  const prevStep = () =>
+    setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
+  const handleClose = useCallback(() => {
+    onClose();
+    setTimeout(() => {
+      setStep(1);
+      setService(undefined);
+      setServiceBreakdown(undefined);
+    }, 300); // Reset after transition
+  }, [onClose]);
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth={false}
       PaperProps={{
         sx: {
@@ -127,7 +262,7 @@ export default function RejectServiceRequestModal({
                 zIndex: 1,
               }}
             >
-              <IconButton sx={{ p: 0.5 }} onClick={onClose}>
+              <IconButton sx={{ p: 0.5 }} onClick={handleClose}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Box>
@@ -176,11 +311,13 @@ export default function RejectServiceRequestModal({
             </Typography>
           )}
           {step === 1 && <CancelServiceConfirmation />}
-          {step === 2 && <CancellationPaymentSummary />}
+          {step === 2 && (
+            <CancellationPaymentSummary serviceBreakdown={serviceBreakdown} />
+          )}
           {step === 4 && (
             <>
-              <CancelServiceSuccess />
-              <CancellationPaymentSummary />
+              <CancelServiceSuccess service={service} />
+              <CancellationPaymentSummary serviceBreakdown={serviceBreakdown} />
             </>
           )}
           <Box
@@ -193,67 +330,31 @@ export default function RejectServiceRequestModal({
           >
             {(step === 1 || step === 2) && (
               <>
-                <Button
+                <ActionButton
                   variant="contained"
-                  fullWidth
-                  onClick={onClose}
-                  sx={{
-                    borderRadius: "0.75rem",
-                    textTransform: "none",
-                    fontWeight: 500,
-                    fontSize: { xs: 16, sm: 19 },
-                    padding: "0.625rem",
-                    gap: "0.625rem",
-                    bgcolor: "#214C65",
-                    "&:hover": {
-                      bgcolor: "#214C65",
-                      opacity: 0.9,
-                    },
-                  }}
+                  onClick={handleClose}
+                  disabled={false}
                 >
                   Keep Booking
-                </Button>
-                <Button
+                </ActionButton>
+                <ActionButton
                   variant="outlined"
-                  fullWidth
-                  onClick={handleStep}
-                  sx={{
-                    borderRadius: "0.75rem",
-                    textTransform: "none",
-                    fontWeight: 700,
-                    padding: "0.625rem",
-                    fontSize: { xs: 16, sm: 19 },
-                    border: "0.0625rem solid",
-                    borderColor: "#C62828",
-                    color: "#C62828",
-                    gap: "0.625rem",
-                  }}
+                  colorType="danger"
+                  onClick={nextStep}
+                  disabled={isCancelling || (step === 2 && !serviceBreakdown)}
                 >
                   Confirm Cancellation
-                </Button>
+                </ActionButton>
               </>
             )}
-            {step == 3 && (
-              <Button
+            {step === 3 && (
+              <ActionButton
                 variant="contained"
-                fullWidth
-                onClick={() => setStep(2)}
-                sx={{
-                  borderRadius: "0.75rem",
-                  textTransform: "none",
-                  fontSize: { xs: 16, sm: 19 },
-                  fontWeight: 500,
-                  padding: "0.625rem",
-                  gap: "0.625rem",
-                  bgcolor: "#214C65",
-                  "&:hover": {
-                    bgcolor: "#214C65",
-                    opacity: 0.9,
-                  },
-                }}
+                onClick={prevStep}
+                disabled={false}
               >
                 Back
-              </Button>
+              </ActionButton>
             )}
           </Box>
         </Box>

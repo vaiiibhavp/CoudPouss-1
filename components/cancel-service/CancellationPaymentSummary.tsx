@@ -1,6 +1,29 @@
 import { Box, Typography } from "@mui/material";
 
-export const CancellationPaymentSummary = () => {
+export interface CancellationBreakdown {
+  service_id: string;
+
+  cancellation_allowed: boolean;
+  is_within_48_hours: boolean;
+  is_professional: boolean;
+
+  hours_before_service: number;
+
+  service_fee: number;
+  total_amount: number;
+  total_refund: number;
+}
+interface CancellationPaymentSummaryProps {
+  serviceBreakdown?: CancellationBreakdown;
+}
+
+export const CancellationPaymentSummary = ({
+  serviceBreakdown,
+}: CancellationPaymentSummaryProps) => {
+  if (!serviceBreakdown) return null;
+
+  const { total_amount, service_fee, total_refund, is_within_48_hours } =
+    serviceBreakdown;
   return (
     <>
       <Box
@@ -43,7 +66,7 @@ export const CancellationPaymentSummary = () => {
               fontSize={{ xs: 12, sm: 14 }}
               sx={{ color: "#595959" }}
             >
-              €499
+              €{total_amount.toFixed(2)}
             </Typography>
           </Box>
           <Box
@@ -74,7 +97,7 @@ export const CancellationPaymentSummary = () => {
               fontSize={{ xs: 12, sm: 14 }}
               sx={{ color: "#595959" }}
             >
-              €49.00
+              €{service_fee.toFixed(2)}
             </Typography>
           </Box>
         </Box>
@@ -110,20 +133,22 @@ export const CancellationPaymentSummary = () => {
             fontWeight={600}
             sx={{ color: "#2C6587" }}
           >
-            €450.00
+            €{total_refund.toFixed(2)}
           </Typography>
         </Box>
       </Box>
       <Box width={"100%"}>
-        <Typography
-          fontSize={{ xs: 10, sm: 12 }}
-          fontWeight={400}
-          sx={{ color: "#555555" }}
-        >
-          This cancellation is happening less than 48 hours before the scheduled
-          service time. According to policy, your payment will not be fully
-          refunded. A 5% service fee will also be charged.
-        </Typography>
+        {is_within_48_hours && (
+          <Typography
+            fontSize={{ xs: 10, sm: 12 }}
+            fontWeight={400}
+            sx={{ color: "#555555" }}
+          >
+            This cancellation is happening less than 48 hours before the
+            scheduled service time. According to policy, your payment will not
+            be fully refunded. A 5% service fee will also be charged.
+          </Typography>
+        )}
       </Box>
     </>
   );
