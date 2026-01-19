@@ -1,3 +1,5 @@
+import { PhoneNumberUtil } from "google-libphonenumber";
+
 export const formatTime = (ts: any) => {
     if (!ts) return "";
     if (typeof ts === "string") return ts;
@@ -50,4 +52,30 @@ export const formatDisplayNumber = (
         minimumFractionDigits: showDecimals ? decimalPoints : 0,
         maximumFractionDigits: showDecimals ? decimalPoints : 0,
     }).format(num);
+};
+
+
+const phoneUtil = PhoneNumberUtil.getInstance();
+
+export const normalizePhone = (phone: string) => {
+  try {
+    const parsed = phoneUtil.parse(phone);
+
+    const countryCode = parsed.getCountryCode();
+    const nationalNumber = parsed.getNationalNumber();
+
+    if (!countryCode || !nationalNumber) {
+      throw new Error("Invalid phone number");
+    }
+
+    return {
+      phone_country_code: `+${countryCode}`,
+      mobile: nationalNumber.toString(),
+    };
+  } catch {
+    return {
+      phone_country_code: "",
+      mobile: "",
+    };
+  }
 };

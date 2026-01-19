@@ -32,12 +32,16 @@ import ResponseCache from "next/dist/server/response-cache";
 import { API_ENDPOINTS } from "@/constants/api";
 import PhoneInputWrapper from "@/components/PhoneInputWrapper";
 import CountrySelectDropdown from "@/components/CountrySelectDropdown";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { createOrUpdateUser } from "@/services/chatFirestore.service";
+import { normalizePhone } from "@/utils/utils";
 
 type SignupStep =
-| "select-profile"
-| "enter-contact"
-| "verify-otp"
-| "create-password"
+  | "select-profile"
+  | "enter-contact"
+  | "verify-otp"
+  | "create-password"
   | "add-details";
 type UserType = "elderly_user" | "professional" | null;
 
@@ -67,7 +71,7 @@ const enterContactSchema = Yup.object().shape({
       (value) => {
         if (!value) return false;
         return isValidEmailOrMobile(value);
-      }
+      },
     ),
 });
 
@@ -93,7 +97,7 @@ const createPasswordSchema = Yup.object().shape({
         if (!/[a-z]/.test(value)) return false;
         if (!/[0-9]/.test(value)) return false;
         return true;
-      }
+      },
     ),
   confirmPassword: Yup.string()
     .required("Please confirm your password")
@@ -137,6 +141,7 @@ export default function SignupPage() {
     profilePicture: null as File | null,
     profilePicturePreview: "",
   });
+
   const [phoneError, setPhoneError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -146,8 +151,8 @@ export default function SignupPage() {
   const [otpCountdown, setOtpCountdown] = useState(0);
   // Phone mode and error tracking states
   const [isPhoneMode, setIsPhoneMode] = useState(false);
-  const [phoneCountryCode, setPhoneCountryCode] = useState('+1');
-  const [countryCode, setCountryCode] = useState('us');
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+1");
+  const [countryCode, setCountryCode] = useState("us");
   const [hasTypedAfterError, setHasTypedAfterError] = useState(false);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
 
@@ -165,8 +170,11 @@ export default function SignupPage() {
         // If in phone mode, prepend country code before building input data
         let finalEmailOrMobile = formData.emailOrMobile.trim();
         if (isPhoneMode && phoneCountryCode && finalEmailOrMobile) {
-          if (finalEmailOrMobile.startsWith('+')) {
-            const cleanedNumber = finalEmailOrMobile.replace(/^\+\d{1,4}\s*/, '');
+          if (finalEmailOrMobile.startsWith("+")) {
+            const cleanedNumber = finalEmailOrMobile.replace(
+              /^\+\d{1,4}\s*/,
+              "",
+            );
             finalEmailOrMobile = `${phoneCountryCode}${cleanedNumber}`;
           } else {
             finalEmailOrMobile = `${phoneCountryCode}${finalEmailOrMobile}`;
@@ -175,24 +183,28 @@ export default function SignupPage() {
         const validData = buildInputData(finalEmailOrMobile);
         setFormData((prev) => {
           const updates: any = {};
-          
+
           // Only populate email if it's not already set
           if (validData.email && !prev.email) {
             updates.email = validData.email;
           }
-          
+
           // Only populate mobile if it's not already set
-          if (validData.mobile && validData.phone_country_code && !prev.mobileNo) {
+          if (
+            validData.mobile &&
+            validData.phone_country_code &&
+            !prev.mobileNo
+          ) {
             // Format: country code + mobile number (e.g., "+1234567890")
             updates.mobileNo = `${validData.phone_country_code}${validData.mobile}`;
             updates.phoneCountryCode = validData.phone_country_code;
           }
-          
+
           // Only update if there are changes
           if (Object.keys(updates).length > 0) {
             return { ...prev, ...updates };
           }
-          
+
           return prev;
         });
       } catch (error) {
@@ -242,7 +254,7 @@ export default function SignupPage() {
 
   const handleOtpKeyDown = (
     index: number,
-    e: React.KeyboardEvent<HTMLDivElement>
+    e: React.KeyboardEvent<HTMLDivElement>,
   ) => {
     if (e.key === "Backspace" && !formData.otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
@@ -291,7 +303,7 @@ export default function SignupPage() {
       if (data && !error) {
         setStep("verify-otp");
       } else if (error) {
-        console.log("error", {error});
+        console.log("error", { error });
         const errorMsg =
           error.submit ||
           error.otp ||
@@ -342,7 +354,7 @@ export default function SignupPage() {
       if (data && !error) {
         // Show success toast if status is success
         if (data?.status === "success") {
-          const successMsg = data?.message ;
+          const successMsg = data?.message;
           toast.success(successMsg);
         }
         setStep("create-password");
@@ -413,7 +425,11 @@ export default function SignupPage() {
         toast.success("OTP has been resent successfully");
         setOtpCountdown(60); // Restart countdown
       } else if (error) {
-        const errorMsg = error.message || error.msg || error.general || "Failed to resend OTP. Please try again.";
+        const errorMsg =
+          error.message ||
+          error.msg ||
+          error.general ||
+          "Failed to resend OTP. Please try again.";
         toast.error(errorMsg);
       }
     } catch (error: any) {
@@ -425,10 +441,8 @@ export default function SignupPage() {
   };
 
   const apiCallToSignUpUser = async (
-    submit: string
+    submit: string,
   ): Promise<SignUpApiResponse> => {
-
-
     try {
       let payload = {};
       let url = "";
@@ -436,13 +450,19 @@ export default function SignupPage() {
 
       // Only call buildInputData for steps that use emailOrMobile
       // Skip it only for "add-details" step when submitting final form
-      if (!(step === "add-details" && submit === "submit") && formData.emailOrMobile) {
+      if (
+        !(step === "add-details" && submit === "submit") &&
+        formData.emailOrMobile
+      ) {
         try {
           // If in phone mode, prepend country code before building input data
           let finalEmailOrMobile = formData.emailOrMobile.trim();
           if (isPhoneMode && phoneCountryCode && finalEmailOrMobile) {
-            if (finalEmailOrMobile.startsWith('+')) {
-              const cleanedNumber = finalEmailOrMobile.replace(/^\+\d{1,4}\s*/, '');
+            if (finalEmailOrMobile.startsWith("+")) {
+              const cleanedNumber = finalEmailOrMobile.replace(
+                /^\+\d{1,4}\s*/,
+                "",
+              );
               finalEmailOrMobile = `${phoneCountryCode}${cleanedNumber}`;
             } else {
               finalEmailOrMobile = `${phoneCountryCode}${finalEmailOrMobile}`;
@@ -452,7 +472,9 @@ export default function SignupPage() {
         } catch (error: any) {
           return {
             data: null,
-            error: { general: error.message || "Invalid email or mobile input" },
+            error: {
+              general: error.message || "Invalid email or mobile input",
+            },
           };
         }
       }
@@ -533,14 +555,17 @@ export default function SignupPage() {
             mobile = mobileData.mobile;
           }
         }
-
+        const phoneData = normalizePhone(formData.mobileNo);
         payload = {
           email: formData.email || "",
           address: formData.address,
           name: formData.name,
-          role: userType,
-          mobile: mobile || "",
-          phone_country_code: phoneCountryCode || "",
+          // role: userType,
+          role: "elderly_user",
+          // mobile: mobile || "",
+          // phone_country_code: phoneCountryCode || "",
+          mobile: phoneData.mobile,
+          phone_country_code: phoneData.phone_country_code,
         };
       }
 
@@ -560,9 +585,9 @@ export default function SignupPage() {
       }
 
       let response = await apiPost(url, payload);
+      console.log("payload", payload);
 
-
-      console.log({response},"this is the response")
+      // console.log({ response }, "this is the response");
 
       // API response structure can be:
       // 1. HTTP 200 with { status: "error", message: "...", data: { is_otp_verified: true, ... } }
@@ -604,13 +629,11 @@ export default function SignupPage() {
           };
         } else if (step === "verify-otp") {
           errorObj = { otp: response.error.message || "Something went wrong." };
-        }
-         else if (step === "create-password") {
+        } else if (step === "create-password") {
           errorObj = {
             password: response.error.message || "Something went wrong.",
           };
-        }
-         else if (step === "add-details") {
+        } else if (step === "add-details") {
           errorObj = {
             message: response.error.message || "Something went wrong.",
           };
@@ -659,60 +682,87 @@ export default function SignupPage() {
     setLoading(true);
     try {
       let { data, error } = await apiCallToSignUpUser("submit");
-      
+
       // Check if response is successful with tokens
       if (data && data.status === "success" && data.data) {
         const responseData = data.data;
-        
+        const userData = responseData.user_data || {};
+        const firebaseCred = await createUserWithEmailAndPassword(
+          auth,
+          userData.email,
+          formData.password, // the password user entered
+        );
+
+        const firebaseUser = firebaseCred.user;
+
+        // 2️⃣ Create Firestore user (NOW SAFE)
+        await createOrUpdateUser({
+          userId: firebaseUser.uid,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          avatarUrl: "",
+        });
+
         // Extract tokens and user data
         const accessToken = responseData.access_token;
         const refreshToken = responseData.refresh_token;
         const accessTokenExpire = responseData.access_token_expire;
         const refreshTokenExpire = responseData.refresh_token_expire;
-        const userData = responseData.user_data || {};
-        
+
         // Store tokens in cookies and localStorage (similar to login flow)
         if (typeof window !== "undefined") {
           // Store refresh token in cookie (7 days expiry)
-          document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${7*24*60*60}`;
-          
+          document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${
+            7 * 24 * 60 * 60
+          }`;
+
           // Store access token in localStorage
           localStorage.setItem("token", accessToken);
-          
+
           // Store user data in localStorage
           localStorage.setItem("userEmail", userData.email || "");
-          localStorage.setItem("userInitial", (userData.name?.charAt(0) || "U").toUpperCase());
+          localStorage.setItem(
+            "userInitial",
+            (userData.name?.charAt(0) || "U").toUpperCase(),
+          );
           localStorage.setItem("role", userData.role || "");
         }
-        
+
         // Update Redux state with tokens and user data (so API calls work immediately)
         const user = {
           email: userData.email || "",
           initial: (userData.name?.charAt(0) || "U").toUpperCase(),
           role: userData.role || "",
         };
-        
-        dispatch(setTokens({
-          accessToken,
-          refreshToken,
-          accessTokenExpire,
-          refreshTokenExpire,
-          user,
-        }));
-        
+
+        dispatch(
+          setTokens({
+            accessToken,
+            refreshToken,
+            accessTokenExpire,
+            refreshTokenExpire,
+            user,
+          }),
+        );
+
         // Show success toast
         toast.success("Account created success");
-        
+
         // Redirect to home page
         router.push(ROUTES.AUTH_HOME);
       } else if (data && data.status === "success") {
         // If status is success but no data structure, still show success
-        toast.success("Account created success"); 
+        toast.success("Account created success");
         router.push(ROUTES.AUTH_HOME);
       } else {
         // Handle errors
         if (error) {
-          const errorMsg = error.general || error.msg || error.message || "Something Went Wrong";
+          const errorMsg =
+            error.general ||
+            error.msg ||
+            error.message ||
+            "Something Went Wrong";
           toast.error(errorMsg);
           if (errorMsg.includes("Name is required")) {
             setErrors({ name: errorMsg });
@@ -745,29 +795,35 @@ export default function SignupPage() {
       // If in phone mode, prepend country code before building input data
       let finalEmailOrMobile = formData.emailOrMobile.trim();
       if (isPhoneMode && phoneCountryCode && finalEmailOrMobile) {
-        if (finalEmailOrMobile.startsWith('+')) {
-          const cleanedNumber = finalEmailOrMobile.replace(/^\+\d{1,4}\s*/, '');
+        if (finalEmailOrMobile.startsWith("+")) {
+          const cleanedNumber = finalEmailOrMobile.replace(/^\+\d{1,4}\s*/, "");
           finalEmailOrMobile = `${phoneCountryCode}${cleanedNumber}`;
         } else {
           finalEmailOrMobile = `${phoneCountryCode}${finalEmailOrMobile}`;
         }
       }
       const validData = buildInputData(finalEmailOrMobile);
-      
+
       // Create FormData for file upload
       const formDataPayload = new FormData();
-      
+
       if (validData.email) {
         formDataPayload.append("email", validData.email || "");
       } else {
         formDataPayload.append("mobile", validData.mobile || "");
-        formDataPayload.append("phone_country_code", validData.phone_country_code || "");
+        formDataPayload.append(
+          "phone_country_code",
+          validData.phone_country_code || "",
+        );
       }
-      
+
       // Append the file - use the file parameter directly, not formData.profilePicture
       formDataPayload.append("file", file);
 
-      const response: ProfilePhotoApi = await apiPostFormData(url, formDataPayload);
+      const response: ProfilePhotoApi = await apiPostFormData(
+        url,
+        formDataPayload,
+      );
       if (response?.error?.message) {
         toast.error(response.error.message);
         return;
@@ -912,18 +968,20 @@ export default function SignupPage() {
               setFieldValue,
             }) => {
               // Clear error when user starts typing
-              const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+              const handleFieldChange = (
+                e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+              ) => {
                 let newValue = e.target.value;
-                
+
                 // Mark that user has started typing after error
                 if (apiErrorMessage && !hasTypedAfterError) {
                   setHasTypedAfterError(true);
                   setApiErrorMessage(null);
                 }
-                
+
                 // First, check if this looks like an email - if so, skip phone mode entirely
-                const looksLikeEmail = newValue.includes('@');
-                
+                const looksLikeEmail = newValue.includes("@");
+
                 // If it's an email, just use regular email handling
                 if (looksLikeEmail) {
                   // Exit phone mode if we're in it
@@ -938,28 +996,34 @@ export default function SignupPage() {
                   }));
                   return; // Exit early for email input
                 }
-                
+
                 // Helper function to extract number from value (handles country code prefix)
                 const extractNumber = (value: string): string => {
                   if (phoneCountryCode) {
                     const codePrefix = `${phoneCountryCode} `;
                     if (value.startsWith(codePrefix)) {
-                      return value.substring(codePrefix.length).replace(/\D/g, '');
+                      return value
+                        .substring(codePrefix.length)
+                        .replace(/\D/g, "");
                     } else if (value.startsWith(phoneCountryCode)) {
-                      return value.substring(phoneCountryCode.length).replace(/\D/g, '');
+                      return value
+                        .substring(phoneCountryCode.length)
+                        .replace(/\D/g, "");
                     }
                   }
                   // Try to detect any country code pattern (+ followed by 1-4 digits)
                   const countryCodeMatch = value.match(/^\+(\d{1,4})\s*/);
                   if (countryCodeMatch) {
-                    return value.substring(countryCodeMatch[0].length).replace(/\D/g, '');
+                    return value
+                      .substring(countryCodeMatch[0].length)
+                      .replace(/\D/g, "");
                   }
                   // No country code, just extract digits
-                  return value.replace(/\D/g, '');
+                  return value.replace(/\D/g, "");
                 };
-                
+
                 // If already in phone mode, extract the number part first
-                let cleanedNumber = '';
+                let cleanedNumber = "";
                 if (isPhoneMode && phoneCountryCode) {
                   cleanedNumber = extractNumber(newValue);
                 } else {
@@ -976,41 +1040,41 @@ export default function SignupPage() {
                     return; // Exit early for non-phone input
                   }
                 }
-                
+
                 // Check if we should switch to phone mode or stay in phone mode
                 const shouldBePhoneMode = cleanedNumber.length >= 3;
-                
+
                 // If switching to phone mode, activate it
                 if (shouldBePhoneMode && !isPhoneMode) {
                   setIsPhoneMode(true);
                 }
-                
+
                 // If exiting phone mode (was in phone mode but now shouldn't be)
                 if (!shouldBePhoneMode && isPhoneMode) {
                   setIsPhoneMode(false);
-                  setFieldValue('emailOrMobile', '', false);
+                  setFieldValue("emailOrMobile", "", false);
                   setFormData((prev) => ({
                     ...prev,
-                    emailOrMobile: '',
+                    emailOrMobile: "",
                   }));
                   return; // Exit early to avoid processing further
                 }
-                
+
                 // If in phone mode or entering phone mode, handle phone number
                 if (shouldBePhoneMode && (isPhoneMode || phoneCountryCode)) {
                   const numberToStore = cleanedNumber;
-                  setFieldValue('emailOrMobile', numberToStore, false);
+                  setFieldValue("emailOrMobile", numberToStore, false);
                   setFormData((prev) => ({
                     ...prev,
                     emailOrMobile: numberToStore,
                   }));
                 } else if (!shouldBePhoneMode) {
                   // Not in phone mode - handle as regular email/text input
-                  if (newValue.startsWith('+')) {
-                    setFieldValue('emailOrMobile', '', false);
+                  if (newValue.startsWith("+")) {
+                    setFieldValue("emailOrMobile", "", false);
                     setFormData((prev) => ({
                       ...prev,
-                      emailOrMobile: '',
+                      emailOrMobile: "",
                     }));
                   } else {
                     handleChange(e);
@@ -1021,152 +1085,186 @@ export default function SignupPage() {
                   }
                 }
               };
-              
+
               // Get display value for phone mode (show country code + number)
               const getDisplayValue = () => {
                 if (isPhoneMode && phoneCountryCode && values.emailOrMobile) {
                   return `${phoneCountryCode} ${values.emailOrMobile}`;
                 }
-                return values.emailOrMobile || '';
+                return values.emailOrMobile || "";
               };
-              
-              // Determine if field should show error border (API error and user hasn't typed yet)
-              const showApiErrorBorder = !!apiErrorMessage && !hasTypedAfterError;
-              const displayErrorMessage = apiErrorMessage || 'Please enter valid email/mobile number and password';
-              
-              return (
-              <Form>
-                <Typography
-                  sx={{
-                    fontWeight: `700`,
-                    fontSize: { xs: `1.25rem`, sm: `1.375rem`, md: `1.5rem` },
-                    color: `primary.normal`,
-                    mb: { xs: "0.5rem", md: "0.75rem" },
-                    lineHeight: { xs: "1.5rem", md: "1.75rem" },
-                    textAlign: "center",
-                  }}
-                >
-                  Welcome To CoudPouss!
-                </Typography>
-                <Typography
-                  sx={{
-                    fontWeight: 400,
-                    fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
-                    textAlign: "center",
-                    lineHeight: "140%",
-                    mb: { xs: "2rem", md: "2.5rem" },
-                    color: "secondary.neutralWhiteDark",
-                  }}
-                >
-                  Empowering seniors with easy access to trusted help, care, and
-                  companionship whenever needed.
-                </Typography>
 
-                <Typography
-                  sx={{
-                    fontWeight: 500,
-                    fontSize: { xs: "0.9375rem", md: "1.0625rem" },
-                    lineHeight: "1.25rem",
-                    color: "#424242",
-                    mb: "0.5rem",
-                  }}
-                >
-                  Email / Mobile No
-                </Typography>
-                <Box sx={{ display: "flex", gap: "10px", alignItems: "flex-start", mb: 3 }}>
-                  {/* Conditionally render country code selector */}
-                  {isPhoneMode && (
-                    <Box sx={{ width: "auto", flexShrink: 0 }}>
-                      <CountrySelectDropdown
-                        value={countryCode}
-                        onChange={(newCountryCode, dialCode) => {
-                          setCountryCode(newCountryCode);
-                          setPhoneCountryCode(`+${dialCode}`);
-                        }}
-                        error={!!(touched.emailOrMobile && formikErrors.emailOrMobile) || showApiErrorBorder}
-                        defaultCountry="us"
-                        preferredCountries={["in", "us"]}
-                      />
-                    </Box>
-                  )}
-                  <Box sx={{ flex: 1 }}>
-                    <Field name="emailOrMobile">
-                      {({ field, meta }: FieldProps) => (
-                        <TextField
-                          name={field.name}
-                          value={getDisplayValue()}
-                          sx={{
-                            m: 0,
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": {
-                                borderColor: showApiErrorBorder ? "#ef4444" : undefined,
-                              },
-                              "&:hover fieldset": {
-                                borderColor: showApiErrorBorder ? "#ef4444" : undefined,
-                              },
-                              "&.Mui-focused fieldset": {
-                                borderColor: showApiErrorBorder ? "#ef4444" : undefined,
-                              },
-                            },
-                            "& .MuiFormHelperText-root": {
-                              fontWeight: 400,
-                              fontSize: "16px",
-                              lineHeight: "140%",
-                              letterSpacing: "0%",
-                              color: "#EF5350",
-                              marginTop: "12px !important",
-                              marginLeft: "0 !important",
-                              marginRight: "0 !important",
-                              marginBottom: "0 !important",
-                            },
+              // Determine if field should show error border (API error and user hasn't typed yet)
+              const showApiErrorBorder =
+                !!apiErrorMessage && !hasTypedAfterError;
+              const displayErrorMessage =
+                apiErrorMessage ||
+                "Please enter valid email/mobile number and password";
+
+              return (
+                <Form>
+                  <Typography
+                    sx={{
+                      fontWeight: `700`,
+                      fontSize: { xs: `1.25rem`, sm: `1.375rem`, md: `1.5rem` },
+                      color: `primary.normal`,
+                      mb: { xs: "0.5rem", md: "0.75rem" },
+                      lineHeight: { xs: "1.5rem", md: "1.75rem" },
+                      textAlign: "center",
+                    }}
+                  >
+                    Welcome To CoudPouss!
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: { xs: "0.875rem", sm: "0.9375rem", md: "1rem" },
+                      textAlign: "center",
+                      lineHeight: "140%",
+                      mb: { xs: "2rem", md: "2.5rem" },
+                      color: "secondary.neutralWhiteDark",
+                    }}
+                  >
+                    Empowering seniors with easy access to trusted help, care,
+                    and companionship whenever needed.
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: { xs: "0.9375rem", md: "1.0625rem" },
+                      lineHeight: "1.25rem",
+                      color: "#424242",
+                      mb: "0.5rem",
+                    }}
+                  >
+                    Email / Mobile No
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: "10px",
+                      alignItems: "flex-start",
+                      mb: 3,
+                    }}
+                  >
+                    {/* Conditionally render country code selector */}
+                    {isPhoneMode && (
+                      <Box sx={{ width: "auto", flexShrink: 0 }}>
+                        <CountrySelectDropdown
+                          value={countryCode}
+                          onChange={(newCountryCode, dialCode) => {
+                            setCountryCode(newCountryCode);
+                            setPhoneCountryCode(`+${dialCode}`);
                           }}
-                          fullWidth
-                          placeholder={isPhoneMode ? "Enter Mobile No" : "Enter Email/ Mobile No"}
-                          onChange={handleFieldChange}
-                          onBlur={handleBlur}
-                          error={!!(meta.touched && meta.error) || showApiErrorBorder}
-                          helperText={meta.touched && meta.error ? meta.error : (showApiErrorBorder && displayErrorMessage ? displayErrorMessage : '')}
-                          margin="normal"
-                          type={isPhoneMode ? "tel" : "text"}
-                          inputProps={{
-                            pattern: undefined,
-                            inputMode: isPhoneMode ? "numeric" : "text",
-                            maxLength: isPhoneMode ? 20 : undefined,
-                          }}
-                          FormHelperTextProps={{
-                            sx: {
-                              marginTop: "12px",
-                              marginLeft: 0,
-                              marginRight: 0,
-                              marginBottom: 0,
-                            },
-                          }}
+                          error={
+                            !!(
+                              touched.emailOrMobile &&
+                              formikErrors.emailOrMobile
+                            ) || showApiErrorBorder
+                          }
+                          defaultCountry="us"
+                          preferredCountries={["in", "us"]}
                         />
-                      )}
-                    </Field>
+                      </Box>
+                    )}
+                    <Box sx={{ flex: 1 }}>
+                      <Field name="emailOrMobile">
+                        {({ field, meta }: FieldProps) => (
+                          <TextField
+                            name={field.name}
+                            value={getDisplayValue()}
+                            sx={{
+                              m: 0,
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": {
+                                  borderColor: showApiErrorBorder
+                                    ? "#ef4444"
+                                    : undefined,
+                                },
+                                "&:hover fieldset": {
+                                  borderColor: showApiErrorBorder
+                                    ? "#ef4444"
+                                    : undefined,
+                                },
+                                "&.Mui-focused fieldset": {
+                                  borderColor: showApiErrorBorder
+                                    ? "#ef4444"
+                                    : undefined,
+                                },
+                              },
+                              "& .MuiFormHelperText-root": {
+                                fontWeight: 400,
+                                fontSize: "16px",
+                                lineHeight: "140%",
+                                letterSpacing: "0%",
+                                color: "#EF5350",
+                                marginTop: "12px !important",
+                                marginLeft: "0 !important",
+                                marginRight: "0 !important",
+                                marginBottom: "0 !important",
+                              },
+                            }}
+                            fullWidth
+                            placeholder={
+                              isPhoneMode
+                                ? "Enter Mobile No"
+                                : "Enter Email/ Mobile No"
+                            }
+                            onChange={handleFieldChange}
+                            onBlur={handleBlur}
+                            error={
+                              !!(meta.touched && meta.error) ||
+                              showApiErrorBorder
+                            }
+                            helperText={
+                              meta.touched && meta.error
+                                ? meta.error
+                                : showApiErrorBorder && displayErrorMessage
+                                  ? displayErrorMessage
+                                  : ""
+                            }
+                            margin="normal"
+                            type={isPhoneMode ? "tel" : "text"}
+                            inputProps={{
+                              pattern: undefined,
+                              inputMode: isPhoneMode ? "numeric" : "text",
+                              maxLength: isPhoneMode ? 20 : undefined,
+                            }}
+                            FormHelperTextProps={{
+                              sx: {
+                                marginTop: "12px",
+                                marginLeft: 0,
+                                marginRight: 0,
+                                marginBottom: 0,
+                              },
+                            }}
+                          />
+                        )}
+                      </Field>
+                    </Box>
                   </Box>
-                </Box>
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  disabled={loading}
-                  sx={{
-                    bgcolor: "primary.dark",
-                    color: "white",
-                    py: { xs: 1.25, md: 1.5 },
-                    textTransform: "none",
-                    fontWeight: 700,
-                    fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
-                    "&:hover": {
-                      bgcolor: "#25608A",
-                    },
-                  }}
-                >
-                  Continue
-                </Button>
-              </Form>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    disabled={loading}
+                    sx={{
+                      bgcolor: "primary.dark",
+                      color: "white",
+                      py: { xs: 1.25, md: 1.5 },
+                      textTransform: "none",
+                      fontWeight: 700,
+                      fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
+                      "&:hover": {
+                        bgcolor: "#25608A",
+                      },
+                    }}
+                  >
+                    Continue
+                  </Button>
+                </Form>
               );
             }}
           </Formik>
@@ -1174,9 +1272,11 @@ export default function SignupPage() {
 
       case "verify-otp":
         return (
-          <Box  sx={{
-            px: { xs: 0, md: 4 }
-          }} >
+          <Box
+            sx={{
+              px: { xs: 0, md: 4 },
+            }}
+          >
             <Typography
               sx={{
                 fontWeight: `700`,
@@ -1187,7 +1287,7 @@ export default function SignupPage() {
                 textAlign: "center",
               }}
             >
-               CoudPouss
+              CoudPouss
             </Typography>
             <Typography
               sx={{
@@ -1237,7 +1337,7 @@ export default function SignupPage() {
               }) => {
                 const handleOtpChangeFormik = (
                   index: number,
-                  value: string
+                  value: string,
                 ) => {
                   // Only allow numeric digits (0-9)
                   const numericValue = value.replace(/[^0-9]/g, "");
@@ -1250,7 +1350,7 @@ export default function SignupPage() {
                   // Auto-focus next input
                   if (numericValue && index < 3) {
                     const nextInput = document.getElementById(
-                      `otp-${index + 1}`
+                      `otp-${index + 1}`,
                     );
                     nextInput?.focus();
                   }
@@ -1258,7 +1358,7 @@ export default function SignupPage() {
 
                 const handleOtpKeyDownFormik = (
                   index: number,
-                  e: React.KeyboardEvent<HTMLDivElement>
+                  e: React.KeyboardEvent<HTMLDivElement>,
                 ) => {
                   if (
                     e.key === "Backspace" &&
@@ -1266,14 +1366,14 @@ export default function SignupPage() {
                     index > 0
                   ) {
                     const prevInput = document.getElementById(
-                      `otp-${index - 1}`
+                      `otp-${index - 1}`,
                     );
                     prevInput?.focus();
                   }
                 };
 
                 return (
-                  <Form  >
+                  <Form>
                     <Typography
                       sx={{
                         fontSize: { xs: "16px", md: "18px" },
@@ -1282,7 +1382,6 @@ export default function SignupPage() {
                         color: "#555555",
                         margin: "0 auto",
                         mb: { xs: 1.5, md: 2 },
-                        
                       }}
                     >
                       Code
@@ -1293,7 +1392,7 @@ export default function SignupPage() {
                         gap: "20px",
                         justifyContent: "space-between",
 
-                      margin: "0 auto",
+                        margin: "0 auto",
                         mb: formikErrors.otp && submitCount > 0 ? 1 : 2,
                       }}
                     >
@@ -1320,14 +1419,24 @@ export default function SignupPage() {
                           InputProps={{
                             sx: {
                               "& input": {
-                                fontSize: { xs: "1.125rem", sm: "1.25rem", md: "1.5rem" },
+                                fontSize: {
+                                  xs: "1.125rem",
+                                  sm: "1.25rem",
+                                  md: "1.5rem",
+                                },
                               },
                             },
                           }}
                           sx={{
-                            borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
+                            borderColor:
+                              formikErrors.otp && submitCount > 0
+                                ? "#EF5350"
+                                : "",
                             "& .MuiOutlinedInput-root": {
-                              borderColor: formikErrors.otp && submitCount > 0 ? "#EF5350" : "",
+                              borderColor:
+                                formikErrors.otp && submitCount > 0
+                                  ? "#EF5350"
+                                  : "",
                               width: "100%",
                               borderRadius: "12px",
                             },
@@ -1366,7 +1475,12 @@ export default function SignupPage() {
                         Resend code in {otpCountdown} seconds
                       </Typography>
                     ) : (
-                      <Box sx={{ textAlign: "center", mb: { xs: 2, md: "2.5rem" } }}>
+                      <Box
+                        sx={{
+                          textAlign: "center",
+                          mb: { xs: 2, md: "2.5rem" },
+                        }}
+                      >
                         <Typography
                           onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                             e.preventDefault();
@@ -1402,7 +1516,11 @@ export default function SignupPage() {
                         py: { xs: 1.25, md: 1.5 },
                         textTransform: "none",
                         fontWeight: 700,
-                        fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
+                        fontSize: {
+                          xs: "1rem",
+                          sm: "1.125rem",
+                          md: "1.1875rem",
+                        },
                         "&:hover": {
                           bgcolor: "#25608A",
                         },
@@ -1420,10 +1538,9 @@ export default function SignupPage() {
       case "create-password":
         return (
           <Box
-          
-          sx={{
-            px: { xs: 0, md: 4 }
-          }} 
+            sx={{
+              px: { xs: 0, md: 4 },
+            }}
           >
             <Typography
               sx={{
@@ -1550,15 +1667,15 @@ export default function SignupPage() {
                                   edge="end"
                                 >
                                   {showPassword ? (
-                                    <img 
-                                      src="/icons/blueOpenIcon.svg" 
-                                      alt="Hide password" 
+                                    <img
+                                      src="/icons/blueOpenIcon.svg"
+                                      alt="Hide password"
                                       style={{ width: 20, height: 20 }}
                                     />
                                   ) : (
-                                    <img 
-                                      src="/icons/blueHideIcon.svg" 
-                                      alt="Show password" 
+                                    <img
+                                      src="/icons/blueHideIcon.svg"
+                                      alt="Show password"
                                       style={{ width: 20, height: 20 }}
                                     />
                                   )}
@@ -1632,15 +1749,15 @@ export default function SignupPage() {
                                   edge="end"
                                 >
                                   {showConfirmPassword ? (
-                                    <img 
-                                      src="/icons/blueOpenIcon.svg" 
-                                      alt="Hide password" 
+                                    <img
+                                      src="/icons/blueOpenIcon.svg"
+                                      alt="Hide password"
                                       style={{ width: 20, height: 20 }}
                                     />
                                   ) : (
-                                    <img 
-                                      src="/icons/blueHideIcon.svg" 
-                                      alt="Show password" 
+                                    <img
+                                      src="/icons/blueHideIcon.svg"
+                                      alt="Show password"
                                       style={{ width: 20, height: 20 }}
                                     />
                                   )}
@@ -1663,7 +1780,11 @@ export default function SignupPage() {
                         py: { xs: 1.25, md: 1.5 },
                         textTransform: "none",
                         fontWeight: 700,
-                        fontSize: { xs: "1rem", sm: "1.125rem", md: "1.1875rem" },
+                        fontSize: {
+                          xs: "1rem",
+                          sm: "1.125rem",
+                          md: "1.1875rem",
+                        },
                         "&:hover": {
                           bgcolor: "#25608A",
                         },
@@ -1938,7 +2059,9 @@ export default function SignupPage() {
                     </Typography>
                     <Field name="mobileNo">
                       {({ field, meta, form }: FieldProps) => {
-                        const isError = !!(meta.touched && meta.error) || (meta.touched && phoneError);
+                        const isError =
+                          !!(meta.touched && meta.error) ||
+                          (meta.touched && phoneError);
                         return (
                           <>
                             <PhoneInputWrapper
@@ -1982,7 +2105,8 @@ export default function SignupPage() {
                                   marginBottom: "0 !important",
                                 }}
                               >
-                                {meta.error || "Please enter a valid phone number"}
+                                {meta.error ||
+                                  "Please enter a valid phone number"}
                               </Typography>
                             )}
                           </>
@@ -2200,16 +2324,18 @@ export default function SignupPage() {
           px: { xs: 0, sm: 0, md: 4 },
           py: { xs: 2, sm: 3, md: 4 },
           overflowY: "auto",
-          pt: step !== "select-profile" ? { xs: 2, sm: 4, md: 10 } : { xs: 2, md: 4 },
+          pt:
+            step !== "select-profile"
+              ? { xs: 2, sm: 4, md: 10 }
+              : { xs: 2, md: 4 },
         }}
       >
         <Container maxWidth="sm">
           <Paper
             elevation={0}
             sx={{
-              padding: { xs: '32px 12px', sm: 3, md: 4 },
+              padding: { xs: "32px 12px", sm: 3, md: 4 },
               width: "100%",
-              
             }}
           >
             {/* Logo Section */}
