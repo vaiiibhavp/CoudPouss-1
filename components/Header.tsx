@@ -24,18 +24,26 @@ import MessageIcon from "@mui/icons-material/Message";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ApplicationStatusModal from "./ApplicationStatusModal";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
 import SignOutModal from "./SignOutModal";
-import { logout, setUserFromStorage } from "@/lib/redux/authSlice";
 import { AppDispatch, RootState } from "@/lib/redux/store";
-import { Lato } from "next/font/google";
+import { setUserFromStorage, logout } from "@/lib/redux/authSlice";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
-import { getCookie } from "@/utils/validation";
+
+// Helper function to get cookie value
+const getCookie = (name: string): string | undefined => {
+  if (typeof document === "undefined") return undefined;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(";").shift();
+  return undefined;
+};
 
 interface HeaderProps {
   showExploreServices?: boolean;
@@ -47,58 +55,45 @@ interface HeaderProps {
 }
 
 interface Service {
-  id: string;
-  services_type_photos: string | null;
+  id: number;
   name: string;
-  services_type_photos_url: string | null;
-}
-
-interface HomeApiResponse {
-  message: string;
-  data: {
-    services: Service[];
-    user_data: any;
-    professional_connected_count: number;
-    recent_requests: any;
-    favorite_professionals: any;
-  };
-  success: boolean;
-  status_code: number;
+  icon: string;
 }
 
 interface SearchService {
-  id: string;
-  category_id: string;
-  sub_category_id: string;
-  chosen_datetime: string;
-  is_professional: boolean;
-  total_renegotiated: string | null;
-  task_status: string;
-  category_name: string;
-  category_logo: string;
-  sub_category_name: string;
-  category_logo_url: string;
+  category: string;
+  service: string;
+  id: number;
+  category_logo_url?: string;
+  category_name?: string;
+  sub_category_name?: string;
+}
+
+interface HomeApiResponse {
+  data: {
+    services: Service[];
+    recent_requests?: {
+      total_items: number;
+      records: any[];
+    };
+  };
 }
 
 interface SearchApiResponse {
-  message: string;
   data: {
     services: SearchService[];
-    favorites: SearchService[];
   };
-  success: boolean;
-  status_code: number;
 }
 
 interface UserDetails {
-  id: string;
-  email: string;
-  phone_number: string;
-  phone_country_code: string;
+  id: number;
   first_name: string;
   last_name: string;
-  role: string;
-  service_provider_type: string | null;
+  email: string;
+  phone: string;
+  country_code: string;
+  stripe_customer_id: string | null;
+  user_type: string;
   profile_photo_id: string | null;
   profile_photo_url: string | null;
   latitude: number | null;
@@ -109,6 +104,7 @@ interface UserDetails {
   is_docs_verified: boolean;
   created_at: string;
   updated_at: string;
+  role?: string;
 }
 
 interface GetUserApiResponse {
@@ -172,6 +168,7 @@ export default function Header({
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
   const [signoutSnackbarOpen, setSignoutSnackbarOpen] = useState(false);
   const [signoutSnackbarMessage, setSignoutSnackbarMessage] = useState("");
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [isAccountUnderVerification, setIsAccountUnderVerification] =
     useState(false);
   const [services, setServices] = useState<Service[]>([]);
@@ -201,9 +198,7 @@ export default function Header({
 
       setUserDetailsLoading(true);
       try {
-        const response = await apiGet<GetUserApiResponse>(
-          API_ENDPOINTS.AUTH.GET_USER
-        );
+        const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
 
         if (response.success && response.data) {
           const apiData = response.data;
@@ -423,6 +418,10 @@ export default function Header({
   const handleProfileMenuClose = () => {
     setProfileMenuAnchor(null);
   };
+
+  const handleStatusModalClose = () => {
+    setStatusModalOpen(false);
+  };
   // Determine home route - use prop if provided, otherwise based on authentication and role
   const userRole =
     user?.role || getCookie("userRole") || localStorage.getItem("role");
@@ -431,8 +430,8 @@ export default function Header({
     (isAuthenticated && userRole === "service_provider"
       ? ROUTES.PROFESSIONAL_HOME
       : isAuthenticated && userRole === "elderly_user"
-      ? ROUTES.AUTH_HOME
-      : ROUTES.HOME);
+        ? ROUTES.AUTH_HOME
+        : ROUTES.HOME);
 
   return (
     <>
@@ -448,7 +447,6 @@ export default function Header({
         <Box
           sx={{
             width: "100%",
-
             py: "28px",
             px: { xs: "16px", md: "80px" },
           }}
@@ -457,12 +455,10 @@ export default function Header({
             sx={{
               display: "flex",
               alignItems: "center",
-              // justifyContent: "space-between",
               width: "100%",
               gap: "40px",
             }}
           >
-            {/* Logo and Brand Name */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
               <Box
                 component={Link}
@@ -644,105 +640,106 @@ export default function Header({
               {(searchLoading ||
                 searchResults.length > 0 ||
                 searchTerm.trim()) && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "110%",
-                    left: 0,
-                    width: "100%",
-                    bgcolor: "white",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: 2,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                    zIndex: 1300,
-                    maxHeight: 320,
-                    overflowY: "auto",
-                    p: 1,
-                    "&::-webkit-scrollbar": {
-                      display: "none",
-                    },
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                  }}
-                >
-                  {searchLoading && (
-                    <Typography
-                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                    >
-                      Searching...
-                    </Typography>
-                  )}
-                  {!searchLoading &&
-                    searchResults.length === 0 &&
-                    searchTerm.trim() && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "110%",
+                      left: 0,
+                      width: "100%",
+                      bgcolor: "white",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 2,
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                      zIndex: 1300,
+                      maxHeight: 320,
+                      overflowY: "auto",
+                      p: 1,
+                      "&::-webkit-scrollbar": {
+                        display: "none",
+                      },
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
+                    }}
+                  >
+                    {searchLoading && (
                       <Typography
                         sx={{ color: "text.secondary", px: 1, py: 0.5 }}
                       >
-                        No results found
+                        Searching...
                       </Typography>
                     )}
-                  {!searchLoading &&
-                    searchResults.map((item) => (
-                      <Box
-                        key={item.id}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          px: 1,
-                          py: 0.75,
-                          borderRadius: 1,
-                          cursor: "pointer",
-                          "&:hover": { bgcolor: "grey.100" },
-                        }}
-                      >
+                    {!searchLoading &&
+                      searchResults.length === 0 &&
+                      searchTerm.trim() && (
+                        <Typography
+                          sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                        >
+                          No results found
+                        </Typography>
+                      )}
+                    {!searchLoading &&
+                      searchResults.map((item) => (
                         <Box
+                          key={item.id}
                           sx={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 1,
-                            overflow: "hidden",
-                            flexShrink: 0,
-                            bgcolor: "grey.100",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
+                            gap: 1,
+                            px: 1,
+                            py: 0.75,
+                            borderRadius: 1,
+                            cursor: "pointer",
+                            "&:hover": { bgcolor: "grey.100" },
                           }}
                         >
-                          <Image
-                            src={
-                              item.category_logo_url ||
-                              "/icons/home_assistance_icon_home.svg"
-                            }
-                            alt={item.category_name}
-                            width={32}
-                            height={32}
-                            style={{ objectFit: "cover" }}
-                          />
-                        </Box>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography
+                          <Box
                             sx={{
-                              fontWeight: 600,
-                              color: "#214C65",
-                              lineHeight: 1.2,
+                              width: 36,
+                              height: 36,
+                              borderRadius: 1,
+                              overflow: "hidden",
+                              flexShrink: 0,
+                              bgcolor: "grey.100",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                           >
-                            {item.sub_category_name}
-                          </Typography>
-                          <Typography
-                            sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                          >
-                            {item.category_name}
-                          </Typography>
+                            <Image
+                              src={
+                                item.category_logo_url ||
+                                "/icons/home_assistance_icon_home.svg"
+                              }
+                              alt={item.category_name || "Service"}
+                              width={32}
+                              height={32}
+                              style={{ objectFit: "cover" }}
+                            />
+                          </Box>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                color: "#214C65",
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {item.sub_category_name}
+                            </Typography>
+                            <Typography
+                              sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
+                            >
+                              {item.category_name}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    ))}
-                </Box>
-              )}
+                      ))}
+                  </Box>
+                )}
 
               {!isProfessionalDashboard && (
                 <>
+
                   <Box
                     onMouseEnter={handleServicesMenuOpen}
                     onMouseLeave={handleServicesButtonMouseLeave}
@@ -909,36 +906,16 @@ export default function Header({
                         })} */}
 
                             <Box sx={{ cursor: "pointer" }}>
-                              <Image
-                                src="/image/HomeServiceBox.png"
-                                alt="services"
-                                width={183}
-                                height={158}
-                              />
+                              <Image src="/image/HomeServiceBox.png" alt="services" width={183} height={158} />
                             </Box>
                             <Box sx={{ cursor: "pointer" }}>
-                              <Image
-                                src="/image/TransportSercviceBox.png"
-                                alt="services"
-                                width={183}
-                                height={158}
-                              />
+                              <Image src="/image/TransportSercviceBox.png" alt="services" width={183} height={158} />
                             </Box>
                             <Box sx={{ cursor: "pointer" }}>
-                              <Image
-                                src="/image/personalServiceBox.png"
-                                alt="services"
-                                width={183}
-                                height={158}
-                              />
+                              <Image src="/image/personalServiceBox.png" alt="services" width={183} height={158} />
                             </Box>
                             <Box sx={{ cursor: "pointer" }}>
-                              <Image
-                                src="/image/techSupportBox.png"
-                                alt="services"
-                                width={183}
-                                height={158}
-                              />
+                              <Image src="/image/techSupportBox.png" alt="services" width={183} height={158} />
                             </Box>
                           </Box>
                         ) : (
@@ -965,9 +942,7 @@ export default function Header({
                       bgColor: "red",
                       marginLeft: "40px",
                       borderBottom:
-                        pathname === ROUTES.MY_REQUESTS
-                          ? "0.125rem solid #2C6587 "
-                          : "none",
+                        pathname === ROUTES.MY_REQUESTS ? "0.125rem solid #2C6587 " : "none",
                     }}
                   >
                     <Button
@@ -1655,9 +1630,11 @@ export default function Header({
                         View my profile
                       </Button>
 
-                      {isAccountUnderVerification &&
-                        (userDetails?.role === "service_provider" ||
-                          userRole === "service_provider") && (
+                      {
+
+
+                        // isAccountUnderVerification && 
+                        (userDetails?.role === "service_provider" || userRole === "service_provider") && (
                           <Box
                             sx={{
                               display: "flex",
@@ -1688,6 +1665,25 @@ export default function Header({
                             >
                               Account under verification
                             </Typography>
+
+
+                            <Button
+                              onClick={() => {
+                                setStatusModalOpen(true);
+                                handleProfileMenuClose();
+                              }}
+                              sx={{
+                                background: "#214C65",
+                                color: "white",
+                                borderRadius: "12px",
+                                fontWeight: 600,
+                                padding: "10px 60px",
+                                fontSize: "14px",
+                                lineHeight: "16px"
+                              }}
+                            >
+                              Check Status
+                            </Button>
                           </Box>
                         )}
                       <Divider color={"#E7E7E7"} />
@@ -1990,100 +1986,100 @@ export default function Header({
             {(searchLoading ||
               searchResults.length > 0 ||
               searchTerm.trim()) && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "110%",
-                  left: 0,
-                  width: "100%",
-                  bgcolor: "white",
-                  border: "1px solid #e0e0e0",
-                  borderRadius: 2,
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                  zIndex: 1300,
-                  maxHeight: 320,
-                  overflowY: "auto",
-                  p: 1,
-                  "&::-webkit-scrollbar": {
-                    display: "none",
-                  },
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                }}
-              >
-                {searchLoading && (
-                  <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
-                    Searching...
-                  </Typography>
-                )}
-                {!searchLoading &&
-                  searchResults.length === 0 &&
-                  searchTerm.trim() && (
-                    <Typography
-                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                    >
-                      No results found
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "110%",
+                    left: 0,
+                    width: "100%",
+                    bgcolor: "white",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 2,
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                    zIndex: 1300,
+                    maxHeight: 320,
+                    overflowY: "auto",
+                    p: 1,
+                    "&::-webkit-scrollbar": {
+                      display: "none",
+                    },
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                  }}
+                >
+                  {searchLoading && (
+                    <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
+                      Searching...
                     </Typography>
                   )}
-                {!searchLoading &&
-                  searchResults.map((item) => (
-                    <Box
-                      key={item.id}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        px: 1,
-                        py: 0.75,
-                        borderRadius: 1,
-                        cursor: "pointer",
-                        "&:hover": { bgcolor: "grey.100" },
-                      }}
-                    >
+                  {!searchLoading &&
+                    searchResults.length === 0 &&
+                    searchTerm.trim() && (
+                      <Typography
+                        sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                      >
+                        No results found
+                      </Typography>
+                    )}
+                  {!searchLoading &&
+                    searchResults.map((item) => (
                       <Box
+                        key={item.id}
                         sx={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 1,
-                          overflow: "hidden",
-                          flexShrink: 0,
-                          bgcolor: "grey.100",
                           display: "flex",
                           alignItems: "center",
-                          justifyContent: "center",
+                          gap: 1,
+                          px: 1,
+                          py: 0.75,
+                          borderRadius: 1,
+                          cursor: "pointer",
+                          "&:hover": { bgcolor: "grey.100" },
                         }}
                       >
-                        <Image
-                          src={
-                            item.category_logo_url ||
-                            "/icons/home_assistance_icon_home.svg"
-                          }
-                          alt={item.category_name}
-                          width={32}
-                          height={32}
-                          style={{ objectFit: "cover" }}
-                        />
-                      </Box>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography
+                        <Box
                           sx={{
-                            fontWeight: 600,
-                            color: "#214C65",
-                            lineHeight: 1.2,
+                            width: 36,
+                            height: 36,
+                            borderRadius: 1,
+                            overflow: "hidden",
+                            flexShrink: 0,
+                            bgcolor: "grey.100",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          {item.sub_category_name}
-                        </Typography>
-                        <Typography
-                          sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                        >
-                          {item.category_name}
-                        </Typography>
+                          <Image
+                            src={
+                              item.category_logo_url ||
+                              "/icons/home_assistance_icon_home.svg"
+                            }
+                            alt={item.category_name || "Service"}
+                            width={32}
+                            height={32}
+                            style={{ objectFit: "cover" }}
+                          />
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              color: "#214C65",
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {item.sub_category_name}
+                          </Typography>
+                          <Typography
+                            sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
+                          >
+                            {item.category_name}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  ))}
-              </Box>
-            )}
+                    ))}
+                </Box>
+              )}
           </Box>
         </Box>
       </AppBar>
@@ -2095,6 +2091,10 @@ export default function Header({
         open={signOutModalOpen}
         onClose={() => setSignOutModalOpen(false)}
         onConfirm={handleLogout}
+      />
+      <ApplicationStatusModal
+        open={statusModalOpen}
+        onClose={handleStatusModalClose}
       />
       <Snackbar
         open={signoutSnackbarOpen}

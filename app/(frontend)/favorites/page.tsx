@@ -112,14 +112,15 @@ const page = () => {
                         sx={{
                             display: "flex",
                             flexWrap: "wrap",
-                            gap: 3,
+                            gap: 2,
                         }}
                     >
-                        {Array.from({ length: 6 }).map((_, index) => (
+                        {Array.from({ length: 8 }).map((_, index) => (
                             <Box
                                 key={`loading-${index}`}
                                 sx={{
-                                    width: 200,
+                                    width: "100%",
+                                    maxWidth:"308px",
                                     borderRadius: "1.125rem",
                                     p: "0.875rem",
                                     textAlign: "center",
@@ -130,8 +131,8 @@ const page = () => {
                             >
                                 <Box
                                     sx={{
-                                        width: 80,
-                                        height: 80,
+                                        width: 92,
+                                        height: 92,
                                         borderRadius: "50%",
                                         bgcolor: "grey.300",
                                         margin: "0 auto 0.75rem",
@@ -164,7 +165,7 @@ const page = () => {
                         sx={{
                             display: "flex",
                             flexWrap: "wrap",
-                            gap: 3,
+                            gap: 2,
                         }}
                     >
                         {favoriteProfessionals.map((professional) => {
@@ -179,7 +180,8 @@ const page = () => {
                                 <Box
                                     key={professional.id}
                                     sx={{
-                                        width: 200,
+                                        width: "100%",
+                                        maxWidth:"308px",
                                         borderRadius: "1.125rem",
                                         p: "0.875rem",
                                         textAlign: "center",
@@ -203,8 +205,8 @@ const page = () => {
                                     {/* Profile Picture */}
                                     <Box
                                         sx={{
-                                            width: 80,
-                                            height: 80,
+                                            width: 92,
+                                            height: 92,
                                             borderRadius: "50%",
                                             bgcolor: "grey.300",
                                             margin: "0 auto 0.75rem",
@@ -218,8 +220,8 @@ const page = () => {
                                             <Image
                                                 src={professional.profile_photo_url}
                                                 alt={fullName}
-                                                width={80}
-                                                height={80}
+                                                width={92}
+                                                height={92}
                                                 style={{
                                                     objectFit: "cover",
                                                     borderRadius: "50%",
@@ -241,7 +243,7 @@ const page = () => {
                                             textAlign: "left",
                                             color: "#323232",
                                             fontSize: "1.125rem",
-                                            fontWeight: 500,
+                                            fontWeight: 600,
                                         }}
                                     >
                                         {fullName}
@@ -267,6 +269,7 @@ const page = () => {
                                                     textAlign: "left",
                                                     color: "secondary.naturalGray",
                                                     fontSize: "1.063rem",
+                                                    lineHeight:"20px",
                                                 }}
                                             >
                                                 {rating > 0 ? rating.toFixed(1) : "0.0"}

@@ -143,12 +143,12 @@ export default function PersonalCarePage() {
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       {/* Hero Section - Personal Care Banner */}
-      <Box sx={{ pt: "5rem", px: "5rem" }}>
+      <Box sx={{ pt: { xs: "2rem", md: "5rem" }, px: { xs: "1rem", md: "5rem" } }}>
         <Box
           sx={{
             borderRadius: 3,
             overflow: "hidden",
-            mb: 6,
+            mb: { xs: 3, md: 6 },
           }}
         >
           <Box>
@@ -164,6 +164,9 @@ export default function PersonalCarePage() {
                 alt={heroBanner?.category_name || "Personal Care Service"}
                 height={278}
                 width={1248}
+                style={{
+                  width:"100%"
+                }}
               />
             </Box>
           </Box>
@@ -176,15 +179,15 @@ export default function PersonalCarePage() {
             fontWeight="bold"
             sx={{
               color: "#323232",
-              mb: 4,
+              mb: { xs: 2, md: 4 },
               lineHeight: "2rem",
-              fontSize: { xs: "1.75rem", md: "2.5rem" },
+              fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.5rem" },
             }}
           >
             All Services
           </Typography>
 
-          <Box sx={{ mt: 8 }}>
+          <Box sx={{ mt: { xs: 4, md: 8 } }}>
             {categoriesLoading ? (
               <Box
                 sx={{
@@ -195,7 +198,7 @@ export default function PersonalCarePage() {
                     sm: "repeat(2, minmax(0, 1fr))",
                     md: "repeat(3, minmax(0, 1fr))",
                   },
-                  gap: 3,
+                  gap: { xs: 2, md: 3 },
                 }}
               >
                 {Array.from({ length: 6 }).map((_, index) => (
@@ -225,7 +228,7 @@ export default function PersonalCarePage() {
                 const isLoading = subcategoriesLoading[category.id];
 
                 return (
-                  <Box key={category.id} sx={{ mb: "3.75rem" }}>
+                  <Box key={category.id} sx={{ mb: { xs: 3, md: "3.75rem" } }}>
                     <Box
                       sx={{
                         display: "grid",
@@ -234,7 +237,7 @@ export default function PersonalCarePage() {
                           sm: "repeat(2, minmax(0, 1fr))",
                           md: "repeat(3, minmax(0, 1fr))",
                         },
-                        gap: 3,
+                        gap: { xs: 2, md: 3 },
                       }}
                     >
                       {isLoading ? (
@@ -318,17 +321,20 @@ export default function PersonalCarePage() {
                                 justifyContent: "space-between",
                                 alignItems: "center",
                                 bgcolor: "white",
-                                px: "1.25rem",
-                                py: "0.969rem",
+                                px: { xs: "1rem", md: "1.25rem" },
+                                py: { xs: "0.75rem", md: "0.969rem" },
                                 borderRadius: "0.75rem",
                                 mt: "0.5rem",
+                                flexWrap: { xs: "wrap", sm: "nowrap" },
+                                gap: { xs: 1, sm: 0 },
                               }}
                             >
                               <Typography
                                 sx={{
                                   color: "primary.normal",
-                                  fontSize: "1.125rem",
+                                  fontSize: { xs: "1rem", md: "1.125rem" },
                                   lineHeight: "2rem",
+                                  flex: { xs: "1 1 100%", sm: "1" },
                                 }}
                               >
                                 {subcategory.subcategory_name}
@@ -346,11 +352,13 @@ export default function PersonalCarePage() {
                                   color: "white",
                                   textTransform: "none",
                                   borderRadius: 1,
-                                  fontSize: "0.85rem",
-                                  py: 0.75,
+                                  fontSize: { xs: "0.8rem", sm: "0.85rem" },
+                                  py: { xs: 0.5, sm: 0.75 },
                                   textWrap: "nowrap",
                                   lineHeight:"1.125rem",
-                                  px:"12px"
+                                  px: { xs: "8px", sm: "12px" },
+                                  flex: { xs: "1 1 auto", sm: "0" },
+                                  whiteSpace: "nowrap",
                                 }}
                                 endIcon={
                                   <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />

@@ -43,7 +43,7 @@ interface CompletedData {
     date: string;
     completed: boolean;
   }[];
-  review: {
+  review?: {
     clientName: string;
     clientAvatar: string;
     rating: number;
@@ -53,85 +53,42 @@ interface CompletedData {
 
 interface CompletedSectionProps {
   data?: CompletedData;
+  setSelectedQuots:any
 }
 
-export default function CompletedSection({ data }: CompletedSectionProps) {
-  const router = useRouter();
+export default function CompletedSection({ data,  setSelectedQuots }: CompletedSectionProps) {
+  
 
   // Mock data if not provided
-  const completedData: CompletedData = data || {
-    id: 1,
-    title: "Furniture Assembly",
+  const completedData: CompletedData = (data || {
+    id: 0,
+    title: "Service Completed",
     image: "/image/main.png",
-    date: "16 Aug, 2025",
-    time: "10:00 am",
-    location: "Paris 75001",
-    clientName: "Wade Warren",
+    date: "",
+    time: "",
+    location: "",
+    clientName: "",
     clientAvatar: "/image/main.png",
-    clientPhone: "+91 7222201100",
-    finalizedQuoteAmount: "€499",
-    securityCode: ["3", "2", "5", "5", "5", "8"],
-    description:
-      "Transform your space with our expert furniture assembly services. Our skilled team will handle everything from unpacking to setup, ensuring your new pieces are perfectly assembled and ready for use. We specialize in a wide range of furniture types, including flat-pack items, complete modular systems, and custom installations. Enjoy a hassle-free experience with professional assembly that saves you time and effort in your newly furnished area. Schedule your assembly today and let us help you create the perfect environment!",
-    jobPhotos: ["/image/main.png", "/image/main.png"],
+    clientPhone: "",
+    finalizedQuoteAmount: "€0.00",
+    securityCode: [],
+    description: "",
+    jobPhotos: [],
     paymentBreakdown: {
-      finalizedQuoteAmount: "€499",
-      platformFee: "€74.85",
-      taxes: "€12.0",
-      total: "€340.00",
+      finalizedQuoteAmount: "€0.00",
+      platformFee: "€0.00",
+      taxes: "€0.00",
+      total: "€0.00",
     },
-    serviceTimeline: [
-      {
-        status: "Quote Sent",
-        date: "Wed, 16 Jan' 2025 - 7:07pm",
-        completed: true,
-      },
-      {
-        status: "Quote Accepted",
-        date: "Wed, 16 Jan' 2025 - 7:07pm",
-        completed: true,
-      },
-      {
-        status: "Out for Service",
-        date: "Wed, 18 Jan' 2025 - 7:07pm",
-        completed: true,
-      },
-      {
-        status: "Started Service",
-        date: "Wed, 18 Jan' 2025 - 7:07pm",
-        completed: true,
-      },
-      {
-        status: "Renegotiated the amount",
-        date: "Wed, 18 Jan' 2025 - 7:07pm",
-        completed: true,
-      },
-      {
-        status: "Service Completed",
-        date: "Wed, 18 Jan' 2025 - 7:07pm",
-        completed: true,
-      },
-      {
-        status: "Payment Received",
-        date: "Wed, 18 Jan' 2025 - 7:07pm",
-        completed: true,
-      },
-    ],
-    review: {
-      clientName: "Wade Warren",
-      clientAvatar: "/image/main.png",
-      rating: 4,
-      comment:
-        "I was thoroughly impressed with the furniture assembly service provided by this team. Their punctuality, professionalism, and incredible efficiency. They handled my new furniture with care and ensured everything was set up perfectly. I couldn't be happier with the results. I highly recommend their services to anyone in need of expert furniture assembly.",
-    },
-  };
+    serviceTimeline: [],
+  }) as CompletedData; 
 
   return (
     <Box>
       {/* Back Button */}
       <Button
         startIcon={<ArrowBackIcon sx={{ color: "#424242" }} />}
-        onClick={() => router.push(ROUTES.PROFESSIONAL_EXPLORE_REQUESTS)}
+        onClick={() => setSelectedQuots(null)}
         sx={{
           color: "#214C65",
           fontWeight: 500,
@@ -382,39 +339,42 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
           </Box>
 
           {/* Client Review */}
-          <Card
-            sx={{
-              p: 3,
-              borderRadius: 3,
-              border: "0.0625rem solid #E5E7EB",
-              boxShadow: "none",
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-              <Avatar
-                src={completedData.review.clientAvatar}
-                alt={completedData.review.clientName}
-                sx={{ width: 48, height: 48 }}
-              />
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body1" fontWeight="600">
-                  {completedData.review.clientName}
-                </Typography>
-                <Rating
-                  value={completedData.review.rating}
-                  readOnly
-                  size="small"
-                  sx={{ color: "#FCD34D" }}
-                />
-              </Box>
-            </Box>
-            <Typography
-              variant="body2"
-              sx={{ color: "#6B7280", lineHeight: 1.8, textAlign: "justify" }}
+          {completedData.review && (
+            <Card
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                border: "0.0625rem solid #E5E7EB",
+                boxShadow: "none",
+                mb: 3,
+              }}
             >
-              {completedData.review.comment}
-            </Typography>
-          </Card>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+                <Avatar
+                  src={completedData.review.clientAvatar}
+                  alt={completedData.review.clientName}
+                  sx={{ width: 48, height: 48 }}
+                />
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body1" fontWeight="600">
+                    {completedData.review.clientName}
+                  </Typography>
+                  <Rating
+                    value={completedData.review.rating}
+                    readOnly
+                    size="small"
+                    sx={{ color: "#FCD34D" }}
+                  />
+                </Box>
+              </Box>
+              <Typography
+                variant="body2"
+                sx={{ color: "#6B7280", lineHeight: 1.8, textAlign: "justify" }}
+              >
+                {completedData.review.comment}
+              </Typography>
+            </Card>
+          )}
         </Box>
 
         {/* Right Column */}
@@ -677,7 +637,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
                   letterSpacing: 0,
                 }}
               >
-                4517 Washington Ave. Manchester, Kentucky 39495
+                {completedData.location}
               </Typography>
             </Box>
           </Box>
@@ -787,7 +747,7 @@ export default function CompletedSection({ data }: CompletedSectionProps) {
           {/* Information Message */}
           <Box
             sx={{
-              mt: 4,
+              mt: completedData.review ? 4 : 1,
               p: 2.5,
               borderRadius: 2,
             }}
