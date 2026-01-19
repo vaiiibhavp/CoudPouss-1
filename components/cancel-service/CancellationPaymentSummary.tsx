@@ -1,3 +1,4 @@
+import { formatDisplayNumber } from "@/utils/utils";
 import { Box, Typography } from "@mui/material";
 
 export interface CancellationBreakdown {
@@ -66,7 +67,7 @@ export const CancellationPaymentSummary = ({
               fontSize={{ xs: 12, sm: 14 }}
               sx={{ color: "#595959" }}
             >
-              €{total_amount.toFixed(2)}
+              €{formatDisplayNumber(total_amount, true)}
             </Typography>
           </Box>
           <Box
@@ -97,7 +98,7 @@ export const CancellationPaymentSummary = ({
               fontSize={{ xs: 12, sm: 14 }}
               sx={{ color: "#595959" }}
             >
-              €{service_fee.toFixed(2)}
+              €{formatDisplayNumber(service_fee, true)}
             </Typography>
           </Box>
         </Box>
@@ -133,7 +134,7 @@ export const CancellationPaymentSummary = ({
             fontWeight={600}
             sx={{ color: "#2C6587" }}
           >
-            €{total_refund.toFixed(2)}
+            €{formatDisplayNumber(total_refund, true)}
           </Typography>
         </Box>
       </Box>

@@ -25,4 +25,29 @@ export const formatDate = (
     });
 };
 
+export const formatDisplayNumber = (
+    value: number | string | bigint,
+    showDecimals: boolean = true,
+    decimalPoints: number = 2,
+    locale: string = "en-US"
+): string => {
+    // Handle BigInt explicitly
+    if (typeof value === "bigint") {
+        return value.toLocaleString(locale);
+    }
 
+    const num = Number(value);
+
+    // Invalid numbers
+    if (!Number.isFinite(num)) return "0";
+
+    // Avoid precision issues / unreadable values
+    if (Math.abs(num) > Number.MAX_SAFE_INTEGER) {
+        return num.toExponential(decimalPoints);
+    }
+
+    return new Intl.NumberFormat(locale, {
+        minimumFractionDigits: showDecimals ? decimalPoints : 0,
+        maximumFractionDigits: showDecimals ? decimalPoints : 0,
+    }).format(num);
+};
