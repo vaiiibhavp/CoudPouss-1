@@ -51,10 +51,10 @@ export default function TaskManagementPage() {
       const endpoint = `${API_ENDPOINTS.QOUTE_REQUEST.GET_ALL_QOUTES}?status=${status}`;
 
       console.log(`Fetching quotes with status: ${status}`);
-      
+
       const response = await apiGet<any>(endpoint);
-      console.log('API Response:', {response});
-      
+      console.log('API Response:', { response });
+
       if (response.data.status) {
         setQuots(response.data.data.results || []);
         // Keep `selectedQuots` null by default on load — do not auto-select
@@ -167,8 +167,74 @@ export default function TaskManagementPage() {
 
 
 
-  // Mock data for quote sent
-  const quoteSentData = {
+  // Map quote sent detail to section format
+  const mapQuoteSentDetailToSection = (quote: any) => {
+    if (!quote) return null;
+
+    const task = quote.task || {};
+    const quoteData = quote.quote || {};
+    const user = quote.elderly_user || {};
+    const lifecycle = quote.task_lifecycle || {};
+
+    const parseDate = (datetime?: string) => {
+      if (!datetime) return "";
+      try {
+        const d = new Date(datetime);
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()}`;
+      } catch {
+        return datetime;
+      }
+    };
+
+    const parseTime = (datetime?: string) => {
+      if (!datetime) return "";
+      try {
+        const d = new Date(datetime);
+        let hours = d.getHours();
+        const minutes = d.getMinutes();
+        const period = hours >= 12 ? "pm" : "am";
+        hours = hours % 12 || 12;
+        const minutesStr = minutes < 10 ? `0${minutes}` : minutes;
+        return `${hours}:${minutesStr} ${period}`;
+      } catch {
+        return "";
+      }
+    };
+
+    const parseDateTime = (datetime?: string) => {
+      if (!datetime) return "";
+      try {
+        const d = new Date(datetime);
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const day = lifecycle.quote_received?.day || "";
+        return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')}, ${d.getFullYear()} - ${day}`;
+      } catch {
+        return datetime;
+      }
+    };
+
+    return {
+      id: task.id || quote.service_request_id || quoteData.quoteId || 0,
+      title: task.subcategory?.name || quote.service_details?.subcategory?.name || "Service",
+      image: task.subcategory?.icon || quote.service_details?.subcategory?.icon || "/image/main.png",
+      date: parseDate(task.chosen_date_time || quote.service_details?.chosen_datetime),
+      time: parseTime(task.chosen_date_time || quote.service_details?.chosen_datetime),
+      location: user.address || quote.elderly_user?.user?.address || "",
+      clientName: `${user.firstName || quote.elderly_user?.user?.first_name || ""} ${user.lastName || quote.elderly_user?.user?.last_name || ""}`.trim(),
+      clientAvatar: user.profile_photo_url || quote.elderly_user?.user?.profile_photo_url || "",
+      clientPhone: user.phone || quote.elderly_user?.user?.phone_number || "",
+      serviceStatus: quoteData.status === "send" ? "Quote Sent" : (quoteData.status || "Quote Sent"),
+      statusDate: parseDateTime(lifecycle.quote_received?.time) || "Pending",
+      waitingStatus: "Waiting for Quote Acceptance",
+      description: task.description || quoteData.description || quote.service_details?.description || "",
+      jobPhotos: (task.supporting_photos && task.supporting_photos.length > 0) ? task.supporting_photos : (quoteData.offer_photos || []),
+    };
+  };
+
+
+  // Mock data for quote sent (fallback)
+  const quoteSentDataFallback = {
     id: 1,
     title: "Furniture Assembly",
     image: "/image/main.png",
@@ -185,6 +251,7 @@ export default function TaskManagementPage() {
       "Transform your space with our expert furniture assembly services. Our skilled team will handle everything from unpacking to setup, ensuring your new pieces are perfectly assembled and ready for use. We specialize in a wide range of furniture types, including flat-pack items, complete modular systems, and custom installations. Enjoy a hassle-free experience with professional assembly that saves you time and effort in your newly furnished area. Schedule your assembly today and let us help you create the perfect environment!",
     jobPhotos: ["/image/main.png", "/image/main.png"],
   };
+
 
   // Mock data for accepted
   const acceptedData = {
@@ -276,7 +343,7 @@ export default function TaskManagementPage() {
     return {
       id: detail.service_request_id || quote.quote_id || 0,
       title: sd.subcategory?.name || "Service",
-      image:  sd.subcategory?.icon || "/image/main.png",
+      image: sd.subcategory?.icon || "/image/main.png",
       date: parseDate(sd.chosen_datetime),
       time: parseTime(sd.chosen_datetime),
       location: user.address || "",
@@ -294,50 +361,50 @@ export default function TaskManagementPage() {
         total: pb.total !== undefined ? `€${Number(pb.total).toFixed(2)}` : "",
       },
       serviceTimeline: [
-        { 
-          status: "Request Placed", 
-          date: parseDateTime(tl.request_placed?.time), 
-          completed: !!tl.request_placed?.status 
+        {
+          status: "Request Placed",
+          date: parseDateTime(tl.request_placed?.time),
+          completed: !!tl.request_placed?.status
         },
-        { 
-          status: "Quote Received", 
-          date: parseDateTime(tl.quote_received?.time), 
-          completed: !!tl.quote_received?.status 
+        {
+          status: "Quote Received",
+          date: parseDateTime(tl.quote_received?.time),
+          completed: !!tl.quote_received?.status
         },
-        { 
-          status: "Quote Approved", 
-          date: parseDateTime(tl.quote_approved?.time), 
-          completed: !!tl.quote_approved?.status 
+        {
+          status: "Quote Approved",
+          date: parseDateTime(tl.quote_approved?.time),
+          completed: !!tl.quote_approved?.status
         },
-        { 
-          status: "Payment Processed", 
-          date: parseDateTime(tl.payment_processed?.time), 
-          completed: !!tl.payment_processed?.status 
+        {
+          status: "Payment Processed",
+          date: parseDateTime(tl.payment_processed?.time),
+          completed: !!tl.payment_processed?.status
         },
-        { 
-          status: "Elder Confirm Start", 
-          date: parseDateTime(tl.elder_confirm_start?.time), 
-          completed: !!tl.elder_confirm_start?.status 
+        {
+          status: "Elder Confirm Start",
+          date: parseDateTime(tl.elder_confirm_start?.time),
+          completed: !!tl.elder_confirm_start?.status
         },
-        { 
-          status: "Provider Confirm Start", 
-          date: parseDateTime(tl.provider_confirm_start?.time), 
-          completed: !!tl.provider_confirm_start?.status 
+        {
+          status: "Provider Confirm Start",
+          date: parseDateTime(tl.provider_confirm_start?.time),
+          completed: !!tl.provider_confirm_start?.status
         },
-        { 
-          status: "Out for Service", 
-          date: parseDateTime(tl.expert_out_for_service?.time), 
-          completed: !!tl.expert_out_for_service?.status 
+        {
+          status: "Out for Service",
+          date: parseDateTime(tl.expert_out_for_service?.time),
+          completed: !!tl.expert_out_for_service?.status
         },
-        { 
-          status: "Service Started", 
-          date: parseDateTime(tl.service_started?.time), 
-          completed: !!tl.service_started?.status 
+        {
+          status: "Service Started",
+          date: parseDateTime(tl.service_started?.time),
+          completed: !!tl.service_started?.status
         },
-        { 
-          status: "Service Completed", 
-          date: parseDateTime(tl.service_completed?.time), 
-          completed: !!tl.service_completed?.status 
+        {
+          status: "Service Completed",
+          date: parseDateTime(tl.service_completed?.time),
+          completed: !!tl.service_completed?.status
         },
       ],
     };
@@ -351,7 +418,7 @@ export default function TaskManagementPage() {
     const elderly = detail.elderly_user || {};
     const pb = detail.payment_breakdown || {};
     const tl = detail.task_lifecycle || {};
-    
+
     // Get the selected quote to extract service name
     const selectedQuote = qouots.find((r) => r && r.quote_id == selectedQuots);
     const serviceTitle = selectedQuote?.service_details?.subcategory?.name || "Service Completed";
@@ -422,45 +489,46 @@ export default function TaskManagementPage() {
         total: pb.total !== undefined ? `€${Number(pb.total).toFixed(2)}` : "",
       },
       serviceTimeline: [
-        { 
-          status: "Request Placed", 
-          date: parseDateTime(tl.request_placed?.time), 
-          completed: !!tl.request_placed?.status 
+        {
+          status: "Request Placed",
+          date: parseDateTime(tl.request_placed?.time),
+          completed: !!tl.request_placed?.status
         },
-        { 
-          status: "Quote Received", 
-          date: parseDateTime(tl.quote_received?.time), 
-          completed: !!tl.quote_received?.status 
+        {
+          status: "Quote Received",
+          date: parseDateTime(tl.quote_received?.time),
+          completed: !!tl.quote_received?.status
         },
-        { 
-          status: "Quote Approved", 
-          date: parseDateTime(tl.quote_approved?.time), 
-          completed: !!tl.quote_approved?.status 
+        {
+          status: "Quote Approved",
+          date: parseDateTime(tl.quote_approved?.time),
+          completed: !!tl.quote_approved?.status
         },
-        { 
-          status: "Payment Processed", 
-          date: parseDateTime(tl.payment_processed?.time), 
-          completed: !!tl.payment_processed?.status 
+        {
+          status: "Payment Processed",
+          date: parseDateTime(tl.payment_processed?.time),
+          completed: !!tl.payment_processed?.status
         },
-        { 
-          status: "Expert Out for Service", 
-          date: parseDateTime(tl.expert_out_for_service?.time), 
-          completed: !!tl.expert_out_for_service?.status 
+        {
+          status: "Expert Out for Service",
+          date: parseDateTime(tl.expert_out_for_service?.time),
+          completed: !!tl.expert_out_for_service?.status
         },
-        { 
-          status: "Service Started", 
-          date: parseDateTime(tl.service_started?.time), 
-          completed: !!tl.service_started?.status 
+        {
+          status: "Service Started",
+          date: parseDateTime(tl.service_started?.time),
+          completed: !!tl.service_started?.status
         },
-        { 
-          status: "Service Completed", 
-          date: parseDateTime(tl.service_completed?.time), 
-          completed: !!tl.service_completed?.status 
+        {
+          status: "Service Completed",
+          date: parseDateTime(tl.service_completed?.time),
+          completed: !!tl.service_completed?.status
         },
       ],
     };
   };
 
+  const quoteSentSectionData = selectedRequest ? mapQuoteSentDetailToSection(selectedRequest) : quoteSentDataFallback;
   const acceptedSectionData = acceptedDetail ? mapAcceptedDetailToSection(acceptedDetail) : acceptedData;
   const completedSectionData = completedDetail ? mapCompletedDetailToSection(completedDetail) : undefined;
 
@@ -632,172 +700,172 @@ export default function TaskManagementPage() {
             ) : (
               <>
                 {/* Show appropriate content based on activeTab */}
-{/* Show appropriate content based on activeTab */}
-{loading ? (
-  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
-    <Typography>Loading...</Typography>
-  </Box>
- ) : isDetailView ? (
-  <Box>
-    {activeTab === "quote-sent" && <QuoteSentSection data={quoteSentData} setSelectedQuots={setSelectedQuots} />}
-    {activeTab === "accepted" && (
-      acceptedLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 200 }}>
-          <Typography>Loading accepted details...</Typography>
-        </Box>
-      ) : (
-        <AcceptedSection data={acceptedSectionData || acceptedData} setSelectedQuots={setSelectedQuots} />
-      )
-    )}
-    {activeTab === "completed" && (
-      completedLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 200 }}>
-          <Typography>Loading completed details...</Typography>
-        </Box>
-      ) : completedSectionData ? (
-        <CompletedSection data={completedSectionData} setSelectedQuots={setSelectedQuots} />
-      ) : (
-        <Typography>No completed task details available</Typography>
-      )
-    )}
-  </Box>
- ) : qouots.length > 0 ? (
-  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-    {qouots.map((request) => {
-      const formatDate = (dateString: string): string => {
-        const date = new Date(dateString);
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
-      };
+                {/* Show appropriate content based on activeTab */}
+                {loading ? (
+                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "200px" }}>
+                    <Typography>Loading...</Typography>
+                  </Box>
+                ) : isDetailView ? (
+                  <Box>
+                    {activeTab === "quote-sent" && <QuoteSentSection data={quoteSentSectionData || quoteSentDataFallback} setSelectedQuots={setSelectedQuots} />}
+                    {activeTab === "accepted" && (
+                      acceptedLoading ? (
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 200 }}>
+                          <Typography>Loading accepted details...</Typography>
+                        </Box>
+                      ) : (
+                        <AcceptedSection data={acceptedSectionData || acceptedData} setSelectedQuots={setSelectedQuots} />
+                      )
+                    )}
+                    {activeTab === "completed" && (
+                      completedLoading ? (
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 200 }}>
+                          <Typography>Loading completed details...</Typography>
+                        </Box>
+                      ) : completedSectionData ? (
+                        <CompletedSection data={completedSectionData} setSelectedQuots={setSelectedQuots} />
+                      ) : (
+                        <Typography>No completed task details available</Typography>
+                      )
+                    )}
+                  </Box>
+                ) : qouots.length > 0 ? (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+                    {qouots.map((request) => {
+                      const formatDate = (dateString: string): string => {
+                        const date = new Date(dateString);
+                        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                        return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+                      };
 
-      const formatTime = (dateString: string): string => {
-        const date = new Date(dateString);
-        let hours = date.getHours();
-        const minutes = date.getMinutes();
-        const period = hours >= 12 ? "pm" : "am";
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        const minutesStr = minutes < 10 ? `0${minutes}` : minutes;
-        return `${hours}:${minutesStr} ${period}`;
-      };
+                      const formatTime = (dateString: string): string => {
+                        const date = new Date(dateString);
+                        let hours = date.getHours();
+                        const minutes = date.getMinutes();
+                        const period = hours >= 12 ? "pm" : "am";
+                        hours = hours % 12;
+                        hours = hours ? hours : 12;
+                        const minutesStr = minutes < 10 ? `0${minutes}` : minutes;
+                        return `${hours}:${minutesStr} ${period}`;
+                      };
 
-      return (
-        <Box
-          key={request.quote_id}
-          onClick={() => setSelectedQuots(request.quote_id)}
-            sx={{
-            width: { xs: "100%", sm: "100%", md: "calc(50% - 16px)" },
-            py: { xs: "0.5rem", sm: "0.65625rem" },
-            pl: { xs: "0.5rem", sm: "0.625rem" },
-            pr: { xs: "0.5rem", sm: "0.625rem" },
-            borderRadius: { xs: "0.5rem", sm: "0.75rem" },
-            cursor: "pointer",
-            border: "0.0625rem solid",
-            borderColor:
-              selectedQuots === request.quote_id ? "#2F6B8E" : "grey.200",
-            bgcolor: "white",
-            "&:hover": {
-              borderColor: "#2F6B8E",
-              boxShadow: 2,
-            },
-          }}
-        >
-          <Box sx={{ display: "flex", gap: { xs: 1.5, sm: 2 } }}>
-            <Box
-              sx={{
-                width: { xs: "4rem", sm: "5.5rem" },
-                height: { xs: "3.5rem", sm: "4.625rem" },
-                borderRadius: { xs: "0.5rem", sm: "0.75rem" },
-                overflow: "hidden",
-                position: "relative",
-                flexShrink: 0,
-              }}
-            >
-              <Image
-                src={request.service_details.subcategory.icon}
-                alt={request.service_details.subcategory.name}
-                fill
-                style={{ objectFit: "cover" }}
-              />
-            </Box>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  mb: { xs: 0.25, sm: 0.5 },
-                  gap: 1,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: { xs: "0.9375rem", sm: "1rem", md: "1.125rem" },
-                    lineHeight: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
-                    letterSpacing: "0%",
-                    color: "#424242",
-                    fontWeight: 600,
-                    flex: 1,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {request.service_details.subcategory.name}
-                </Typography>
-              </Box>
-              <Box
-                component="span"
-                sx={{
-                  fontSize: { xs: "0.75rem", sm: "0.8125rem", md: "0.875rem" },
-                  lineHeight: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
-                  letterSpacing: "0%",
-                  color: "#555555",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                  flexWrap: "wrap",
-                }}
-              >
-                {formatDate(request.service_details.chosen_datetime)}
-                <Box
-                  component="span"
-                  sx={{
-                    width: { xs: 3, sm: 4 },
-                    height: { xs: 3, sm: 4 },
-                    borderRadius: "50%",
-                    bgcolor: "#2F6B8E",
-                    display: "inline-block",
-                  }}
-                />
-                {formatTime(request.service_details.chosen_datetime)}
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      );
-    })}
-  </Box>
-) : (
-  <Typography>No {activeTab.replace("-", " ")} quotes found</Typography>
-)}
+                      return (
+                        <Box
+                          key={request.quote_id}
+                          onClick={() => setSelectedQuots(request.quote_id)}
+                          sx={{
+                            width: { xs: "100%", sm: "100%", md: "calc(50% - 16px)" },
+                            py: { xs: "0.5rem", sm: "0.65625rem" },
+                            pl: { xs: "0.5rem", sm: "0.625rem" },
+                            pr: { xs: "0.5rem", sm: "0.625rem" },
+                            borderRadius: { xs: "0.5rem", sm: "0.75rem" },
+                            cursor: "pointer",
+                            border: "0.0625rem solid",
+                            borderColor:
+                              selectedQuots === request.quote_id ? "#2F6B8E" : "grey.200",
+                            bgcolor: "white",
+                            "&:hover": {
+                              borderColor: "#2F6B8E",
+                              boxShadow: 2,
+                            },
+                          }}
+                        >
+                          <Box sx={{ display: "flex", gap: { xs: 1.5, sm: 2 } }}>
+                            <Box
+                              sx={{
+                                width: { xs: "4rem", sm: "5.5rem" },
+                                height: { xs: "3.5rem", sm: "4.625rem" },
+                                borderRadius: { xs: "0.5rem", sm: "0.75rem" },
+                                overflow: "hidden",
+                                position: "relative",
+                                flexShrink: 0,
+                              }}
+                            >
+                              <Image
+                                src={request.service_details.subcategory.icon}
+                                alt={request.service_details.subcategory.name}
+                                fill
+                                style={{ objectFit: "cover" }}
+                              />
+                            </Box>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "flex-start",
+                                  mb: { xs: 0.25, sm: 0.5 },
+                                  gap: 1,
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize: { xs: "0.9375rem", sm: "1rem", md: "1.125rem" },
+                                    lineHeight: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
+                                    letterSpacing: "0%",
+                                    color: "#424242",
+                                    fontWeight: 600,
+                                    flex: 1,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                  }}
+                                >
+                                  {request.service_details.subcategory.name}
+                                </Typography>
+                              </Box>
+                              <Box
+                                component="span"
+                                sx={{
+                                  fontSize: { xs: "0.75rem", sm: "0.8125rem", md: "0.875rem" },
+                                  lineHeight: { xs: "1rem", sm: "1.0625rem", md: "1.125rem" },
+                                  letterSpacing: "0%",
+                                  color: "#555555",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                  flexWrap: "wrap",
+                                }}
+                              >
+                                {formatDate(request.service_details.chosen_datetime)}
+                                <Box
+                                  component="span"
+                                  sx={{
+                                    width: { xs: 3, sm: 4 },
+                                    height: { xs: 3, sm: 4 },
+                                    borderRadius: "50%",
+                                    bgcolor: "#2F6B8E",
+                                    display: "inline-block",
+                                  }}
+                                />
+                                {formatTime(request.service_details.chosen_datetime)}
+                              </Box>
+                            </Box>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                ) : (
+                  <Typography>No {activeTab.replace("-", " ")} quotes found</Typography>
+                )}
 
-{/* You can also render the components based on activeTab */}
-{/* {activeTab === "quote-sent" && <QuoteSentSection data={quoteSentData} />}
+                {/* You can also render the components based on activeTab */}
+                {/* {activeTab === "quote-sent" && <QuoteSentSection data={quoteSentData} />}
 {activeTab === "accepted" && <AcceptedSection data={acceptedData} />}
 {activeTab === "completed" && <CompletedSection />} */}
 
 
                 {/* Quote Sent Content */}
-            {/* {activeTab === "quote-sent" && <QuoteSentSection data={quoteSentData} />} */}
+                {/* {activeTab === "quote-sent" && <QuoteSentSection data={quoteSentData} />} */}
 
-            {/* Accepted Content */}
-            {/* {activeTab === "accepted" && <AcceptedSection data={acceptedData} />} */}
+                {/* Accepted Content */}
+                {/* {activeTab === "accepted" && <AcceptedSection data={acceptedData} />} */}
 
-            {/* Completed Content */}
-            {/* {activeTab === "completed" && <CompletedSection />} */}
+                {/* Completed Content */}
+                {/* {activeTab === "completed" && <CompletedSection />} */}
               </>
             )}
           </Box>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,7 @@ import {
   Divider,
 } from "@mui/material";
 import Image from "next/image";
+import { apiPut } from "@/lib/api";
 
 interface ProceedToPaymentModalProps {
   open: boolean;
@@ -17,6 +18,14 @@ interface ProceedToPaymentModalProps {
   platformFeePercent?: number;
   taxes?: number;
   currencySymbol?: string;
+  serviceId?: string;
+  quoteId?: string;
+}
+
+interface AcceptQuoteResponse {
+  data: {
+    checkout_url: string;
+  };
 }
 
 export default function ProceedToPaymentModal({
@@ -27,9 +36,51 @@ export default function ProceedToPaymentModal({
   platformFeePercent = 10,
   taxes = 0,
   currencySymbol = "€",
+  serviceId,
+  quoteId,
 }: ProceedToPaymentModalProps) {
   const platformFeeAmount = (finalizedQuoteAmount * platformFeePercent) / 100;
   const total = finalizedQuoteAmount + platformFeeAmount + taxes;
+
+  const [loading, setLoading] = useState(false);
+
+  const handleProceed = async () => {
+    if (serviceId && quoteId) {
+      setLoading(true);
+      try {
+        console.log("Calling accept quote API...");
+        const response = await apiPut<AcceptQuoteResponse>(
+          "service_confirmation/service_accept/accept_quote",
+          {
+            service_id: serviceId,
+            quote_id: quoteId,
+          }
+        );
+        console.log("Accept quote API response:", response);
+
+        if (response.success && response.data?.data?.checkout_url) {
+          // Store the service ID to identify it when returning from payment
+          if (serviceId) {
+            localStorage.setItem("justPaidServiceId", serviceId);
+          }
+          // Redirect to Stripe checkout
+          window.location.href = response.data.data.checkout_url;
+        } else {
+          // Optional: Handle error (e.g. show toast)
+          console.error("API Error - No checkout URL:", response);
+        }
+
+      } catch (error) {
+        console.error("Error calling accept quote API:", error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Fallback if IDs are missing, just proceed or handle error
+      console.warn("Missing serviceId or quoteId, proceeding without API call");
+      onProceed();
+    }
+  };
 
   const formatAmount = (value: number) =>
     `${currencySymbol}${value.toFixed(1)}`;
@@ -69,7 +120,7 @@ export default function ProceedToPaymentModal({
             fontWeight={600}
             sx={{
               fontSize: "1.375rem",
-              fontWeight:600,
+              fontWeight: 600,
               lineHeight: "1.875rem",
               letterSpacing: "0%",
               my: 2,
@@ -281,7 +332,7 @@ export default function ProceedToPaymentModal({
               fullWidth
               onClick={onClose}
               sx={{
-                width:"40%",
+                width: "40%",
                 height: "3.5rem",
                 borderRadius: "0.75rem",
                 border: "0.0625rem solid #214C65",
@@ -289,7 +340,7 @@ export default function ProceedToPaymentModal({
                 textTransform: "none",
                 bgcolor: "#FFFFFF",
                 color: "#214C65",
-                fontSize:"1.187rem",
+                fontSize: "1.187rem",
                 fontWeight: 700,
                 "&:hover": {
                   border: "0.0625rem solid #214C65",
@@ -303,7 +354,8 @@ export default function ProceedToPaymentModal({
             <Button
               variant="contained"
               fullWidth
-              onClick={onProceed}
+              onClick={handleProceed}
+              disabled={loading}
               sx={{
                 height: "3.5rem",
                 borderRadius: "0.75rem",
@@ -311,14 +363,18 @@ export default function ProceedToPaymentModal({
                 textTransform: "none",
                 bgcolor: "#214C65",
                 color: "#FFFFFF",
-                fontSize:"1.187rem",
+                fontSize: "1.187rem",
                 fontWeight: 700,
                 "&:hover": {
                   bgcolor: "#214C65",
                 },
+                "&:disabled": {
+                  bgcolor: "#5c7e91",
+                  color: "#e0e0e0"
+                }
               }}
             >
-              Proceed to Pay
+              {loading ? "Processing..." : "Proceed to Pay"}
             </Button>
           </Box>
         </Box>

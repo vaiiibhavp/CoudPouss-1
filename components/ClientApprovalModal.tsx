@@ -1,26 +1,99 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   Box,
   Typography,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import Image from "next/image";
+import { apiGet } from "@/lib/api";
+import { toast } from "sonner";
 
 interface ClientApprovalModalProps {
   open: boolean;
   onClose: () => void;
   onProceed: () => void;
+  serviceId: number | string;
+  paymentBreakdown?: {
+    base_amount: number;
+    platform_fee: number;
+    taxes: number;
+    total: number;
+  };
 }
 
 export default function ClientApprovalModal({
   open,
   onClose,
   onProceed,
+  serviceId,
+  paymentBreakdown,
 }: ClientApprovalModalProps) {
+  const [loading, setLoading] = useState(false);
+  const [apiPaymentBreakdown, setApiPaymentBreakdown] = useState<{
+    base_amount: number;
+    platform_fee: number;
+    taxes: number;
+    total: number;
+  } | null>(null);
+
+  // Use API data if available, otherwise fall back to props
+  const currentPaymentBreakdown = apiPaymentBreakdown || paymentBreakdown;
+
+  // Handle Proceed button click - fetch API and then call onProceed
+  const handleProceedClick = async () => {
+    setLoading(true);
+    try {
+      const endpoint = `quote_accept/${serviceId}/completed-task-details`;
+      const response = await apiGet<any>(endpoint);
+
+
+      console.log({ response })
+      // Check if response has error status
+      if (!response.success) {
+        const errorMessage = response.error?.message || "Failed to load task details";
+        toast.error(errorMessage);
+        return; // Don't proceed if there's an error
+      }
+
+      if (response?.data?.status === "success" || response?.data) {
+        const data = response.data.data || response.data;
+        const breakdown = data.payment_breakdown || data;
+
+        setApiPaymentBreakdown({
+          base_amount: breakdown.finalized_quote_amount || breakdown.base_amount || 0,
+          platform_fee: breakdown.platform_fee || 0,
+          taxes: breakdown.taxes || 0,
+          total: breakdown.total || 0,
+        });
+
+        toast.success("Task details loaded successfully");
+        // Call the original onProceed callback
+        onProceed();
+      } else {
+        const errorMessage = response?.data?.message || "Failed to load task details";
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      console.error("Error fetching completed task details:", error);
+
+      // Extract error message from backend response
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to load payment details";
+
+      toast.error(errorMessage);
+      // Don't call onProceed if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -28,7 +101,7 @@ export default function ClientApprovalModal({
       maxWidth="xs"
       fullWidth
       PaperProps={{
-        sx:{
+        sx: {
           borderRadius: 3,
           p: 2,
         },
@@ -104,116 +177,126 @@ export default function ClientApprovalModal({
             >
               Current Payment Breakdown
             </Typography>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-              <Typography
-                sx={{
-                  color: "#595959",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1rem",
-                  letterSpacing: 0,
-                }}
-              >
-                Finalized Quote Amount
-              </Typography>
-              <Typography
-                sx={{
-                  color: "#595959",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1rem",
-                  letterSpacing: 0,
-                }}
-              >
-                €499
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-              <Typography
-                sx={{
-                  color: "#595959",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1rem",
-                  letterSpacing: 0,
-                }}
-              >
-                Platform Fee (15%)
-              </Typography>
-              <Typography
-                sx={{
-                  color: "#595959",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1rem",
-                  letterSpacing: 0,
-                }}
-              >
-                €51.85
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-              <Typography
-                sx={{
-                  color: "#595959",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1rem",
-                  letterSpacing: 0,
-                }}
-              >
-                Taxes
-              </Typography>
-              <Typography
-                sx={{
-                  color: "#595959",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1rem",
-                  letterSpacing: 0,
-                }}
-              >
-                €0.5
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                pt: 2,
-                borderTop: "0.0625rem dashed #2C6587",
-              }}
-            >
-              <Typography
-                fontWeight={600}
-                sx={{
-                  color: "#0F232F",
-                  fontSize: "1.25rem",
-                  lineHeight: "1.5rem",
-                  letterSpacing: 0,
-                }}
-              >
-                Total
-              </Typography>
-              <Typography
-                sx={{
-                  color: "#214C65",
-                  fontWeight: 600,
-                  fontSize: "1.25rem",
-                  lineHeight: "1",
-                  letterSpacing: 0,
-                }}
-              >
-                €374.00
-              </Typography>
-            </Box>
+
+            {loading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                <CircularProgress size={30} />
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                  <Typography
+                    sx={{
+                      color: "#595959",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    Finalized Quote Amount
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#595959",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    €{currentPaymentBreakdown?.base_amount?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                  <Typography
+                    sx={{
+                      color: "#595959",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    Platform Fee (15%)
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#595959",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    €{currentPaymentBreakdown?.platform_fee?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                  <Typography
+                    sx={{
+                      color: "#595959",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    Taxes
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#595959",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    €{currentPaymentBreakdown?.taxes?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    pt: 2,
+                    borderTop: "0.0625rem dashed #2C6587",
+                  }}
+                >
+                  <Typography
+                    fontWeight={600}
+                    sx={{
+                      color: "#0F232F",
+                      fontSize: "1.25rem",
+                      lineHeight: "1.5rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    Total
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#214C65",
+                      fontWeight: 600,
+                      fontSize: "1.25rem",
+                      lineHeight: "1",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    €{currentPaymentBreakdown?.total?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+              </>
+            )}
           </Box>
 
           {/* Action Button */}
           <Button
             variant="contained"
             fullWidth
-            onClick={onProceed}
+            onClick={handleProceedClick}
+            disabled={loading}
             sx={{
               bgcolor: "#214C65",
               color: "#FFFFFF",
@@ -228,9 +311,13 @@ export default function ClientApprovalModal({
               "&:hover": {
                 bgcolor: "#1b3f55",
               },
+              "&:disabled": {
+                bgcolor: "#9CA3AF",
+                color: "#FFFFFF",
+              },
             }}
           >
-            Proceed
+            {loading ? "Loading..." : "Proceed"}
           </Button>
         </Box>
       </DialogContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,16 +8,19 @@ import {
   Typography,
   Button,
   TextField,
+  CircularProgress,
 } from "@mui/material";
 import Image from "next/image";
 import { Formik, Form, Field } from "formik";
 import type { FieldProps } from "formik";
 import * as Yup from "yup";
+import { apiGet } from "@/lib/api";
 
 interface RenegotiateModalProps {
   open: boolean;
   onClose: () => void;
   onProceed: (amount: string) => void;
+  serviceId: number | string; // service request ID to fetch renegotiation data
   finalizedAmount?: number; // for optional +20% validation threshold
   paymentBreakdown?: {
     base_amount: number;
@@ -31,9 +34,59 @@ export default function RenegotiateModal({
   open,
   onClose,
   onProceed,
+  serviceId,
   finalizedAmount,
   paymentBreakdown,
 }: RenegotiateModalProps) {
+  const [loading, setLoading] = useState(false);
+  const [apiPaymentBreakdown, setApiPaymentBreakdown] = useState<{
+    base_amount: number;
+    platform_fee: number;
+    taxes: number;
+    total: number;
+  } | null>(null);
+  const [apiFinalizedAmount, setApiFinalizedAmount] = useState<number | undefined>(undefined);
+
+  // Fetch payment breakdown from API when modal opens
+  useEffect(() => {
+    if (open && serviceId) {
+      const fetchRenegotiationData = async () => {
+        setLoading(true);
+        try {
+          const endpoint = `quote_accept/service-provider/renegotiation/${serviceId}`;
+          const response = await apiGet<any>(endpoint);
+
+          if (response?.data?.status === "success" || response?.data) {
+            const data = response.data.data || response.data;
+            const breakdown = data.payment_breakdown || data;
+
+            setApiPaymentBreakdown({
+              base_amount: breakdown.base_amount || breakdown.finalized_quote_amount || 0,
+              platform_fee: breakdown.platform_fee || 0,
+              taxes: breakdown.taxes || 0,
+              total: breakdown.total || 0,
+            });
+
+            // Set finalized amount for validation
+            setApiFinalizedAmount(breakdown.total || breakdown.finalized_quote_amount);
+          }
+        } catch (error) {
+          console.error("Error fetching renegotiation data:", error);
+          // Fall back to props if API fails
+          setApiPaymentBreakdown(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchRenegotiationData();
+    }
+  }, [open, serviceId]);
+
+  // Use API data if available, otherwise fall back to props
+  const currentPaymentBreakdown = apiPaymentBreakdown || paymentBreakdown;
+  const currentFinalizedAmount = apiFinalizedAmount !== undefined ? apiFinalizedAmount : finalizedAmount;
+
   const ValidationSchema = Yup.object().shape({
     adjustment_amount: Yup.string()
       .required("Adjustment amount is required")
@@ -44,10 +97,10 @@ export default function RenegotiateModal({
       })
       .test("max-20-percent", "Max +20% of current amount", (value) => {
         if (!value) return false;
-        if (!finalizedAmount) return true; // skip if not provided
+        if (!currentFinalizedAmount) return true; // skip if not provided
         const num = Number(String(value).replace(/[^0-9.\-]/g, ""));
         if (isNaN(num)) return false;
-        const maxAllowed = finalizedAmount * 1.2;
+        const maxAllowed = currentFinalizedAmount * 1.2;
         return num <= maxAllowed;
       }),
   });
@@ -145,87 +198,96 @@ export default function RenegotiateModal({
             >
               Current Payment Breakdown
             </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                mb: 1,
-              }}
-            >
-              <Typography
-                sx={{
-                  color: "#595959",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1rem",
-                  letterSpacing: 0,
-                }}
-              >
-                Finalized Quote Amount
-              </Typography>
-              <Typography
-                sx={{
-                  color: "#595959",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1rem",
-                  letterSpacing: 0,
-                }}
-              >
-                €{paymentBreakdown?.base_amount?.toFixed(2) || "0.00"}
-              </Typography>
-            </Box>
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
-            >
-              <Typography variant="body2" sx={{ color: "#6B7280" }}>
-                Platform Fee (15%)
-              </Typography>
-              <Typography
-                variant="body2"
-                fontWeight="600"
-                sx={{ color: "#1F2937" }}
-              >
-                €{paymentBreakdown?.platform_fee?.toFixed(2) || "0.00"}
-              </Typography>
-            </Box>
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
-            >
-              <Typography variant="body2" sx={{ color: "#6B7280" }}>
-                Taxes
-              </Typography>
-              <Typography
-                variant="body2"
-                fontWeight="600"
-                sx={{ color: "#1F2937" }}
-              >
-                €{paymentBreakdown?.taxes?.toFixed(2) || "0.00"}
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                pt: 2,
-                borderTop: "0.0625rem dashed #D1D5DB",
-              }}
-            >
-              <Typography
-                variant="body1"
-                fontWeight="600"
-                sx={{ color: "#1F2937" }}
-              >
-                Total
-              </Typography>
-              <Typography
-                variant="h6"
-                fontWeight="700"
-                sx={{ color: "#2F6B8E" }}
-              >
-                €{paymentBreakdown?.total?.toFixed(2) || "0.00"}
-              </Typography>
-            </Box>
+
+            {loading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                <CircularProgress size={30} />
+              </Box>
+            ) : (
+              <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "#595959",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    Finalized Quote Amount
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "#595959",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1rem",
+                      letterSpacing: 0,
+                    }}
+                  >
+                    €{currentPaymentBreakdown?.base_amount?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+                >
+                  <Typography variant="body2" sx={{ color: "#6B7280" }}>
+                    Platform Fee (15%)
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    fontWeight="600"
+                    sx={{ color: "#1F2937" }}
+                  >
+                    €{currentPaymentBreakdown?.platform_fee?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+                >
+                  <Typography variant="body2" sx={{ color: "#6B7280" }}>
+                    Taxes
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    fontWeight="600"
+                    sx={{ color: "#1F2937" }}
+                  >
+                    €{currentPaymentBreakdown?.taxes?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    pt: 2,
+                    borderTop: "0.0625rem dashed #D1D5DB",
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    fontWeight="600"
+                    sx={{ color: "#1F2937" }}
+                  >
+                    Total
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    fontWeight="700"
+                    sx={{ color: "#2F6B8E" }}
+                  >
+                    €{currentPaymentBreakdown?.total?.toFixed(2) || "0.00"}
+                  </Typography>
+                </Box>
+              </>
+            )}
           </Box>
 
           {/* Input Field with Formik */}
