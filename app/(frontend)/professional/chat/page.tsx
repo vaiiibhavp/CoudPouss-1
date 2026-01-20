@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Box,
-  Container,
   Typography,
   Avatar,
   Paper,
@@ -11,12 +10,7 @@ import {
   InputBase,
   useMediaQuery,
 } from "@mui/material";
-import MicIcon from "@mui/icons-material/Mic";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
-import SendIcon from "@mui/icons-material/Send";
-import SearchIcon from "@mui/icons-material/Search";
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/constants/routes";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -24,14 +18,18 @@ import { listenUsers } from "@/services/user.service";
 import theme from "@/lib/theme";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import {
-  buildThreadId,
-  ensureThreadDocument,
+  getOrCreateThread,
   sendTextMessage,
   subscribeToMessages,
   subscribeToThreads,
 } from "@/services/chatFirestore.service";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import { Timestamp } from "firebase/firestore";
+import { GetUserApiResponse, UserData } from "../../chat/components/interfaces";
+import { UserChat } from "../../chat/components/UserChat";
+import { ChatMessageItem } from "../../chat/components/ChatMessageItem ";
+import { NoChatSelected } from "../../chat/components/NoChatSelected";
 
 interface Chat {
   id: string;
@@ -55,62 +53,21 @@ interface UIMessage {
   createdAt: string;
   photoURL?: string;
 }
-interface GetUserApiResponse {
-  status: string;
-  message: string;
-  data: {
-    user: UserData;
-    provider_info?: ProviderInfo;
-    past_work_files?: string[];
-  };
+interface ChatShellProps {
+  userId: string | null;
 }
-interface UserData {
-  id: string;
-  email: string;
-  phone_number: string;
-  password: string;
-  address: string;
-  longitude: number | null;
-  created_at: string;
-  lang: string;
-  first_name: string;
-  phone_country_code: string;
-  last_name: string;
-  role: string;
-  service_provider_type: string | null;
-  profile_photo_id: string | null;
-  profile_photo_url: string | null;
-  latitude: number | null;
-  is_deleted: boolean;
-  updated_at: string;
-}
-
-interface ProviderInfo {
-  id: string;
-  services_provider_id: string;
-  bio?: string;
-  experience_speciality?: string;
-  achievements?: string;
-  years_of_experience?: number;
-  is_docs_verified: boolean;
-  docs_status: string;
-  [key: string]: any;
-}
-export default function ChatPage() {
+export default function ChatPage({ userId }: ChatShellProps) {
   const router = useRouter();
+  const { id } = useParams();
+  const otherUserId = Array.isArray(id) ? id[0] : id;
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [chatUsers, setChatUsers] = useState<any[]>([]);
   const activeChat = chatUsers.find((c) => c.id === selectedChat);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const firebaseUser = useSelector(
-    (state: RootState) => state?.auth?.firebaseUser
-  );
   const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [providerInfo, setProviderInfo] = useState<ProviderInfo | null>(null);
-  const [pastWorkFiles, setPastWorkFiles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -125,44 +82,18 @@ export default function ChatPage() {
     }
   }, [messages]);
 
-  const formatTime = (ts: any) => {
-    if (!ts) return "";
-    if (typeof ts === "string") return ts;
-    if (ts.toDate)
-      return ts.toDate().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    return "";
-  };
-
   const fetchUserData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await apiGet<GetUserApiResponse>(
-        API_ENDPOINTS.AUTH.GET_USER
+        API_ENDPOINTS.AUTH.GET_USER,
       );
 
       if (response.success && response.data) {
         const apiData = response.data;
         if (apiData.data?.user) {
           setUserData(apiData.data.user);
-          // Update role in localStorage if needed
-          if (apiData.data.user.role) {
-            localStorage.setItem("role", apiData.data.user.role);
-          }
-          // Set provider info if available
-          if (apiData.data.provider_info) {
-            setProviderInfo(apiData.data.provider_info);
-          }
-          // Set past work files if available
-          if (
-            apiData.data.past_work_files &&
-            Array.isArray(apiData.data.past_work_files)
-          ) {
-            setPastWorkFiles(apiData.data.past_work_files);
-          }
         } else {
           setError("User data not found");
         }
@@ -182,7 +113,17 @@ export default function ChatPage() {
   }, [fetchUserData]);
 
   console.log("chatUsers", chatUsers, userData);
-  console.log("firebaseUser", firebaseUser, users, selectedChat, user);
+  console.log("users", users, selectedChat, user);
+  console.log("id", id, otherUserId);
+  useEffect(() => {
+    if (!userData || !otherUserId) return;
+
+    (async () => {
+      const threadId = await getOrCreateThread(userData.id, otherUserId);
+
+      setSelectedChat(threadId);
+    })();
+  }, [userData, otherUserId]);
 
   useEffect(() => {
     const unsubscribe = listenUsers(setUsers);
@@ -193,15 +134,12 @@ export default function ChatPage() {
     if (!activeChat || !userData) return null;
 
     const otherUserId = activeChat.participantIds.find(
-      (id: string) => id !== userData.id
+      (id: string) => id !== userData.id,
     );
 
     return activeChat.participantsMeta?.[otherUserId] || null;
   }, [activeChat, userData]);
 
-  // useEffect(() => {
-  //   seedUsers();
-  // }, []);
   useEffect(() => {
     if (!selectedChat || !userData) return;
 
@@ -213,12 +151,19 @@ export default function ChatPage() {
         const mapped = firebaseMessages.map((msg) => ({
           id: msg.id,
           text: msg.text,
-          sender: msg.senderId === userData.id ? "user" : "other",
-          createdAt: msg.createdAt,
+          sender: (msg.senderId === userData.id ? "user" : "other") as
+            | "user"
+            | "other",
+          // createdAt: msg.createdAt,
+          createdAt: msg.createdAt
+            ? msg.createdAt instanceof Timestamp
+              ? msg.createdAt.toDate().toISOString()
+              : new Date(msg.createdAt).toISOString()
+            : "",
         }));
 
         setMessages(mapped);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -232,14 +177,7 @@ export default function ChatPage() {
     return () => unsubscribe();
   }, [userData]);
 
-  // useEffect(() => {
-  //   if (!selectedChat && chatUsers.length > 0) {
-  //     setSelectedChat(chatUsers[0].id);
-  //   }
-  // }, [chatUsers, selectedChat]);
-
   const handleSendMessage = async () => {
-    // Use a regex to check if the message contains at least one non-whitespace character
     if (!messageInput.replace(/\s/g, "").length || !userData || !selectedChat)
       return;
 
@@ -248,9 +186,9 @@ export default function ChatPage() {
 
     try {
       const receiverId = activeChat.participantIds.find(
-        (id: string) => id !== userData.id
+        (id: string) => id !== userData.id,
       );
-
+      if (!receiverId) return;
       await sendTextMessage({
         threadId: selectedChat,
         text: textToSend, // Send the raw text with newlines/spaces
@@ -261,29 +199,6 @@ export default function ChatPage() {
       console.error("Failed to send:", error);
       setMessageInput(textToSend); // Restore on error
     }
-  };
-
-  const handleStartChat = async (otherUser: any) => {
-    console.log("userData", userData);
-
-    if (!userData) return;
-
-    const threadId = buildThreadId(userData.id, otherUser.user_id);
-
-    await ensureThreadDocument(threadId, [
-      {
-        user_id: userData.id,
-        name: userData.first_name + " " + userData.last_name,
-        avatarUrl: userData.profile_photo_url || "",
-      },
-      {
-        user_id: otherUser.user_id,
-        name: otherUser.name,
-        avatarUrl: otherUser.avatarUrl,
-      },
-    ]);
-
-    setSelectedChat(threadId);
   };
 
   return (
@@ -440,104 +355,19 @@ export default function ChatPage() {
                 ) : (
                   chatUsers.map((chat) => {
                     const otherUserId = chat.participantIds.find(
-                      (id: string) => id !== userData?.id
+                      (id: string) => id !== userData?.id,
                     );
 
                     const otherUser = chat.participantsMeta?.[otherUserId];
                     const isActive = selectedChat === chat.id;
                     return (
-                      <Box
-                        key={chat.id}
-                        onClick={() => setSelectedChat(chat.id)}
-                        sx={{
-                          p: 2,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 2,
-                          cursor: "pointer",
-                          position: "relative", // For the active indicator
-                          bgcolor: isActive ? "grey.100" : "transparent",
-                          transition: "background-color 0.2s",
-                          "&:hover": {
-                            bgcolor: isActive ? "grey.100" : "grey.50",
-                          },
-                          "&::after": isActive
-                            ? {
-                                content: '""',
-                                position: "absolute",
-                                left: 0,
-                                top: "15%",
-                                height: "70%",
-                                width: "4px",
-                                bgcolor: "primary.main",
-                                borderRadius: "0 4px 4px 0",
-                              }
-                            : {},
-                        }}
-                      >
-                        <Avatar
-                          src={otherUser?.avatarUrl}
-                          sx={{ width: 48, height: 48 }} // Standard size
-                        >
-                          {otherUser?.name?.[0] || "?"}
-                        </Avatar>
-
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "baseline", // Better alignment for text and time
-                              mb: 0.5,
-                            }}
-                          >
-                            <Typography
-                              variant="subtitle2"
-                              fontWeight={isActive ? 700 : 600}
-                              noWrap
-                            >
-                              {otherUser?.name || "Unknown User"}
-                            </Typography>
-
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                color: isActive
-                                  ? "primary.main"
-                                  : "text.secondary",
-                                fontWeight: isActive ? 600 : 400,
-                                fontSize: "0.7rem",
-                              }}
-                            >
-                              {formatTime(chat.updatedAt)}
-                            </Typography>
-                          </Box>
-
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: isActive
-                                ? "text.primary"
-                                : "text.secondary",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              fontSize: "0.85rem",
-                              // If the user sent the last message, prefix it
-                              fontWeight:
-                                chat.lastMessageSenderId !== userData?.id &&
-                                isActive
-                                  ? 600
-                                  : 400,
-                            }}
-                          >
-                            {chat.lastMessageSenderId === userData?.id
-                              ? "You: "
-                              : ""}
-                            {chat.lastMessage || "No messages yet"}
-                          </Typography>
-                        </Box>
-                      </Box>
+                      <UserChat
+                        chat={chat}
+                        setSelectedChat={setSelectedChat}
+                        isActive={isActive}
+                        userData={userData}
+                        otherUser={otherUser}
+                      />
                     );
                   })
                 )}
@@ -602,73 +432,13 @@ export default function ChatPage() {
                     }}
                   >
                     {messages.map((message) => (
-                      <Box
+                      <ChatMessageItem
                         key={message.id}
-                        sx={{
-                          display: "flex",
-                          alignItems: "flex-end",
-                          gap: 1.5,
-                          flexDirection:
-                            message.sender === "user" ? "row-reverse" : "row",
+                        message={{
+                          ...message,
+                          createdAt: new Date(message.createdAt),
                         }}
-                      >
-                        <Avatar
-                          src={message.photoURL}
-                          sx={{ width: 36, height: 36 }}
-                        />
-
-                        <Box
-                          sx={{
-                            maxWidth: "70%",
-                            minWidth: 0,
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems:
-                              message.sender === "user"
-                                ? "flex-end"
-                                : "flex-start",
-                          }}
-                        >
-                          <Paper
-                            elevation={0}
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 2,
-                              bgcolor:
-                                message.sender === "user"
-                                  ? "#F5F5F5"
-                                  : "#EAF0F3",
-                              color: "#0F232F",
-                              maxWidth: "100%",
-                              whiteSpace: "pre-wrap",
-                              wordBreak: "break-word",
-                            }}
-                          >
-                            <Typography variant="body2" fontSize={16}>
-                              {message.text}
-                            </Typography>
-
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "flex-end",
-                                mt: 0.5,
-                              }}
-                            >
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  color: "text.secondary",
-                                  fontSize: "0.75rem",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {formatTime(message.createdAt)}
-                              </Typography>
-                            </Box>
-                          </Paper>
-                        </Box>
-                      </Box>
+                      />
                     ))}
                   </Box>
 
@@ -707,7 +477,7 @@ export default function ChatPage() {
                           setMessageInput(e.target.value)
                         }
                         onKeyDown={(
-                          e: React.KeyboardEvent<HTMLInputElement>
+                          e: React.KeyboardEvent<HTMLInputElement>,
                         ) => {
                           if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault(); // Prevents new line
@@ -760,47 +530,3 @@ export default function ChatPage() {
     </Box>
   );
 }
-
-const NoChatSelected = () => (
-  <Box
-    sx={{
-      flex: 1,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      bgcolor: "#F8F9FA", // Light neutral background
-      textAlign: "center",
-      p: 3,
-    }}
-  >
-    <Box
-      sx={{
-        width: 120,
-        height: 120,
-        bgcolor: "primary.light",
-        borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        mb: 2,
-        opacity: 0.8,
-      }}
-    >
-      <Image
-        src="/icons/sendMsg.png"
-        width={60}
-        height={60}
-        alt="Select Chat"
-        style={{ opacity: 0.5 }}
-      />
-    </Box>
-    <Typography variant="h5" fontWeight={600} gutterBottom>
-      Your Messages
-    </Typography>
-    <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 300 }}>
-      Select a conversation from the left to start chatting or view your
-      history.
-    </Typography>
-  </Box>
-);
