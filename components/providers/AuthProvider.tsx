@@ -1,11 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { setUserFromStorage } from "@/lib/redux/authSlice";
+import {
+  setAuthInitialized,
+  setFirebaseUser,
+  setUserFromStorage,
+} from "@/lib/redux/authSlice";
 import { refreshAccessToken } from "@/lib/redux/authSlice";
 import { useAppDispatch } from "@/hooks/useAppDispatchHook";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
+import { listenFirebaseAuth } from "@/services/firebaseAuth.service";
+import { createUserDoc } from "@/app/(auth)/login/CreateUserDoc";
 
 interface Props {
   children: React.ReactNode;
@@ -13,7 +19,9 @@ interface Props {
 
 function AuthProvider({ children }: Props) {
   const dispatch = useAppDispatch();
-  const authInitialized = useSelector((state:RootState)=>state.auth.authInitialized)
+  const authInitialized = useSelector(
+    (state: RootState) => state.auth.authInitialized
+  );
 
   useEffect(() => {
     // Restore user info from localStorage
@@ -21,13 +29,37 @@ function AuthProvider({ children }: Props) {
 
     // Try to get a new access token from refresh token (httpOnly cookie)
     dispatch(refreshAccessToken());
+
+    const unsubscribeFirebase = listenFirebaseAuth(async (firebaseUser) => {
+      if (firebaseUser) {
+        // 🔑 CREATE / UPDATE USER DOCUMENT IN FIRESTORE
+        await createUserDoc(firebaseUser);
+
+        dispatch(
+          setFirebaseUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+          })
+        );
+      } else {
+        dispatch(setFirebaseUser(null));
+      }
+
+      dispatch(setAuthInitialized());
+    });
+
+    return () => {
+      unsubscribeFirebase();
+    };
   }, [dispatch]);
 
   if (!authInitialized) {
-      return <div></div>;
+    return <div></div>;
   }
 
   return <>{children}</>;
 }
 
-export default AuthProvider
+export default AuthProvider;

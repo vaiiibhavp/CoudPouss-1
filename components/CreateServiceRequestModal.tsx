@@ -38,7 +38,7 @@ interface CreateServiceRequestModalProps {
 // Helper function to clone SVG and modify fill colors
 const cloneElementWithColor = (
   element: React.ReactElement,
-  isSelected: boolean
+  isSelected: boolean,
 ): React.ReactElement => {
   const primaryNormal = "#2C6587";
 
@@ -74,7 +74,7 @@ const cloneElementWithColor = (
     if (child.props && child.props.children) {
       if (Array.isArray(child.props.children)) {
         newProps.children = child.props.children.map((c: any, idx: number) =>
-          React.isValidElement(c) ? cloneWithFill(c, idx) : c
+          React.isValidElement(c) ? cloneWithFill(c, idx) : c,
         );
       } else if (React.isValidElement(child.props.children)) {
         newProps.children = cloneWithFill(child.props.children);
@@ -82,7 +82,7 @@ const cloneElementWithColor = (
         newProps.children = React.Children.map(
           child.props.children,
           (c: any, idx: number) =>
-            React.isValidElement(c) ? cloneWithFill(c, idx) : c
+            React.isValidElement(c) ? cloneWithFill(c, idx) : c,
         );
       }
     }
@@ -606,7 +606,7 @@ export default function CreateServiceRequestModal({
 
       const response = await apiPostFormData<{ storage_key: string }>(
         API_ENDPOINTS.SERVICE_REQUEST.UPLOAD_FILE,
-        formData
+        formData,
       );
 
       if (response.success && response.data?.storage_key) {
@@ -621,7 +621,7 @@ export default function CreateServiceRequestModal({
 
   // Upload multiple files and return array of storage keys
   const uploadFiles = async (
-    files: File[]
+    files: File[],
   ): Promise<Array<{ storage_key: string }>> => {
     const uploadPromises = files.map((file) => uploadFile(file));
     const storageKeys = await Promise.all(uploadPromises);
@@ -641,9 +641,9 @@ export default function CreateServiceRequestModal({
           ? 0
           : parseInt(selectedTime.hour)
         : parseInt(selectedTime.hour) === 12
-        ? 12
-        : parseInt(selectedTime.hour) + 12,
-      parseInt(selectedTime.minute)
+          ? 12
+          : parseInt(selectedTime.hour) + 12,
+      parseInt(selectedTime.minute),
     );
     return date.toISOString();
   };
@@ -708,7 +708,7 @@ export default function CreateServiceRequestModal({
 
       const response = await apiPost(
         API_ENDPOINTS.SERVICE_REQUEST.CREATE,
-        requestBody
+        requestBody,
       );
 
       if (response.success) {
@@ -746,7 +746,7 @@ export default function CreateServiceRequestModal({
 
   const handleDescriptionFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -776,7 +776,7 @@ export default function CreateServiceRequestModal({
 
   const handleBarterPhotoChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -1008,7 +1008,7 @@ export default function CreateServiceRequestModal({
                       >
                         {(() => {
                           const cat = apiCategories.find(
-                            (c) => c.id === selectedCategory
+                            (c) => c.id === selectedCategory,
                           );
                           if (cat?.category_logo) {
                             return (
@@ -1069,7 +1069,7 @@ export default function CreateServiceRequestModal({
                       >
                         {(() => {
                           const subcat = subcategories.find(
-                            (s) => s.id === selectedService
+                            (s) => s.id === selectedService,
                           );
                           if (subcat?.image) {
                             return (
@@ -1579,13 +1579,13 @@ export default function CreateServiceRequestModal({
                           {day}
                         </Typography>
                       </Box>
-                    )
+                    ),
                   )}
                   {Array.from(
                     { length: getFirstDayOfMonth(currentMonth, currentYear) },
                     (_, i) => (
                       <Box key={`empty-${i}`} sx={{ width: 32, height: 32 }} />
-                    )
+                    ),
                   )}
                   {Array.from(
                     { length: getDaysInMonth(currentMonth, currentYear) },
@@ -1624,7 +1624,7 @@ export default function CreateServiceRequestModal({
                           </Typography>
                         </Box>
                       );
-                    }
+                    },
                   )}
                 </Box>
               </Box>
@@ -1818,7 +1818,7 @@ export default function CreateServiceRequestModal({
                     if (digitCount <= 8) {
                       const clampedValue = Math.max(
                         1,
-                        Math.min(99999999, Math.floor(numValue))
+                        Math.min(99999999, Math.floor(numValue)),
                       );
                       setQuantity(clampedValue);
                     }
@@ -1975,7 +1975,7 @@ export default function CreateServiceRequestModal({
                             {barterPhotoFiles[0].name.length > 20
                               ? `${barterPhotoFiles[0].name.substring(
                                   0,
-                                  20
+                                  20,
                                 )}...`
                               : barterPhotoFiles[0].name}
                           </Typography>
@@ -2102,7 +2102,7 @@ export default function CreateServiceRequestModal({
                             {barterPhotoFiles[1].name.length > 20
                               ? `${barterPhotoFiles[1].name.substring(
                                   0,
-                                  20
+                                  20,
                                 )}...`
                               : barterPhotoFiles[1].name}
                           </Typography>
@@ -2756,13 +2756,14 @@ export default function CreateServiceRequestModal({
               disabled={
                 uploading ||
                 (currentStep === 1 && !serviceProvider) ||
-                (currentStep === 2 && !serviceDescription) ||
+                (currentStep === 2 &&
+                  (!serviceDescription || descriptionFiles.length === 0)) ||
                 (currentStep === 3 &&
                   serviceProvider === "professional" &&
                   (!valuation || valuation.trim() === "")) ||
                 (currentStep === 4 &&
                   serviceProvider === "non-professional" &&
-                  !productName)
+                  (!productName || barterPhotoFiles.length === 0))
               }
               sx={{
                 bgcolor: "#214C65",
@@ -2779,9 +2780,9 @@ export default function CreateServiceRequestModal({
               {uploading
                 ? "Submitting..."
                 : currentStep ===
-                  (serviceProvider === "non-professional" ? 5 : 4)
-                ? "Submit"
-                : "Next"}
+                    (serviceProvider === "non-professional" ? 5 : 4)
+                  ? "Submit"
+                  : "Next"}
             </Button>
           </Box>
         </DialogContent>

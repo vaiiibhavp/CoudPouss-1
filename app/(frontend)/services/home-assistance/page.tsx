@@ -94,6 +94,7 @@ export default function HomeAssistancePage() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const favoriteProfessionalsCarouselRef = useRef<HTMLDivElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [subcategories, setSubcategories] = useState<
     Record<string, Subcategory[]>
@@ -103,12 +104,14 @@ export default function HomeAssistancePage() {
   >({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] =
+    useState<string>("");
   const [favoriteProfessionals, setFavoriteProfessionals] = useState<
     FavoriteProfessional[]
   >([]);
   const [favoriteProfessionalsLoading, setFavoriteProfessionalsLoading] =
     useState(false);
+  const categoryRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
 
   // Memoized function to handle modal close
   const handleCloseModal = useCallback(() => {
@@ -177,7 +180,7 @@ export default function HomeAssistancePage() {
     setIsDragging(true);
     setStartX(
       e.touches[0].pageX -
-        (favoriteProfessionalsCarouselRef.current?.offsetLeft || 0)
+        (favoriteProfessionalsCarouselRef.current?.offsetLeft || 0),
     );
     setScrollLeft(favoriteProfessionalsCarouselRef.current?.scrollLeft || 0);
   };
@@ -200,7 +203,7 @@ export default function HomeAssistancePage() {
   const handleFavoriteProfessionalsMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     setStartX(
-      e.pageX - (favoriteProfessionalsCarouselRef.current?.offsetLeft || 0)
+      e.pageX - (favoriteProfessionalsCarouselRef.current?.offsetLeft || 0),
     );
     setScrollLeft(favoriteProfessionalsCarouselRef.current?.scrollLeft || 0);
   };
@@ -288,7 +291,7 @@ export default function HomeAssistancePage() {
     } catch (error) {
       console.error(
         `Error fetching subcategories for category ${categoryId}:`,
-        error
+        error,
       );
     } finally {
       setSubcategoriesLoading((prev) => ({ ...prev, [categoryId]: false }));
@@ -336,6 +339,16 @@ export default function HomeAssistancePage() {
       borderBottomLeftRadius: isLastRow && isFirstColumn ? "2.5rem" : "0.75rem",
       borderBottomRightRadius: isLastRow && isLastColumn ? "2.5rem" : "0.75rem",
     };
+  };
+
+  const scrollToCategory = (categoryId: string) => {
+    const target = categoryRefs.current[categoryId];
+    if (!target) return;
+
+    const yOffset = -200;
+    const y = target.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+    window.scrollTo({ top: y, behavior: "smooth" });
   };
 
   return (
@@ -431,13 +444,18 @@ export default function HomeAssistancePage() {
                   })
                 ) : categories.length > 0 ? (
                   categories.map((category, index) => {
+                    const categorySubcategories =
+                      subcategories[category.id] || [];
+                    console.log("categorySubcategories", categorySubcategories);
+
                     const borderRadius = getBorderRadius(
                       index,
-                      categories.length
+                      categories.length,
                     );
                     return (
                       <Box
                         key={category.id}
+                        onClick={() => scrollToCategory(category.id)}
                         sx={{
                           p: 1.5,
                           borderRadius: "0.75rem",
@@ -629,7 +647,13 @@ export default function HomeAssistancePage() {
             const isLoading = subcategoriesLoading[category.id] || false;
 
             return (
-              <Box key={category.id} sx={{ mb: "3.75rem", ml: "5rem" }}>
+              <Box
+                key={category.id}
+                sx={{ mb: "3.75rem", ml: "5rem" }}
+                ref={(el) => {
+                  categoryRefs.current[category.id] = el as HTMLDivElement | null;
+                }}
+              >
                 <Typography
                   sx={{
                     color: "#323232",
@@ -779,8 +803,8 @@ export default function HomeAssistancePage() {
                               fontSize: "0.85rem",
                               py: 0.75,
                               textWrap: "nowrap",
-                              lineHeight:"1.125rem",
-                              px:"12px"
+                              lineHeight: "1.125rem",
+                              px: "12px",
                             }}
                             endIcon={
                               <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />

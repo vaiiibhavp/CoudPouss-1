@@ -6,6 +6,7 @@ import { buildInputData, getCookie, setCookie, deleteCookie } from "@/utils/vali
 import { API_ENDPOINTS } from "@/constants/api";
 import { ApiResponse } from "@/types";
 import { act } from "react";
+import { createUserDoc } from "@/app/(auth)/login/CreateUserDoc";
 
 export interface LoginPayload {
   emailOrMobile: string;
@@ -36,7 +37,7 @@ interface LoginResponse {
 interface User {
   email: string;
   initial: string;
-  role:string
+  role: string
 }
 
 interface AuthState {
@@ -48,7 +49,7 @@ interface AuthState {
   refreshToken: string | null;
   accessTokenExpire: string | null;
   refreshTokenExpire: string | null;
-  authInitialized : boolean
+  authInitialized: boolean
 }
 
 const initialState: AuthState = {
@@ -60,9 +61,21 @@ const initialState: AuthState = {
   refreshToken: null,
   accessTokenExpire: null,
   refreshTokenExpire: null,
-  authInitialized : false
+  authInitialized: false,
+  firebaseUser: null,
 };
 
+interface AuthState {
+  // user: any;
+  firebaseUser: any; // 👈 add this
+  authInitialized: boolean;
+}
+
+// const initialState: AuthState = {
+//   user: null,
+//   firebaseUser: null,
+//   authInitialized: false,
+// };
 export const loginUser = createAsyncThunk<
   {
     user: User;
@@ -79,7 +92,7 @@ export const loginUser = createAsyncThunk<
     try {
       // TODO: replace with real API call
 
-     if (!emailOrMobile || !password) {
+      if (!emailOrMobile || !password) {
         return rejectWithValue("Email/Mobile and password are required");
       }
 
@@ -97,7 +110,7 @@ export const loginUser = createAsyncThunk<
         password,
       };
 
-      const response = await apiPost<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN,apiPayload);
+      const response = await apiPost<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, apiPayload);
 
       // Check if API returned an error
       if (!response.success || response.error) {
@@ -110,7 +123,6 @@ export const loginUser = createAsyncThunk<
         const errorMessage = (response.data as any).message || "Login failed. Please try again.";
         return rejectWithValue(errorMessage);
       }
-
       const data = response.data?.data;
       if (!data) return rejectWithValue("Invalid login response");
 
@@ -126,14 +138,14 @@ export const loginUser = createAsyncThunk<
         user,
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
-        accessTokenExpire : data.access_token_expire,
-        refreshTokenExpire : data.refresh_token_expire,
+        accessTokenExpire: data.access_token_expire,
+        refreshTokenExpire: data.refresh_token_expire,
       };
-    } catch (err:unknown) {
+    } catch (err: unknown) {
       if (err instanceof Error) {
         return rejectWithValue(err.message);
       }
-      
+
       return rejectWithValue("Something went wrong. Please try again.");
     }
   }
@@ -146,10 +158,10 @@ export const refreshAccessToken = createAsyncThunk(
       const refreshToken = getCookie("refreshToken");
       if (!refreshToken) throw new Error("No refresh token found");
 
-      const response = await apiPost<any>(API_ENDPOINTS.AUTH.REFRESH, { refresh_token : refreshToken });
+      const response = await apiPost<any>(API_ENDPOINTS.AUTH.REFRESH, { refresh_token: refreshToken });
       if (!response.success) throw new Error(response.error?.message || "Failed");
 
-      const data  = response.data.data
+      const data = response.data.data
 
       return {
         accessToken: data.access_token,
@@ -157,7 +169,7 @@ export const refreshAccessToken = createAsyncThunk(
         refreshToken: data.refresh_token,
         refreshTokenExpire: data.refresh_token_expire,
       };
-      
+
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
@@ -168,6 +180,12 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    setFirebaseUser(state, action) {
+      state.firebaseUser = action.payload;
+    },
+    setAuthInitialized(state) {
+      state.authInitialized = true;
+    },
     logout(state) {
       state.user = null;
       state.error = null;
@@ -180,7 +198,7 @@ const authSlice = createSlice({
       // Clear cookies
       deleteCookie("refreshToken");
       deleteCookie("userRole");
-        
+
       // Clear localStorage on logout (mirroring login persistence)
       if (typeof window !== "undefined") {
         localStorage.removeItem("userEmail");
@@ -235,22 +253,22 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(refreshAccessToken.fulfilled, (state, action) => {
-          state.accessToken = action.payload.accessToken;
-          state.accessTokenExpire = action.payload.accessTokenExpire;
+        state.accessToken = action.payload.accessToken;
+        state.accessTokenExpire = action.payload.accessTokenExpire;
 
-          if (action.payload.refreshToken) {
-            state.refreshToken = action.payload.refreshToken;
-            state.refreshTokenExpire = action.payload.refreshTokenExpire;
-          }
+        if (action.payload.refreshToken) {
+          state.refreshToken = action.payload.refreshToken;
+          state.refreshTokenExpire = action.payload.refreshTokenExpire;
+        }
 
-          state.isAuthenticated = true;
-          state.authInitialized = true
-          state.error = null;
-        })
+        state.isAuthenticated = true;
+        state.authInitialized = true
+        state.error = null;
+      })
       .addCase(refreshAccessToken.rejected, (state, action) => {
-          state.authInitialized = true
-          state.accessToken = null;
-          state.isAuthenticated = false;
+        state.authInitialized = true
+        state.accessToken = null;
+        state.isAuthenticated = false;
       })
       .addCase(loginUser.fulfilled, (state, action: PayloadAction<{
         user: User;
@@ -262,12 +280,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.accessToken = action.payload.accessToken,
-        state.refreshToken = action.payload.refreshToken,
-        state.refreshTokenExpire = action.payload.refreshTokenExpire,
-        state.accessTokenExpire = action.payload.accessTokenExpire,
-        state.isAuthenticated = true;
+          state.refreshToken = action.payload.refreshToken,
+          state.refreshTokenExpire = action.payload.refreshTokenExpire,
+          state.accessTokenExpire = action.payload.accessTokenExpire,
+          state.isAuthenticated = true;
         state.authInitialized = true;
-        
+
         // Persist to localStorage and cookies for page refresh
         if (typeof window !== "undefined") {
           localStorage.setItem("userEmail", action.payload.user.email);
@@ -287,5 +305,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearAuthError, setUserFromStorage,setTokens } = authSlice.actions;
+export const { logout, clearAuthError, setUserFromStorage, setTokens, setFirebaseUser, setAuthInitialized } = authSlice.actions;
 export default authSlice.reducer;
