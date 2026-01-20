@@ -1500,7 +1500,11 @@ export default function Header({
                   </Menu>
                   <IconButton
                     component={Link}
-                    href={ROUTES.CHAT}
+                    href={
+                      isProfessionalDashboard
+                        ? ROUTES.PROFESSIONAL_CHAT
+                        : ROUTES.CHAT
+                    }
                     sx={{
                       color: "text.secondary",
                       "&:hover": {
@@ -1544,10 +1548,12 @@ export default function Header({
                           fill
                           style={{ objectFit: "cover" }}
                         />
+                      ) : userDetails ? (
+                        `${userDetails.first_name?.[0] || ""}${
+                          userDetails.last_name?.[0] || ""
+                        }`.toUpperCase() || user?.initial
                       ) : (
-                        userDetails
-                          ? `${userDetails.first_name?.[0] || ""}${userDetails.last_name?.[0] || ""}`.toUpperCase() || user?.initial
-                          : user?.initial
+                        user?.initial
                       )}
                     </Box>
                     <IconButton
@@ -1595,7 +1601,9 @@ export default function Header({
                         }}
                       >
                         {userDetails
-                          ? `${userDetails.first_name || ""} ${userDetails.last_name || ""}`.trim() || "User"
+                          ? `${userDetails.first_name || ""} ${
+                              userDetails.last_name || ""
+                            }`.trim() || "User"
                           : "User"}
                       </Typography>
                       <Button
@@ -1690,7 +1698,8 @@ export default function Header({
                           marginTop: "0.9rem",
                         }}
                       >
-                        {(userDetails?.role === "service_provider" || userRole === "service_provider") ? (
+                        {userDetails?.role === "service_provider" ||
+                        userRole === "service_provider" ? (
                           <>
                             <Button
                               component={Link}

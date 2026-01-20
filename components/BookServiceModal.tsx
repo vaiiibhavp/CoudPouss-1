@@ -137,7 +137,7 @@ const BulletRadio = (props: RadioProps) => {
 // Helper function to clone SVG and modify fill colors
 const cloneElementWithColor = (
   element: React.ReactElement,
-  isSelected: boolean
+  isSelected: boolean,
 ): React.ReactElement => {
   const primaryNormal = "#2C6587";
 
@@ -179,7 +179,7 @@ const cloneElementWithColor = (
     if (child.props && child.props.children) {
       if (Array.isArray(child.props.children)) {
         newProps.children = child.props.children.map((c: any, idx: number) =>
-          React.isValidElement(c) ? cloneWithFill(c, idx) : c
+          React.isValidElement(c) ? cloneWithFill(c, idx) : c,
         );
       } else if (React.isValidElement(child.props.children)) {
         newProps.children = cloneWithFill(child.props.children);
@@ -187,7 +187,7 @@ const cloneElementWithColor = (
         newProps.children = React.Children.map(
           child.props.children,
           (c: any, idx: number) =>
-            React.isValidElement(c) ? cloneWithFill(c, idx) : c
+            React.isValidElement(c) ? cloneWithFill(c, idx) : c,
         );
       }
     }
@@ -659,7 +659,9 @@ export default function BookServiceModal({
 
     setDescriptionFilePreviews((prev) => {
       // Ensure array length matches files array
-      const newPreviews: (string | null)[] = new Array(descriptionFiles.length).fill(null);
+      const newPreviews: (string | null)[] = new Array(
+        descriptionFiles.length,
+      ).fill(null);
       let hasChanges = false;
 
       // Copy existing valid previews and create new ones if needed
@@ -668,12 +670,12 @@ export default function BookServiceModal({
           // Always create new preview URL from the file object
           // File objects persist across step changes, so we can always recreate the blob URL
           const existingPreview = prev[index];
-          
+
           // Clean up old preview if it exists
           if (existingPreview) {
             URL.revokeObjectURL(existingPreview);
           }
-          
+
           // Create new preview URL from the file
           const previewURL = URL.createObjectURL(file);
           newPreviews[index] = previewURL;
@@ -715,7 +717,9 @@ export default function BookServiceModal({
 
     setBarterPhotoFilePreviews((prev) => {
       // Ensure array length matches files array
-      const newPreviews: (string | null)[] = new Array(barterPhotoFiles.length).fill(null);
+      const newPreviews: (string | null)[] = new Array(
+        barterPhotoFiles.length,
+      ).fill(null);
       let hasChanges = false;
 
       // Copy existing valid previews and create new ones if needed
@@ -724,12 +728,12 @@ export default function BookServiceModal({
           // Always create new preview URL from the file object
           // File objects persist across step changes, so we can always recreate the blob URL
           const existingPreview = prev[index];
-          
+
           // Clean up old preview if it exists
           if (existingPreview) {
             URL.revokeObjectURL(existingPreview);
           }
-          
+
           // Create new preview URL from the file
           const previewURL = URL.createObjectURL(file);
           newPreviews[index] = previewURL;
@@ -820,7 +824,7 @@ export default function BookServiceModal({
 
       const response = await apiPostFormData<{ storage_key: string }>(
         API_ENDPOINTS.SERVICE_REQUEST.UPLOAD_FILE,
-        formData
+        formData,
       );
 
       if (response.success && response.data?.storage_key) {
@@ -838,7 +842,7 @@ export default function BookServiceModal({
 
   // Upload multiple files and return array of storage keys
   const uploadFiles = async (
-    files: File[]
+    files: File[],
   ): Promise<Array<{ storage_key: string }>> => {
     const uploadPromises = files.map((file) => uploadFile(file));
     const storageKeys = await Promise.all(uploadPromises);
@@ -858,9 +862,9 @@ export default function BookServiceModal({
           ? 0
           : parseInt(selectedTime.hour)
         : parseInt(selectedTime.hour) === 12
-        ? 12
-        : parseInt(selectedTime.hour) + 12,
-      parseInt(selectedTime.minute)
+          ? 12
+          : parseInt(selectedTime.hour) + 12,
+      parseInt(selectedTime.minute),
     );
     return date.toISOString();
   };
@@ -872,7 +876,10 @@ export default function BookServiceModal({
     }
 
     // Validate valuation for professional services
-    if (serviceProvider === "professional" && (!valuation || valuation.trim() === "")) {
+    if (
+      serviceProvider === "professional" &&
+      (!valuation || valuation.trim() === "")
+    ) {
       alert("Please enter a valuation amount");
       return;
     }
@@ -928,7 +935,7 @@ export default function BookServiceModal({
       // Create service request
       const response = await apiPost(
         API_ENDPOINTS.SERVICE_REQUEST.CREATE,
-        requestBody
+        requestBody,
       );
 
       if (response.success) {
@@ -967,7 +974,7 @@ export default function BookServiceModal({
 
   const handleDescriptionFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -997,7 +1004,7 @@ export default function BookServiceModal({
 
   const handleBarterPhotoChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -1515,7 +1522,7 @@ export default function BookServiceModal({
                       >
                         {(() => {
                           const cat = apiCategories.find(
-                            (c) => c.id === selectedCategory
+                            (c) => c.id === selectedCategory,
                           );
                           if (cat?.category_logo) {
                             return (
@@ -1570,7 +1577,7 @@ export default function BookServiceModal({
                       >
                         {(() => {
                           const subcat = subcategories.find(
-                            (s) => s.id === selectedService
+                            (s) => s.id === selectedService,
                           );
                           if (subcat?.image) {
                             return (
@@ -1728,7 +1735,7 @@ export default function BookServiceModal({
                             {descriptionFiles[index].name.length > 20
                               ? `${descriptionFiles[index].name.substring(
                                   0,
-                                  20
+                                  20,
                                 )}...`
                               : descriptionFiles[index].name}
                           </Typography>
@@ -1758,7 +1765,7 @@ export default function BookServiceModal({
                           {descriptionFiles[index].name.length > 20
                             ? `${descriptionFiles[index].name.substring(
                                 0,
-                                20
+                                20,
                               )}...`
                             : descriptionFiles[index].name}
                         </Typography>
@@ -1801,7 +1808,7 @@ export default function BookServiceModal({
               }}
             >
               Please upload photos of the job so the worker can understand the
-              task better. <br/> (You can also upload a video)
+              task better. <br /> (You can also upload a video)
             </Typography>
           </Box>
         );
@@ -1846,16 +1853,16 @@ export default function BookServiceModal({
                     let value = e.target.value
                       .replace("€ ", "")
                       .replace(",", "");
-                    
+
                     // Only allow numbers and a single decimal point
-                    value = value.replace(/[^0-9.]/g, '');
-                    
+                    value = value.replace(/[^0-9.]/g, "");
+
                     // Prevent multiple decimal points
-                    const parts = value.split('.');
+                    const parts = value.split(".");
                     if (parts.length > 2) {
-                      value = parts[0] + '.' + parts.slice(1).join('');
+                      value = parts[0] + "." + parts.slice(1).join("");
                     }
-                    
+
                     setValuation(value);
                   }}
                   sx={{
@@ -1967,14 +1974,14 @@ export default function BookServiceModal({
                           {day}
                         </Typography>
                       </Box>
-                    )
+                    ),
                   )}
                   {/* Empty cells for days before the 1st of the month */}
                   {Array.from(
                     { length: getFirstDayOfMonth(currentMonth, currentYear) },
                     (_, i) => (
                       <Box key={`empty-${i}`} sx={{ width: 32, height: 32 }} />
-                    )
+                    ),
                   )}
                   {/* Days of the month */}
                   {Array.from(
@@ -2014,7 +2021,7 @@ export default function BookServiceModal({
                           </Typography>
                         </Box>
                       );
-                    }
+                    },
                   )}
                 </Box>
               </Box>
@@ -2503,7 +2510,7 @@ export default function BookServiceModal({
                       if (digitCount <= 8) {
                         const clampedValue = Math.max(
                           1,
-                          Math.min(99999999, Math.floor(numValue))
+                          Math.min(99999999, Math.floor(numValue)),
                         );
                         setQuantity(clampedValue);
                       }
@@ -2549,7 +2556,9 @@ export default function BookServiceModal({
                               },
                             }}
                             size="large"
-                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                            onClick={() =>
+                              setQuantity(Math.max(1, quantity - 1))
+                            }
                           >
                             <Typography
                               sx={{ fontSize: "2rem", color: "#343330" }}
@@ -2665,7 +2674,7 @@ export default function BookServiceModal({
                               {barterPhotoFiles[index].name.length > 20
                                 ? `${barterPhotoFiles[index].name.substring(
                                     0,
-                                    20
+                                    20,
                                   )}...`
                                 : barterPhotoFiles[index].name}
                             </Typography>
@@ -2696,7 +2705,7 @@ export default function BookServiceModal({
                             {barterPhotoFiles[index].name.length > 20
                               ? `${barterPhotoFiles[index].name.substring(
                                   0,
-                                  20
+                                  20,
                                 )}...`
                               : barterPhotoFiles[index].name}
                           </Typography>
@@ -3059,7 +3068,13 @@ export default function BookServiceModal({
               >
                 Job photos
               </Typography>
-              <Box sx={{ display: "flex", gap: "12px", flexWrap: { xs: "wrap", md: "nowrap" } }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: { xs: "wrap", md: "nowrap" },
+                }}
+              >
                 {descriptionFiles.length > 0 ? (
                   descriptionFiles.map((file, index) => (
                     <Box
@@ -3073,7 +3088,8 @@ export default function BookServiceModal({
                         border: "none",
                       }}
                     >
-                      {file.type.startsWith("image/") && descriptionFilePreviews[index] ? (
+                      {file.type.startsWith("image/") &&
+                      descriptionFilePreviews[index] ? (
                         <Image
                           src={descriptionFilePreviews[index]}
                           alt={`Job photo ${index + 1}`}
@@ -3125,7 +3141,13 @@ export default function BookServiceModal({
               >
                 Product Images
               </Typography>
-              <Box sx={{ display: "flex", gap: "12px", flexWrap: { xs: "wrap", md: "nowrap" } }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: { xs: "wrap", md: "nowrap" },
+                }}
+              >
                 {barterPhotoFiles.length > 0 ? (
                   barterPhotoFiles.map((file, index) => (
                     <Box
@@ -3139,7 +3161,8 @@ export default function BookServiceModal({
                         border: "none",
                       }}
                     >
-                      {file.type.startsWith("image/") && barterPhotoFilePreviews[index] ? (
+                      {file.type.startsWith("image/") &&
+                      barterPhotoFilePreviews[index] ? (
                         <Image
                           src={barterPhotoFilePreviews[index]}
                           alt={`Product photo ${index + 1}`}
@@ -3193,7 +3216,8 @@ export default function BookServiceModal({
                     border: "none",
                   }}
                 >
-                  {file.type.startsWith("image/") && descriptionFilePreviews[index] ? (
+                  {file.type.startsWith("image/") &&
+                  descriptionFilePreviews[index] ? (
                     <Image
                       src={descriptionFilePreviews[index]}
                       alt={`Job photo ${index + 1}`}
@@ -3420,13 +3444,14 @@ export default function BookServiceModal({
                 (currentStep === 1 && !serviceProvider) ||
                 (currentStep === 2 &&
                   (!selectedCategory || !selectedService)) ||
-                (currentStep === 3 && !serviceDescription) ||
+                (currentStep === 3 &&
+                  (!serviceDescription || descriptionFiles.length === 0)) ||
                 (currentStep === 4 &&
                   serviceProvider === "professional" &&
                   (!valuation || valuation.trim() === "")) ||
                 (currentStep === 5 &&
                   serviceProvider === "non-professional" &&
-                  !productName)
+                  (!productName || barterPhotoFiles.length === 0))
               }
               sx={{
                 bgcolor: "#214C65",
@@ -3443,9 +3468,9 @@ export default function BookServiceModal({
               {uploading
                 ? "Submitting..."
                 : currentStep ===
-                  (serviceProvider === "non-professional" ? 6 : 5)
-                ? "Submit"
-                : "Next"}
+                    (serviceProvider === "non-professional" ? 6 : 5)
+                  ? "Submit"
+                  : "Next"}
             </Button>
           </Box>
         </DialogContent>
