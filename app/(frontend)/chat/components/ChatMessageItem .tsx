@@ -5,7 +5,7 @@ export interface ChatMessage {
   id: string;
   text: string;
   sender: "user" | "other";
-  createdAt: Date | number;
+  createdAt: Date | number | string;
   photoURL?: string;
 }
 

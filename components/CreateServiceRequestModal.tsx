@@ -183,7 +183,9 @@ export default function CreateServiceRequestModal({
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [serviceDescription, setServiceDescription] = useState("");
   const [valuation, setValuation] = useState("");
-  const [selectedDate, setSelectedDate] = useState("16");
+  const [selectedDate, setSelectedDate] = useState<number>(
+    new Date().getDate(),
+  );
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedTime, setSelectedTime] = useState({
@@ -221,6 +223,7 @@ export default function CreateServiceRequestModal({
     }>
   >([]);
   const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
+  const wasOpenRef = React.useRef(open);
 
   // Fetch categories from API
   const fetchCategories = useCallback(async () => {
@@ -337,7 +340,7 @@ export default function CreateServiceRequestModal({
     setSelectedService(null);
     setServiceDescription("");
     setValuation("");
-    setSelectedDate("16");
+    setSelectedDate(new Date().getDate());
     setCurrentMonth(new Date().getMonth());
     setCurrentYear(new Date().getFullYear());
     setSelectedTime({ hour: "10", minute: "00", period: "AM" });
@@ -352,10 +355,16 @@ export default function CreateServiceRequestModal({
   }, []);
 
   // Reset form when modal is closed
+  // useEffect(() => {
+  //   if (!open) {
+  //     resetForm();
+  //   }
+  // }, [open, resetForm]);
   useEffect(() => {
-    if (!open) {
+    if (wasOpenRef.current && !open) {
       resetForm();
     }
+    wasOpenRef.current = open;
   }, [open, resetForm]);
 
   // Recreate preview URLs if files exist but previews are missing
@@ -635,7 +644,7 @@ export default function CreateServiceRequestModal({
     const date = new Date(
       currentYear,
       currentMonth,
-      parseInt(selectedDate),
+      selectedDate,
       selectedTime.period === "AM"
         ? parseInt(selectedTime.hour) === 12
           ? 0
@@ -1591,12 +1600,29 @@ export default function CreateServiceRequestModal({
                     { length: getDaysInMonth(currentMonth, currentYear) },
                     (_, i) => {
                       const day = i + 1;
+
                       const dayString = day.toString();
-                      const isSelected = selectedDate === dayString;
+
+                      // 1. Create a date object for the day being rendered
+                      const dateBeingRendered = new Date(
+                        currentYear,
+                        currentMonth,
+                        day,
+                      );
+
+                      // 2. Get today's date (set time to 00:00:00 for accurate comparison)
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+
+                      // 3. Determine if the date is in the past
+                      const isPast = dateBeingRendered < today;
+                      const isSelected = selectedDate === day;
+
                       return (
                         <Box
                           key={day}
-                          onClick={() => setSelectedDate(dayString)}
+                          // 4. Only trigger onClick if it's NOT a past date
+                          onClick={() => !isPast && setSelectedDate(day)}
                           sx={{
                             width: 32,
                             height: 32,
@@ -1605,11 +1631,17 @@ export default function CreateServiceRequestModal({
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            cursor: "pointer",
+                            // 5. Update styles based on isPast
+                            cursor: isPast ? "default" : "pointer",
+                            opacity: isPast ? 0.4 : 1, // Visual cue for disabled state
                             bgcolor: isSelected ? "#2F6B8E" : "transparent",
                             color: isSelected ? "white" : "text.primary",
                             "&:hover": {
-                              bgcolor: isSelected ? "#2F6B8E" : "grey.100",
+                              bgcolor: isPast
+                                ? "transparent"
+                                : isSelected
+                                  ? "#2F6B8E"
+                                  : "grey.100",
                             },
                           }}
                         >

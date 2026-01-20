@@ -326,7 +326,6 @@ export default function MyRequestsPage() {
     }
   }
 
-  const filters = ["All", "Open Proposal", "Responses", "Validation"];
 
   const filters = [
     "All",
