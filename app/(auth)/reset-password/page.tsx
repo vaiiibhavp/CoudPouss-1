@@ -260,9 +260,9 @@ export default function ResetPasswordPage() {
       if (response) {
         console.log("response", response);
 
-        // if (response.data?.message?.includes("OTP sent successfully")) {
-        //   setErrors({ otp: "OTP sent successfully" });
-        // }
+        if (response.data?.message?.includes("OTP sent to email")) {
+          setErrors({ otp: "OTP sent successfully" });
+        }
       }
 
       if (response?.error) {

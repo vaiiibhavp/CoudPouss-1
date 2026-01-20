@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   Timestamp,
   addDoc,
+  getDocs,
 } from 'firebase/firestore';
 
 import { db } from '@/lib/firebase';
@@ -67,7 +68,33 @@ export const buildThreadId = (first: string, second: string) =>
 /* =======================
    User
 ======================= */
+interface CreateOrUpdateUserParams {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+  avatarUrl: string;
+  fcmToken?: string | null;
+}
 
+export const createOrUpdateUser = async (data: CreateOrUpdateUserParams) => {
+  if (!data.userId) return;
+
+  // We manually point to the document named after your SQL ID
+  const userRef = doc(db, "users", String(data.userId));
+
+  const userData = {
+    userId: data.userId,
+    name: data.name,
+    email: data.email,
+    role: data.role,
+    avatarUrl: data.avatarUrl,
+    updatedAt: serverTimestamp(),
+  };
+
+  // This creates the user record if it doesn't exist
+  await setDoc(userRef, userData, { merge: true });
+};
 export async function upsertUserProfile(user: FirestoreUser) {
   if (!user?.user_id) return;
 
@@ -248,4 +275,57 @@ export async function sendTextMessage(payload: {
     },
     { merge: true }
   );
+}
+
+export async function getOrCreateThread(
+  currentUserId: string,
+  otherUserId: string
+): Promise<string> {
+  const q = query(
+    collection(db, "threads"),
+    where("participantIds", "array-contains", currentUserId)
+  );
+
+  const snap = await getDocs(q);
+
+  const existing = snap.docs.find((doc) =>
+    doc.data().participantIds.includes(otherUserId)
+  );
+
+  if (existing) return existing.id;
+
+  // 🔹 Fetch user metadata
+  const [currentUser, otherUser] = await Promise.all([
+    getUserMeta(currentUserId),
+    getUserMeta(otherUserId),
+  ]);
+
+  if (!currentUser || !otherUser) {
+    throw new Error("User metadata missing");
+  }
+
+  const threadRef = await addDoc(collection(db, "threads"), {
+    participantIds: [currentUserId, otherUserId],
+    participantsMeta: {
+      [currentUserId]: {
+        name: currentUser.name,
+        avatarUrl: currentUser.avatarUrl || "",
+      },
+      [otherUserId]: {
+        name: otherUser.name,
+        avatarUrl: otherUser.avatarUrl || "",
+      },
+    },
+    lastMessage: "",
+    updatedAt: serverTimestamp(),
+    createdAt: serverTimestamp(),
+  });
+
+  return threadRef.id;
+}
+
+
+async function getUserMeta(userId: string) {
+  const snap = await getDoc(doc(db, "users", userId));
+  return snap.exists() ? snap.data() : null;
 }

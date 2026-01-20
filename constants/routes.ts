@@ -20,6 +20,7 @@ export const ROUTES = {
   PROFESSIONAL_PROFILE: '/professional/profile',
   PROFESSIONAL_TRANSACTION_HISTORY: '/professional/profile/transaction-history',
   PROFESSIONAL_CHAT: '/professional/chat',
+  PROFESSIONAL_CHAT_Id: '/professional/chat/:id',
   PROFILE: '/profile',
   MY_REQUESTS: '/my-requests',
   SERVICES: '/services',
@@ -29,6 +30,7 @@ export const ROUTES = {
   PERSONAL_CARE: '/services/personal-care',
   TECH_SUPPORT: '/services/tech-support',
   CHAT: '/chat',
+  CHAT_id: '/chat/:id',
   Favorite: "/favorites",
   HELP_CENTER: '/help-center',
 } as const;

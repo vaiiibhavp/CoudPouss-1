@@ -10,7 +10,7 @@ import {
   InputBase,
   useMediaQuery,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -18,6 +18,7 @@ import { listenUsers } from "@/services/user.service";
 import theme from "@/lib/theme";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import {
+  getOrCreateThread,
   sendTextMessage,
   subscribeToMessages,
   subscribeToThreads,
@@ -25,10 +26,14 @@ import {
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import { NoChatSelected } from "./components/NoChatSelected";
-import { formatTime } from "@/utils/utils";
 import { UserChat } from "./components/UserChat";
 import { ChatMessageItem } from "./components/ChatMessageItem ";
-import { GetUserApiResponse, ProviderInfo, UserData } from "./components/interfaces";
+import {
+  GetUserApiResponse,
+  ProviderInfo,
+  UserData,
+} from "./components/interfaces";
+import { Timestamp } from "firebase/firestore";
 
 interface Chat {
   id: string;
@@ -52,22 +57,21 @@ interface UIMessage {
   createdAt: string;
   photoURL?: string;
 }
-
-export default function ChatPage() {
+interface ChatShellProps {
+  userId: string | null;
+}
+export default function ChatPage({ userId }: ChatShellProps) {
   const router = useRouter();
+  const { id } = useParams();
+  const otherUserId = Array.isArray(id) ? id[0] : id;
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [chatUsers, setChatUsers] = useState<any[]>([]);
   const activeChat = chatUsers.find((c) => c.id === selectedChat);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const firebaseUser = useSelector(
-    (state: RootState) => state?.auth?.firebaseUser
-  );
   const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [providerInfo, setProviderInfo] = useState<ProviderInfo | null>(null);
-  const [pastWorkFiles, setPastWorkFiles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,28 +91,13 @@ export default function ChatPage() {
     setError(null);
     try {
       const response = await apiGet<GetUserApiResponse>(
-        API_ENDPOINTS.AUTH.GET_USER
+        API_ENDPOINTS.AUTH.GET_USER,
       );
 
       if (response.success && response.data) {
         const apiData = response.data;
         if (apiData.data?.user) {
           setUserData(apiData.data.user);
-          // Update role in localStorage if needed
-          if (apiData.data.user.role) {
-            localStorage.setItem("role", apiData.data.user.role);
-          }
-          // Set provider info if available
-          if (apiData.data.provider_info) {
-            setProviderInfo(apiData.data.provider_info);
-          }
-          // Set past work files if available
-          if (
-            apiData.data.past_work_files &&
-            Array.isArray(apiData.data.past_work_files)
-          ) {
-            setPastWorkFiles(apiData.data.past_work_files);
-          }
         } else {
           setError("User data not found");
         }
@@ -128,7 +117,17 @@ export default function ChatPage() {
   }, [fetchUserData]);
 
   console.log("chatUsers", chatUsers, userData);
-  console.log("firebaseUser", firebaseUser, users, selectedChat, user);
+  console.log("users", users, selectedChat, user);
+  console.log("id", id, otherUserId);
+  useEffect(() => {
+    if (!userData || !otherUserId) return;
+
+    (async () => {
+      const threadId = await getOrCreateThread(userData.id, otherUserId);
+
+      setSelectedChat(threadId);
+    })();
+  }, [userData, otherUserId]);
 
   useEffect(() => {
     const unsubscribe = listenUsers(setUsers);
@@ -139,7 +138,7 @@ export default function ChatPage() {
     if (!activeChat || !userData) return null;
 
     const otherUserId = activeChat.participantIds.find(
-      (id: string) => id !== userData.id
+      (id: string) => id !== userData.id,
     );
 
     return activeChat.participantsMeta?.[otherUserId] || null;
@@ -156,12 +155,19 @@ export default function ChatPage() {
         const mapped = firebaseMessages.map((msg) => ({
           id: msg.id,
           text: msg.text,
-          sender: msg.senderId === userData.id ? "user" : "other",
-          createdAt: msg.createdAt,
+          sender: (msg.senderId === userData.id ? "user" : "other") as
+            | "user"
+            | "other",
+          // createdAt: msg.createdAt,
+          createdAt: msg.createdAt
+            ? msg.createdAt instanceof Timestamp
+              ? msg.createdAt.toDate().toISOString()
+              : new Date(msg.createdAt).toISOString()
+            : "",
         }));
 
         setMessages(mapped);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -184,9 +190,9 @@ export default function ChatPage() {
 
     try {
       const receiverId = activeChat.participantIds.find(
-        (id: string) => id !== userData.id
+        (id: string) => id !== userData.id,
       );
-
+      if (!receiverId) return;
       await sendTextMessage({
         threadId: selectedChat,
         text: textToSend, // Send the raw text with newlines/spaces
@@ -353,7 +359,7 @@ export default function ChatPage() {
                 ) : (
                   chatUsers.map((chat) => {
                     const otherUserId = chat.participantIds.find(
-                      (id: string) => id !== userData?.id
+                      (id: string) => id !== userData?.id,
                     );
 
                     const otherUser = chat.participantsMeta?.[otherUserId];
@@ -430,7 +436,13 @@ export default function ChatPage() {
                     }}
                   >
                     {messages.map((message) => (
-                      <ChatMessageItem key={message.id} message={message} />
+                      <ChatMessageItem
+                        key={message.id}
+                        message={{
+                          ...message,
+                          createdAt: new Date(message.createdAt),
+                        }}
+                      />
                     ))}
                   </Box>
 
@@ -469,7 +481,7 @@ export default function ChatPage() {
                           setMessageInput(e.target.value)
                         }
                         onKeyDown={(
-                          e: React.KeyboardEvent<HTMLInputElement>
+                          e: React.KeyboardEvent<HTMLInputElement>,
                         ) => {
                           if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault(); // Prevents new line
