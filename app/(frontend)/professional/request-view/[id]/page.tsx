@@ -540,6 +540,8 @@ export default function RequestViewPage() {
                   lineHeight: "1.4",
                   letterSpacing: 0,
                   textAlign: "justify",
+                  overflowWrap: "break-word", // This handles long unbroken text
+      wordBreak: "break-word", // Additional breaking for very long strings
                 }}
               >
                 {requestData?.description || ""}

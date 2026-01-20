@@ -284,7 +284,7 @@ export default function TaskManagementPage() {
       clientAvatar: user.profile_photo_url || "",
       clientPhone: `${user.phone_country_code || ""} ${user.phone_number || ""}`.trim(),
       finalizedQuoteAmount: pb.total !== undefined ? `€${Number(pb.total).toFixed(2)}` : (quote.amount ? `€${Number(quote.amount).toFixed(2)}` : ""),
-      securityCode: quote.security_code || [],
+      securityCode: sd.displayed_service_code ? sd.displayed_service_code.split('').slice(0, 6) : (quote.security_code || []),
       description: sd.description || quote.description || "",
       jobPhotos: (sd.supporting_photos && sd.supporting_photos.length > 0) ? sd.supporting_photos : (quote.offer_photos && quote.offer_photos.length > 0 ? quote.offer_photos : []),
       paymentBreakdown: {
