@@ -16,6 +16,8 @@ import RenegotiateModal from "@/components/RenegotiateModal";
 import ClientApprovalModal from "@/components/ClientApprovalModal";
 import EnterSecurityCodeModal from "@/components/EnterSecurityCodeModal";
 import SecurityCodeSuccessModal from "@/components/SecurityCodeSuccessModal";
+import { apiPost } from "@/lib/api";
+import { toast } from "sonner";
 
 interface AcceptedData {
   id: number;
@@ -49,7 +51,7 @@ interface AcceptedSectionProps {
   setSelectedQuots: any;
 }
 
-export default function AcceptedSection({ data,setSelectedQuots }: AcceptedSectionProps) {
+export default function AcceptedSection({ data, setSelectedQuots }: AcceptedSectionProps) {
   const router = useRouter();
   const [openLocationModal, setOpenLocationModal] = useState(false);
   const [locationShared, setLocationShared] = useState(false);
@@ -69,9 +71,22 @@ export default function AcceptedSection({ data,setSelectedQuots }: AcceptedSecti
     setOpenLocationModal(true);
   };
 
-  const handleConfirmLocation = () => {
-    setOpenLocationModal(false);
-    setLocationShared(true);
+  const handleConfirmLocation = async () => {
+    try {
+      const endpoint = `quote_accept/proceed-out-for-service/${data.id}`;
+      const response = await apiPost<any>(endpoint, {});
+
+      if (response.data.status === "success") {
+        toast.success(response.data.message || "Successfully marked as out for service");
+        setOpenLocationModal(false);
+        setLocationShared(true);
+      } else {
+        toast.error(response.data.message || "Failed to proceed out for service");
+      }
+    } catch (error: any) {
+      console.error("Error calling out for service API:", error);
+      toast.error(error?.response?.data?.message || "An error occurred. Please try again.");
+    }
   };
 
   const handleCloseModal = () => {
@@ -82,18 +97,80 @@ export default function AcceptedSection({ data,setSelectedQuots }: AcceptedSecti
     setOpenSecurityCodeMatchModal(true);
   };
 
-  const handleSecurityCodeMatch = () => {
-    setOpenSecurityCodeMatchModal(false);
-    setServiceStarted(true);
+  const handleSecurityCodeMatch = async () => {
+    try {
+      const endpoint = `quote_accept/provider/confirm_start/${data.id}`;
+      const response = await apiPost<any>(endpoint, {});
+      let msg = ""
+      if (response && !response.success && response.error) {
+        msg = response.error.message || "";
+      } else {
+        msg = response?.data?.message || "";
+      }
+
+      const isAlreadyConfirmed = (m: string) => {
+        const normalized = (m || "").toLowerCase().replace(/[^a-z ]/g, "").trim();
+        return normalized.includes("You have already confirmed service start.");
+      };
+      if (response?.data?.status === "success") {
+        toast.success(msg || "Service start confirmed successfully");
+        setOpenSecurityCodeMatchModal(false);
+        setServiceStarted(true);
+      } else if (isAlreadyConfirmed(msg)) {
+        // Proceed to next step if already confirmed
+        toast.info(msg || "Service already confirmed; continuing.");
+        setOpenSecurityCodeMatchModal(false);
+        setServiceStarted(true);
+      } else {
+        if (msg === "You have already confirmed service start.") {
+          setOpenSecurityCodeMatchModal(false);
+          setServiceStarted(true);
+          toast.success(msg)
+        }
+        else{
+
+          toast.error(msg || "Failed to confirm service start");
+        }
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || "";
+
+      const isAlreadyConfirmed = (m: string) => {
+        const normalized = (m || "").toLowerCase().replace(/[^a-z ]/g, "").trim();
+        return normalized.includes("already confirmed");
+      };
+      if (isAlreadyConfirmed(msg)) {
+        toast.info(msg || "Service already confirmed; continuing.");
+        setOpenSecurityCodeMatchModal(false);
+        setServiceStarted(true);
+      } else {
+        console.error("Error calling confirm start API:", error);
+        toast.error(msg || "An error occurred. Please try again.");
+      }
+    }
   };
 
   const handleRenegotiate = () => {
     setOpenRenegotiateModal(true);
   };
 
-  const handleRenegotiateProceed = () => {
-    setOpenRenegotiateModal(false);
-    setOpenClientApprovalModal(true);
+  const handleRenegotiateProceed = async (amount: string) => {
+    try {
+      const sanitized = String(amount).replace(/[^0-9.\-]/g, "");
+      const endpoint = `quoteService/${data.id}/submit-adjustment`;
+      const response = await apiPost<any>(endpoint, { adjustment_amount: sanitized });
+
+      if (response?.data?.status === "success") {
+        toast.success(response.data.message || "Adjustment submitted successfully");
+        setOpenRenegotiateModal(false);
+        setOpenClientApprovalModal(true);
+      } else {
+        toast.error(response?.data?.message || "Failed to submit adjustment");
+      }
+    } catch (error: any) {
+      console.error("Error submitting adjustment:", error);
+      toast.error(error?.response?.data?.message || "An error occurred. Please try again.");
+    }
   };
 
   const handleClientApprovalProceed = () => {
@@ -886,7 +963,7 @@ export default function AcceptedSection({ data,setSelectedQuots }: AcceptedSecti
                   </Box>
                 ) : (
                   // Step 3: Show Cancel and Mark as Complete buttons after renegotiation
-                  <Box sx={{ display: "flex", gap: 2, mt: 4, justifyContent:"space-between" }}>
+                  <Box sx={{ display: "flex", gap: 2, mt: 4, justifyContent: "space-between" }}>
                     <Button
                       variant="outlined"
                       fullWidth
@@ -1012,6 +1089,29 @@ export default function AcceptedSection({ data,setSelectedQuots }: AcceptedSecti
         open={openRenegotiateModal}
         onClose={() => setOpenRenegotiateModal(false)}
         onProceed={handleRenegotiateProceed}
+        finalizedAmount={(() => {
+          const str = data.paymentBreakdown?.finalizedQuoteAmount || data.finalizedQuoteAmount || "";
+          const num = Number(String(str).replace(/[^0-9.\-]/g, ""));
+          return isNaN(num) ? undefined : num;
+        })()}
+        paymentBreakdown={{
+          base_amount: (() => {
+            const str = data.paymentBreakdown?.finalizedQuoteAmount || "0";
+            return Number(String(str).replace(/[^0-9.\-]/g, ""));
+          })(),
+          platform_fee: (() => {
+            const str = data.paymentBreakdown?.platformFee || "0";
+            return Number(String(str).replace(/[^0-9.\-]/g, ""));
+          })(),
+          taxes: (() => {
+            const str = data.paymentBreakdown?.taxes || "0";
+            return Number(String(str).replace(/[^0-9.\-]/g, ""));
+          })(),
+          total: (() => {
+            const str = data.paymentBreakdown?.total || "0";
+            return Number(String(str).replace(/[^0-9.\-]/g, ""));
+          })(),
+        }}
       />
 
       {/* Client Approval Modal */}

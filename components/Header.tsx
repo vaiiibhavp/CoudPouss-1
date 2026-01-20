@@ -1633,7 +1633,7 @@ export default function Header({
                       {
 
 
-                        // isAccountUnderVerification && 
+                        isAccountUnderVerification && 
                         (userDetails?.role === "service_provider" || userRole === "service_provider") && (
                           <Box
                             sx={{
@@ -2095,6 +2095,7 @@ export default function Header({
       <ApplicationStatusModal
         open={statusModalOpen}
         onClose={handleStatusModalClose}
+        status="rejected"
       />
       <Snackbar
         open={signoutSnackbarOpen}

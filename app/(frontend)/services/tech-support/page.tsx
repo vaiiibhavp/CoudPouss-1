@@ -135,8 +135,58 @@ export default function TechSupportPage() {
       return;
     }
 
+    apiCallToAllCategoriesList()
+
+  }, [router]);
+
+  const apiCallToAllCategoriesList = async() => {
+    let serviceName = "transport"
+    const response = await apiGet(API_ENDPOINTS.HOME.SERVICENAME(serviceName))
+    console.log(response)
+  }
+  
+  // Transport service cards data
+  const transportServices = [
+    {
+      id: 1,
+      title: "Rent a Truck",
+      image: "/image/service-image-2.png",
+    },
+    {
+      id: 2,
+      title: "Moving Help",
+      image: "/image/service-image-2.png",
+    },
+    {
+      id: 3,
+      title: "Get rid of bulky items",
+      image: "/image/service-image-2.png",
+    },
+    {
+      id: 4,
+      title: "Other Moving Job",
+      image: "/image/service-image-2.png",
+    },
+    {
+      id: 5,
+      title: "Moving Appliance",
+      image: "/image/service-image-2.png",
+    },
+    {
+      id: 6,
+      title: "Packing Your Boxes",
+      image: "/image/service-image-2.png",
+    },
+  ];
+
+
+
+  // }, []);
+
+
+  useEffect(() =>{
     fetchCategories();
-  }, [router, fetchCategories]);
+  },[router, fetchCategories])
 
   const primaryCategoryId = categories[0]?.id;
   const heroBanner = primaryCategoryId ? banners[primaryCategoryId] : null;

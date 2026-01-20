@@ -87,7 +87,7 @@ interface HomeApiResponse {
 
 export default function HomeAssistancePage() {
   const router = useRouter();
-
+  
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -119,6 +119,25 @@ export default function HomeAssistancePage() {
     setSelectedCategoryId("");
     setSelectedSubcategoryId("");
   }, []);
+  // Check if user is authenticated on mount
+  useEffect(() => {
+    const storedInitial = localStorage.getItem('userInitial');
+    const storedEmail = localStorage.getItem('userEmail');
+
+    // If user details are not present, redirect to login
+    if (!storedInitial || !storedEmail) {
+      router.push(ROUTES.LOGIN);
+    }
+  }, [router]);
+
+  // Service cards data
+  
+  
+ 
+
+  
+
+  
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -129,7 +148,34 @@ export default function HomeAssistancePage() {
     if (!storedInitial || !storedEmail) {
       router.push(ROUTES.LOGIN);
     }
+
+    apiCallToAllCategoriesList()
   }, [router]);
+
+
+  const apiCallToAllCategoriesList = async() => {
+    let serviceName = "home assistance"
+    try{
+      const response = await apiGet(API_ENDPOINTS.HOME.SERVICENAME(serviceName))
+
+      if(response){
+        console.log("API call successful")
+      }
+      console.log(response)
+    }catch(err){  
+      console.log(err)
+    } 
+  }
+
+  // Service categories
+  const serviceCategories = [
+    { name: "DIY", icon: "/icons/diy.png", borderTopLeftRadius: "2.5rem", },
+    { name: "Gardening", icon: "/icons/gardening.png" },
+    { name: "Housekeeping", icon: "/icons/housekeeping.png", borderTopRightRadius: "2.5rem" },
+    { name: "Childcare", icon: "/icons/childcare.png", borderBottomLeftRadius: "2.5rem" },
+    { name: "Pets", icon: "/icons/pets.png" },
+    { name: "Homecare", icon: "/icons/homecare.png", borderBottomRightRadius: "2.5rem" },
+  ];
 
   // Service cards data
 
