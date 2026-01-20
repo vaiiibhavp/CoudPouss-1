@@ -25,6 +25,7 @@ import ProceedToPaymentModal from "@/components/ProceedToPaymentModal";
 import ServiceConfirmSummaryModal from "@/components/ServiceConfirmSummaryModal";
 import CompletedSection from "@/components/task-management/CompletedSection";
 import ConfirmByElderSection from "@/components/my-request/ConfirmByElderSection";
+import { request } from "http";
 
 interface Request {
   id: string;
@@ -269,16 +270,34 @@ export default function MyRequestsPage() {
     } else {
       fetchRequests();
     }
-  }, [router, fetchRequests]);
 
-  // Fetch service details when selectedRequest changes
-  useEffect(() => {
-    if (selectedRequest) {
-      fetchServiceDetail(selectedRequest);
-    } else {
-      setServiceDetail(null);
+    apiCallToGetAllCreatedRequests()
+
+  }, [router]);
+
+  const apiCallToGetAllCreatedRequests = async() => {
+    // API call to fetch all created service requests
+    try{
+      let response = await apiGet(API_ENDPOINTS.SERVICE_REQUESTS.CREATE_REQUEST);
+
+      console.log(response)
+    }catch(error){
+      console.log("Error fetching service requests:", error);
     }
-  }, [selectedRequest, fetchServiceDetail]);
+  }
+
+  // API call to get service requests details
+  const apiCallToGetDetailsOfCreatedRequests = async(requestId : string) => {
+    try{
+      let response = await apiGet(API_ENDPOINTS.SERVICE_REQUESTS.REQUEST_DETAILS(requestId));
+      
+      console.log(response)
+    }catch(error){
+      console.log("Error fetching service requests:", error);
+    }
+  }
+
+  const filters = ["All", "Open Proposal", "Responses", "Validation"];
 
   const filters = ["All", "Open Proposal", "Responses", "Validation", "Completed", "Cancelled"];
 

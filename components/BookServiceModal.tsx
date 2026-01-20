@@ -34,6 +34,20 @@ interface BookServiceModalProps {
   onClose: () => void;
 }
 
+
+interface CreateRequestPayload {
+  is_professional: boolean;
+  category_id: string;
+  sub_category_id: number | null;
+  description: string;
+  description_files: [];
+  validation_amount:  number;
+  platform_fees: number;
+  tax: number;
+  chosen_datetime: string;
+  task_status: string;
+}
+
 // Custom bullet radio icons to match the provided design
 const UncheckedBullet = () => (
   <Box
@@ -818,6 +832,9 @@ export default function BookServiceModal({
       return null;
     }
   };
+  
+  // Reset form
+ 
 
   // Upload multiple files and return array of storage keys
   const uploadFiles = async (
