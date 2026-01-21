@@ -2009,10 +2009,36 @@ export default function SignupPage() {
                           fullWidth
                           placeholder="Enter Name"
                           onChange={(e) => {
-                            handleChange(e);
+                            let value = e.target.value;
+
+                            // 1. Prevent leading spaces
+                            if (
+                              (value.length === 1 && value === " ") ||
+                              value.length > 50
+                            ) {
+                              return;
+                            }
+
+                            // 2. Trim only leading spaces (not internal)
+                            value = value.replace(/^\s+/, "");
+
+                            // 3. Auto-capitalize first character
+                            if (value.length > 0) {
+                              value =
+                                value.charAt(0).toUpperCase() + value.slice(1);
+                            }
+
+                            handleChange({
+                              ...e,
+                              target: {
+                                ...e.target,
+                                value,
+                              },
+                            });
+
                             setFormData((prev) => ({
                               ...prev,
-                              name: e.target.value,
+                              name: value,
                             }));
                           }}
                           onBlur={handleBlur}

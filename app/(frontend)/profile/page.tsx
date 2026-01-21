@@ -1,7 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Box, Container, Typography, Button, Divider, IconButton, Drawer, Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  Container,
+  Typography,
+  Button,
+  Divider,
+  IconButton,
+  Drawer,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -17,6 +27,7 @@ import { AppDispatch } from "@/lib/redux/store";
 import { logout } from "@/lib/redux/authSlice";
 import { apiDelete } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -73,7 +84,7 @@ export default function ProfilePage() {
     setDeleting(true);
     try {
       const response = await apiDelete(API_ENDPOINTS.AUTH.DELETE_PROFILE);
-      
+
       if (response.success) {
         // Clear user data
         localStorage.removeItem("userInitial");
@@ -82,13 +93,15 @@ export default function ProfilePage() {
         dispatch(logout());
         // Redirect to home or login page
         router.push(ROUTES.HOME);
+        toast.success("User Profile Deleted Successfully");
       } else {
-        alert(response.error?.message || "Failed to delete profile. Please try again.");
         setOpenDeleteModal(false);
       }
     } catch (error: any) {
+      toast.error(
+        error.message || error.detail || "Failed to delete user profile",
+      );
       console.error("Error deleting profile:", error);
-      alert("Failed to delete profile. Please try again.");
       setOpenDeleteModal(false);
     } finally {
       setDeleting(false);
@@ -109,7 +122,6 @@ export default function ProfilePage() {
 
       {/* Main Content */}
       <Box
-        
         sx={{
           flex: 1,
           px: { xs: "1rem", md: "5rem" },
@@ -180,7 +192,9 @@ export default function ProfilePage() {
             >
               Account Setting
             </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}
+            >
               {menuItems.map((item, index) => (
                 <React.Fragment key={item.id}>
                   <Button
@@ -194,21 +208,46 @@ export default function ProfilePage() {
                     sx={{
                       justifyContent: "flex-start",
                       textTransform: "none",
-                      px: activeMenuItem === item.id ? "1.25rem" : item.id === "Sign Out" ? "1rem" : "1.25rem",
-                      py: activeMenuItem === item.id ? "0.625rem" : item.id === "Sign Out" ? "0.75rem" : "0.625rem",
-                      borderRadius: activeMenuItem === item.id ? "6.25rem" : item.id === "Sign Out" ? "1rem" : "6.25rem",
+                      px:
+                        activeMenuItem === item.id
+                          ? "1.25rem"
+                          : item.id === "Sign Out"
+                            ? "1rem"
+                            : "1.25rem",
+                      py:
+                        activeMenuItem === item.id
+                          ? "0.625rem"
+                          : item.id === "Sign Out"
+                            ? "0.75rem"
+                            : "0.625rem",
+                      borderRadius:
+                        activeMenuItem === item.id
+                          ? "6.25rem"
+                          : item.id === "Sign Out"
+                            ? "1rem"
+                            : "6.25rem",
                       fontSize: item.id === "Sign Out" ? "1rem" : "1rem", // 16px
                       fontFamily: "Lato, sans-serif",
                       fontWeight: 400,
-                      lineHeight: item.id === "Sign Out" ? "1.125rem" : activeMenuItem === item.id ? "140%" : "140%", // 18px for Sign Out
+                      lineHeight:
+                        item.id === "Sign Out"
+                          ? "1.125rem"
+                          : activeMenuItem === item.id
+                            ? "140%"
+                            : "140%", // 18px for Sign Out
                       letterSpacing: "0%",
-                      border: activeMenuItem === item.id ? "none" : item.id === "Sign Out" ? "none" : "0.0625rem solid #EAF0F3",
+                      border:
+                        activeMenuItem === item.id
+                          ? "none"
+                          : item.id === "Sign Out"
+                            ? "none"
+                            : "0.0625rem solid #EAF0F3",
                       color:
                         activeMenuItem === item.id
                           ? "#FFFFFF"
                           : item.id === "Sign Out"
-                          ? "#2C6587"
-                          : "#6D6D6D",
+                            ? "#2C6587"
+                            : "#6D6D6D",
                       bgcolor:
                         activeMenuItem === item.id ? "#2C6587" : "transparent",
                       "&:hover": {
@@ -216,8 +255,8 @@ export default function ProfilePage() {
                           activeMenuItem === item.id
                             ? "#2C6587"
                             : item.id === "Sign Out"
-                            ? "transparent"
-                            : "grey.50",
+                              ? "transparent"
+                              : "grey.50",
                       },
                     }}
                   >
@@ -231,7 +270,6 @@ export default function ProfilePage() {
               <Typography
                 onClick={handleDeleteProfile}
                 sx={{
-
                   textAlign: "left",
                   cursor: "pointer",
                   textTransform: "none",
@@ -270,7 +308,9 @@ export default function ProfilePage() {
               },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}
+            >
               {menuItems.map((item) => (
                 <React.Fragment key={item.id}>
                   <Button
@@ -285,21 +325,46 @@ export default function ProfilePage() {
                     sx={{
                       justifyContent: "flex-start",
                       textTransform: "none",
-                      px: activeMenuItem === item.id ? "1.25rem" : item.id === "Sign Out" ? "1rem" : "1.25rem",
-                      py: activeMenuItem === item.id ? "0.625rem" : item.id === "Sign Out" ? "0.75rem" : "0.625rem",
-                      borderRadius: activeMenuItem === item.id ? "6.25rem" : item.id === "Sign Out" ? "1rem" : "6.25rem",
+                      px:
+                        activeMenuItem === item.id
+                          ? "1.25rem"
+                          : item.id === "Sign Out"
+                            ? "1rem"
+                            : "1.25rem",
+                      py:
+                        activeMenuItem === item.id
+                          ? "0.625rem"
+                          : item.id === "Sign Out"
+                            ? "0.75rem"
+                            : "0.625rem",
+                      borderRadius:
+                        activeMenuItem === item.id
+                          ? "6.25rem"
+                          : item.id === "Sign Out"
+                            ? "1rem"
+                            : "6.25rem",
                       fontSize: item.id === "Sign Out" ? "1rem" : "1rem",
                       fontFamily: "Lato, sans-serif",
                       fontWeight: 400,
-                      lineHeight: item.id === "Sign Out" ? "1.125rem" : activeMenuItem === item.id ? "140%" : "140%",
+                      lineHeight:
+                        item.id === "Sign Out"
+                          ? "1.125rem"
+                          : activeMenuItem === item.id
+                            ? "140%"
+                            : "140%",
                       letterSpacing: "0%",
-                      border: activeMenuItem === item.id ? "none" : item.id === "Sign Out" ? "none" : "0.0625rem solid #EAF0F3",
+                      border:
+                        activeMenuItem === item.id
+                          ? "none"
+                          : item.id === "Sign Out"
+                            ? "none"
+                            : "0.0625rem solid #EAF0F3",
                       color:
                         activeMenuItem === item.id
                           ? "#FFFFFF"
                           : item.id === "Sign Out"
-                          ? "#2C6587"
-                          : "#6D6D6D",
+                            ? "#2C6587"
+                            : "#6D6D6D",
                       bgcolor:
                         activeMenuItem === item.id ? "#2C6587" : "transparent",
                       "&:hover": {
@@ -307,8 +372,8 @@ export default function ProfilePage() {
                           activeMenuItem === item.id
                             ? "#2C6587"
                             : item.id === "Sign Out"
-                            ? "transparent"
-                            : "grey.50",
+                              ? "transparent"
+                              : "grey.50",
                       },
                     }}
                   >
@@ -390,4 +455,3 @@ export default function ProfilePage() {
     </Box>
   );
 }
-

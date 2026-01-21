@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card, Box, Typography, Button, Avatar, CircularProgress } from "@mui/material";
+import {
+  Card,
+  Box,
+  Typography,
+  Button,
+  Avatar,
+  CircularProgress,
+} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import EditProfile from "./EditProfile";
 import { UseSelector } from "react-redux";
@@ -49,8 +56,10 @@ export default function ProfileOverview() {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
-      
+      const response = await apiGet<GetUserApiResponse>(
+        API_ENDPOINTS.AUTH.GET_USER,
+      );
+
       if (response.success && response.data) {
         const apiData = response.data;
         if (apiData.data?.user) {
@@ -124,7 +133,10 @@ export default function ProfileOverview() {
 
   // Helper functions to format data
   const getFullName = () => {
-    return `${userData.first_name || ""} ${userData.last_name || ""}`.trim() || "Unknown";
+    return (
+      `${userData.first_name || ""} ${userData.last_name || ""}`.trim() ||
+      "Unknown"
+    );
   };
 
   const getPhoneNumber = () => {
@@ -143,8 +155,6 @@ export default function ProfileOverview() {
   const getLocation = () => {
     return userData.address || "N/A";
   };
-
-  
 
   return (
     <Box
@@ -182,13 +192,20 @@ export default function ProfileOverview() {
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: { xs: "flex-start", sm: "center" },
               mb: 1,
               flexDirection: { xs: "column", sm: "row" },
               gap: { xs: 2, sm: 0 },
+              width: "100%",
             }}
           >
-            <Box>
+            {/* LEFT: Name + Location */}
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: 0, // 🔑 critical for text overflow in flex
+              }}
+            >
               <Typography
                 variant="h4"
                 fontWeight={500}
@@ -200,42 +217,61 @@ export default function ProfileOverview() {
               >
                 {getDisplayName()}
               </Typography>
+
               <Typography
                 variant="body1"
                 sx={{
                   color: "text.secondary",
                   fontSize: { xs: "0.9rem", md: "1rem" },
                   fontWeight: 400,
+                  lineHeight: 1.4,
+                  minWidth: 0, // 🔑 flex-safe
+                  overflowWrap: "anywhere",
+                  wordBreak: "break-word",
+                  display: "-webkit-box",
+                  WebkitLineClamp: { xs: 3, sm: 2 },
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
                 }}
+                title={getLocation()}
               >
                 {getLocation()}
               </Typography>
             </Box>
-            <Button
-              variant="outlined"
-              endIcon={<EditIcon sx={{ color: "#6D6D6D", fontSize: "1rem" }} />}
-              onClick={() => setIsEditMode(true)}
+
+            {/* RIGHT: Edit Button */}
+            <Box
               sx={{
-                textTransform: "none",
-                border: "0.03125rem solid #DFE8ED",
-                borderColor: "#DFE8ED",
-                color: "#6D6D6D",
-                px: "0.75rem",
-                py: "0.625rem",
-                borderRadius: "6.25rem",
-                gap: "0.375rem",
-                fontSize: "1rem",
-                fontWeight: 400,
-                lineHeight: "1.125rem",
-                letterSpacing: "0%",
-                "&:hover": {
-                  borderColor: "#DFE8ED",
-                  bgcolor: "transparent",
-                },
+                flexShrink: 0, // 🔑 prevent button shrinking
+                alignSelf: { xs: "flex-start", sm: "center" },
               }}
             >
-              Edit Profile
-            </Button>
+              <Button
+                variant="outlined"
+                endIcon={
+                  <EditIcon sx={{ color: "#6D6D6D", fontSize: "1rem" }} />
+                }
+                onClick={() => setIsEditMode(true)}
+                sx={{
+                  textTransform: "none",
+                  border: "0.03125rem solid #DFE8ED",
+                  color: "#6D6D6D",
+                  px: "0.75rem",
+                  py: "0.625rem",
+                  borderRadius: "6.25rem",
+                  gap: "0.375rem",
+                  fontSize: "1rem",
+                  fontWeight: 400,
+                  lineHeight: "1.125rem",
+                  "&:hover": {
+                    borderColor: "#DFE8ED",
+                    bgcolor: "transparent",
+                  },
+                }}
+              >
+                Edit Profile
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
@@ -440,10 +476,15 @@ export default function ProfileOverview() {
               <Typography
                 variant="body1"
                 sx={{
-                  color: "text.primary",
-                  fontWeight: 400,
-                  fontSize: "1rem",
+                  display: "-webkit-box",
+                  WebkitLineClamp: { xs: 3, sm: 2 },
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  lineHeight: 1.5,
+                  overflowWrap: "anywhere",
+                  wordBreak: "break-word",
                 }}
+                title={userData.address || "N/A"}
               >
                 {userData.address || "N/A"}
               </Typography>
@@ -454,5 +495,3 @@ export default function ProfileOverview() {
     </Box>
   );
 }
-
-

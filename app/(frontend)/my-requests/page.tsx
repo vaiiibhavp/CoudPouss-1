@@ -7,6 +7,7 @@ import {
   Button,
   Chip,
   Container,
+  Dialog,
   Divider,
   IconButton,
   InputAdornment,
@@ -26,6 +27,9 @@ import ServiceConfirmSummaryModal from "@/components/ServiceConfirmSummaryModal"
 import CompletedSection from "@/components/task-management/CompletedSection";
 import ConfirmByElderSection from "@/components/my-request/ConfirmByElderSection";
 import { request } from "http";
+import CloseIcon from "@mui/icons-material/Close";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 interface Request {
   id: string;
@@ -139,6 +143,7 @@ export default function MyRequestsPage() {
     null,
   );
   const [serviceDetailLoading, setServiceDetailLoading] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   // Format date from ISO string to "16 Aug 2025" format
   const formatDate = (dateString: string): string => {
@@ -299,33 +304,41 @@ export default function MyRequestsPage() {
     } else {
       fetchRequests();
     }
+  }, [router, fetchRequests]);
 
-    apiCallToGetAllCreatedRequests()
-
-  }, [router]);
-
-  const apiCallToGetAllCreatedRequests = async() => {
-    // API call to fetch all created service requests
-    try{
-      let response = await apiGet(API_ENDPOINTS.SERVICE_REQUESTS.CREATE_REQUEST);
-
-      console.log(response)
-    }catch(error){
-      console.log("Error fetching service requests:", error);
+  // Fetch service details when selectedRequest changes
+  useEffect(() => {
+    if (selectedRequest) {
+      fetchServiceDetail(selectedRequest);
+    } else {
+      setServiceDetail(null);
     }
-  }
+  }, [selectedRequest, fetchServiceDetail]);
+  //   apiCallToGetAllCreatedRequests()
 
-  // API call to get service requests details
-  const apiCallToGetDetailsOfCreatedRequests = async(requestId : string) => {
-    try{
-      let response = await apiGet(API_ENDPOINTS.SERVICE_REQUESTS.REQUEST_DETAILS(requestId));
-      
-      console.log(response)
-    }catch(error){
-      console.log("Error fetching service requests:", error);
-    }
-  }
+  // }, [router]);
 
+  // const apiCallToGetAllCreatedRequests = async() => {
+  //   // API call to fetch all created service requests
+  //   try{
+  //     let response = await apiGet(API_ENDPOINTS.SERVICE_REQUESTS.CREATE_REQUEST);
+
+  //     console.log(response)
+  //   }catch(error){
+  //     console.log("Error fetching service requests:", error);
+  //   }
+  // }
+
+  // // API call to get service requests details
+  // const apiCallToGetDetailsOfCreatedRequests = async(requestId : string) => {
+  //   try{
+  //     let response = await apiGet(API_ENDPOINTS.SERVICE_REQUESTS.REQUEST_DETAILS(requestId));
+
+  //     console.log(response)
+  //   }catch(error){
+  //     console.log("Error fetching service requests:", error);
+  //   }
+  // }
 
   const filters = [
     "All",
@@ -1333,6 +1346,8 @@ export default function MyRequestsPage() {
                       </Typography>
                       <Box
                         sx={{
+                          maxHeight: "400px",
+                          overflow: "auto",
                           border: "0.0625rem solid #D5D5D5",
                           borderRadius: {
                             xs: "0.5rem",
@@ -1475,8 +1490,12 @@ export default function MyRequestsPage() {
                           </Typography>
                           <Box
                             sx={{
-                              display: "flex",
-                              flexDirection: { xs: "column", sm: "row" },
+                              display: "grid",
+                              gridTemplateColumns: {
+                                xs: "1fr", // mobile
+                                sm: "repeat(2, 1fr)", // tablet
+                                md: "repeat(3, 1fr)", // desktop
+                              },
                               gap: {
                                 xs: "0.75rem",
                                 sm: "1rem",
@@ -1487,23 +1506,25 @@ export default function MyRequestsPage() {
                             {serviceDetail.media.photos.map((photo, index) => (
                               <Box
                                 key={index}
+                                onClick={() => setPreviewIndex(index)}
                                 sx={{
                                   width: "100%",
-                                  height: {
-                                    xs: "8rem",
-                                    sm: "8.5rem",
-                                    md: "9rem",
-                                  },
+                                  aspectRatio: "16 / 9",
                                   borderRadius: { xs: 1.5, sm: 2 },
                                   overflow: "hidden",
                                   position: "relative",
+                                  bgcolor: "grey.100",
+                                  cursor: "pointer",
                                 }}
                               >
                                 <Image
                                   src={photo}
                                   alt={`Photo ${index + 1}`}
                                   fill
-                                  style={{ objectFit: "cover" }}
+                                  style={{
+                                    objectFit: "cover",
+                                    display: "block",
+                                  }}
                                 />
                               </Box>
                             ))}
@@ -1512,7 +1533,7 @@ export default function MyRequestsPage() {
                       )}
 
                     {/* SUPPORTING DOCUMENTS */}
-                    <Box>
+                    {/* <Box>
                       <Typography
                         sx={{
                           fontSize: {
@@ -1584,7 +1605,7 @@ export default function MyRequestsPage() {
                           </Box>
                         ))}
                       </Box>
-                    </Box>
+                    </Box> */}
 
                     {/* ACTION BUTTONS */}
                     <Box
@@ -1690,6 +1711,91 @@ export default function MyRequestsPage() {
           )}
         </Box>
       </Container>
+      <Dialog
+        open={previewIndex !== null}
+        onClose={() => setPreviewIndex(null)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: "transparent",
+            boxShadow: "none",
+          },
+        }}
+      >
+        {previewIndex !== null && (
+          <Box
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: { xs: "70vh", md: "80vh" },
+              bgcolor: "black",
+              borderRadius: 2,
+              overflow: "hidden",
+            }}
+          >
+            <Image
+              src={serviceDetail?.media.photos[previewIndex] || ""}
+              alt={`Preview ${previewIndex + 1}`}
+              fill
+              style={{ objectFit: "contain" }}
+            />
+
+            {/* Close */}
+            <IconButton
+              onClick={() => setPreviewIndex(null)}
+              sx={{
+                position: "absolute",
+                top: 12,
+                right: 12,
+                color: "white",
+                bgcolor: "rgba(0,0,0,0.5)",
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+
+            {/* Previous */}
+            {previewIndex > 0 && (
+              <IconButton
+                onClick={() => setPreviewIndex((i) => (i! > 0 ? i! - 1 : i))}
+                sx={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "white",
+                  bgcolor: "rgba(0,0,0,0.5)",
+                }}
+              >
+                <ChevronLeftIcon />
+              </IconButton>
+            )}
+
+            {/* Next */}
+            {serviceDetail &&
+              previewIndex < serviceDetail.media.photos.length - 1 && (
+                <IconButton
+                  onClick={() =>
+                    setPreviewIndex((i) =>
+                      i! < serviceDetail.media.photos.length - 1 ? i! + 1 : i,
+                    )
+                  }
+                  sx={{
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "white",
+                    bgcolor: "rgba(0,0,0,0.5)",
+                  }}
+                >
+                  <ChevronRightIcon />
+                </IconButton>
+              )}
+          </Box>
+        )}
+      </Dialog>
       <RejectServiceRequestModal
         serviceId={serviceDetail?.service_id || ""}
         open={openReject}

@@ -34,14 +34,13 @@ interface BookServiceModalProps {
   onClose: () => void;
 }
 
-
 interface CreateRequestPayload {
   is_professional: boolean;
   category_id: string;
   sub_category_id: number | null;
   description: string;
   description_files: [];
-  validation_amount:  number;
+  validation_amount: number;
   platform_fees: number;
   tax: number;
   chosen_datetime: string;
@@ -838,9 +837,8 @@ export default function BookServiceModal({
       return null;
     }
   };
-  
+
   // Reset form
- 
 
   // Upload multiple files and return array of storage keys
   const uploadFiles = async (
@@ -1852,20 +1850,47 @@ export default function BookServiceModal({
                   placeholder="Enter amount"
                   value={valuation ? `€ ${valuation}` : "€ "}
                   onChange={(e) => {
-                    let value = e.target.value
-                      .replace("€ ", "")
-                      .replace(",", "");
+                    let raw = e.target.value.replace("€", "").trim();
 
-                    // Only allow numbers and a single decimal point
-                    value = value.replace(/[^0-9.]/g, "");
+                    // Remove commas
+                    raw = raw.replace(/,/g, "");
 
-                    // Prevent multiple decimal points
-                    const parts = value.split(".");
+                    // Allow only digits and one decimal
+                    raw = raw.replace(/[^0-9.]/g, "");
+
+                    // Prevent multiple decimals
+                    const parts = raw.split(".");
                     if (parts.length > 2) {
-                      value = parts[0] + "." + parts.slice(1).join("");
+                      raw = parts[0] + "." + parts[1];
                     }
 
-                    setValuation(value);
+                    // Limit decimal places to 2
+                    if (parts[1] && parts[1].length > 2) {
+                      return; 
+                    }
+
+                    // Limit integer digits
+                    const integerPart = raw.split(".")[0];
+                    if (integerPart.length > 9) {
+                      return;
+                    }
+
+                    const numericValue = Number(raw);
+
+                    if (raw !== "" && numericValue < 1) {
+                      return;
+                    }
+
+                    if (numericValue > 999999999) {
+                      return;
+                    }
+
+                    setValuation(raw);
+                  }}
+                  onBlur={() => {
+                    if (!valuation || Number(valuation) < 1) {
+                      setValuation("");
+                    }
                   }}
                   sx={{
                     "& .MuiOutlinedInput-root": {
@@ -2482,7 +2507,20 @@ export default function BookServiceModal({
                 fullWidth
                 placeholder="Enter Name"
                 value={productName}
-                onChange={(e) => setProductName(e.target.value)}
+                onChange={(e) => {
+                  let value = e.target.value;
+
+                  // Block input if it's only spaces
+                  if (value.trim() === "" && value.length > 0) {
+                    setProductName("");
+                    return;
+                  }
+
+                  // Remove leading spaces only
+                  value = value.replace(/^\s+/, "");
+
+                  setProductName(value);
+                }}
                 sx={{
                   mb: 3,
                   "& .MuiOutlinedInput-root": {
@@ -3055,6 +3093,8 @@ export default function BookServiceModal({
             p: 2,
             bgcolor: "#FFFFFF",
             minHeight: "120px",
+            maxHeight: "400px",
+            overflow: "auto",
           }}
         >
           <Typography
@@ -3227,54 +3267,70 @@ export default function BookServiceModal({
             </Box>
           </Box>
         ) : (
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-            {descriptionFiles.length > 0 ? (
-              descriptionFiles.map((file, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    width: "calc(50% - 0.5rem)",
-                    minWidth: "200px",
-                    height: "10.438rem",
-                    borderRadius: "0.75rem",
-                    overflow: "hidden",
-                    position: "relative",
-                    border: "none",
-                  }}
-                >
-                  {file.type.startsWith("image/") &&
-                  descriptionFilePreviews[index] ? (
-                    <Image
-                      src={descriptionFilePreviews[index]}
-                      alt={`Job photo ${index + 1}`}
-                      fill
-                      style={{ objectFit: "cover" }}
-                    />
-                  ) : (
-                    <Box
-                      sx={{
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        bgcolor: "grey.100",
-                      }}
-                    >
-                      <Typography
-                        sx={{ color: "text.secondary", fontSize: "0.875rem" }}
-                      >
-                        {file.name}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              ))
-            ) : (
-              <Typography sx={{ color: "text.secondary", py: 2 }}>
-                No photos uploaded
+          <Box>
+            <Box>
+              <Typography
+                sx={{
+                  mb: 2,
+                  fontSize: "1.125rem",
+                  lineHeight: "100%",
+                  letterSpacing: "0%",
+                  color: "#555555",
+                  fontWeight: 600,
+                }}
+              >
+                Job photos
               </Typography>
-            )}
+            </Box>
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              {descriptionFiles.length > 0 ? (
+                descriptionFiles.map((file, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      width: "calc(50% - 0.5rem)",
+                      minWidth: "200px",
+                      height: "10.438rem",
+                      borderRadius: "0.75rem",
+                      overflow: "hidden",
+                      position: "relative",
+                      border: "none",
+                    }}
+                  >
+                    {file.type.startsWith("image/") &&
+                    descriptionFilePreviews[index] ? (
+                      <Image
+                        src={descriptionFilePreviews[index]}
+                        alt={`Job photo ${index + 1}`}
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "grey.100",
+                        }}
+                      >
+                        <Typography
+                          sx={{ color: "text.secondary", fontSize: "0.875rem" }}
+                        >
+                          {file.name}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ))
+              ) : (
+                <Typography sx={{ color: "text.secondary", py: 2 }}>
+                  No photos uploaded
+                </Typography>
+              )}
+            </Box>
           </Box>
         )}
       </Box>
@@ -3448,7 +3504,7 @@ export default function BookServiceModal({
             ) : (
               <Button
                 variant="outlined"
-                onClick={() => setCurrentStep(1)}
+                onClick={() => setCurrentStep(3)}
                 sx={{
                   borderColor: "#2F6B8E",
                   color: "#2F6B8E",
