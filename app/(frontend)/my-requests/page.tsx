@@ -552,6 +552,15 @@ export default function MyRequestsPage() {
             sx={{
               width: { xs: "100%", lg: 400 },
               flexShrink: 0,
+              position: "sticky",
+              top: "20px",
+              overflowY: "auto",
+              maxHeight: "calc(100dvh - 40px)",
+              "&::-webkit-scrollbar": {
+                display: "none",
+              },
+              msOverflowStyle: "none",
+              scrollbarWidth: "none",
             }}
           >
             <Box
@@ -559,10 +568,11 @@ export default function MyRequestsPage() {
                 display: "flex",
                 flexDirection: "column",
                 gap: { xs: 1.5, sm: 2 },
+
               }}
             >
               {loading ? (
-                <Box sx={{ textAlign: "center", py: { xs: 3, sm: 4 } }}>
+                <Box sx={{ textAlign: "center", py: { xs: 3, sm: 4 }, }}>
                   <Typography
                     sx={{
                       color: "text.secondary",
@@ -605,6 +615,7 @@ export default function MyRequestsPage() {
                         borderColor: "#2F6B8E",
                         boxShadow: 2,
                       },
+
                     }}
                   >
                     <Box sx={{ display: "flex", gap: { xs: 1.5, sm: 2 } }}>
