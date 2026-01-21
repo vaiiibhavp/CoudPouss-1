@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, Card, Avatar } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -9,6 +9,8 @@ import CheckIcon from "@mui/icons-material/Check";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { API_ENDPOINTS } from "@/constants/api";
+import { apiGet } from "@/lib/api";
 import TaskImageCard from "@/components/TaskImageCard";
 
 interface QuoteSentData {
@@ -30,11 +32,114 @@ interface QuoteSentData {
 
 interface QuoteSentSectionProps {
   data: QuoteSentData;
-  setSelectedQuots:any;
+  setSelectedQuots: any;
 }
 
 export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSectionProps) {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [quoteDetail, setQuoteDetail] = useState<any>(null);
+
+  // Fetch quote details when component mounts
+  useEffect(() => {
+    const fetchQuoteDetail = async () => {
+      if (!data.id) return;
+
+      setLoading(true);
+      try {
+        const endpoint = API_ENDPOINTS.QOUTE_REQUEST.GET_QUOTE_DETAIL(String(data.id));
+        const response = await apiGet<any>(endpoint);
+
+        if (response?.data?.status && response?.data?.data) {
+          setQuoteDetail(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching quote detail:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuoteDetail();
+  }, [data.id]);
+
+  // Map API data to component format
+  const getMappedData = (): QuoteSentData => {
+    if (!quoteDetail) return data;
+
+    const task = quoteDetail.task || {};
+    const quote = quoteDetail.quote || {};
+    const user = quoteDetail.elderly_user || {};
+    const lifecycle = quoteDetail.task_lifecycle || {};
+
+    const parseDate = (datetime?: string) => {
+      if (!datetime) return "";
+      try {
+        const d = new Date(datetime);
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${d.getDate()} ${months[d.getMonth()]}, ${d.getFullYear()}`;
+      } catch {
+        return datetime;
+      }
+    };
+
+    const parseTime = (datetime?: string) => {
+      if (!datetime) return "";
+      try {
+        const d = new Date(datetime);
+        let hours = d.getHours();
+        const minutes = d.getMinutes();
+        const period = hours >= 12 ? "pm" : "am";
+        hours = hours % 12 || 12;
+        const minutesStr = minutes < 10 ? `0${minutes}` : minutes;
+        return `${hours}:${minutesStr} ${period}`;
+      } catch {
+        return "";
+      }
+    };
+
+    const parseDateTime = (datetime?: string) => {
+      if (!datetime) return "";
+      try {
+        const d = new Date(datetime);
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const day = lifecycle.quote_received?.day || "";
+        return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')}, ${d.getFullYear()} - ${day}`;
+      } catch {
+        return datetime;
+      }
+    };
+
+    return {
+      id: task.id || quote.quoteId || data.id,
+      title: task.subcategory?.name || data.title,
+      image: task.subcategory?.icon || data.image,
+      date: parseDate(task.chosen_date_time) || data.date,
+      time: parseTime(task.chosen_date_time) || data.time,
+      location: user.address || data.location,
+      clientName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || data.clientName,
+      clientAvatar: user.profile_photo_url || data.clientAvatar,
+      clientPhone: user.phone || data.clientPhone,
+      serviceStatus: quote.status === "send" ? "Quote Sent" : (quote.status || data.serviceStatus),
+      statusDate: parseDateTime(lifecycle.quote_received?.time) || data.statusDate,
+      waitingStatus: data.waitingStatus,
+      description: task.description || quote.description || data.description,
+      jobPhotos: (task.supporting_photos && task.supporting_photos.length > 0)
+        ? task.supporting_photos
+        : (quote.offer_photos && quote.offer_photos.length > 0 ? quote.offer_photos : data.jobPhotos),
+    };
+  };
+
+  const displayData = getMappedData();
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "400px" }}>
+        <Typography>Loading quote details...</Typography>
+      </Box>
+    );
+  }
+
 
   return (
     <Box>
@@ -74,12 +179,12 @@ export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSe
         <Box>
           {/* Task Image Card */}
           <TaskImageCard
-            image={data.image}
-            title={data.title}
-            date={data.date}
-            time={data.time}
+            image={displayData.image}
+            title={displayData.title}
+            date={displayData.date}
+            time={displayData.time}
             serviceProvider="DIY Services"
-            location={data.location}
+            location={displayData.location}
           />
 
           {/* Service Description */}
@@ -117,7 +222,7 @@ export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSe
                 textAlign: "justify",
               }}
             >
-              {data.description}
+              {displayData.description}
             </Typography>
           </Box>
 
@@ -154,7 +259,7 @@ export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSe
                 gap: "1rem",
               }}
             >
-              {data?.jobPhotos?.map((photo, index) => (
+              {displayData?.jobPhotos?.map((photo, index) => (
                 <Box
                   key={index}
                   sx={{
@@ -214,8 +319,8 @@ export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSe
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Avatar
-                  src={data.clientAvatar}
-                  alt={data.clientName}
+                  src={displayData.clientAvatar}
+                  alt={displayData.clientName}
                   sx={{ width: 48, height: 48 }}
                 />
                 <Typography
@@ -227,7 +332,7 @@ export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSe
                     letterSpacing: 0,
                   }}
                 >
-                  {data.clientName}
+                  {displayData.clientName}
                 </Typography>
               </Box>
               <Button
@@ -302,7 +407,7 @@ export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSe
                   letterSpacing: 0,
                 }}
               >
-                4517 Washington Ave. Manchester, Kentucky 39495
+                {displayData.location || "Address not available"}
               </Typography>
             </Box>
           </Box>
@@ -334,12 +439,12 @@ export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSe
 
             {[
               {
-                title: data.serviceStatus,
-                subtitle: data.statusDate,
+                title: displayData.serviceStatus,
+                subtitle: displayData.statusDate,
                 completed: true,
               },
               {
-                title: data.waitingStatus,
+                title: displayData.waitingStatus,
                 subtitle: "Pending",
                 completed: false,
               },
@@ -382,7 +487,7 @@ export default function QuoteSentSection({ data, setSelectedQuots }: QuoteSentSe
                           fontSize: "1rem",
                           lineHeight: "1.4rem",
                           letterSpacing: 0,
-                          mb:"0.188rem"
+                          mb: "0.188rem"
                         }}
                       >
                         {item.title}

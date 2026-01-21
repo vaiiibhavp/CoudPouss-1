@@ -70,6 +70,7 @@ export const API_ENDPOINTS = {
   },
   QOUTE_REQUEST: {
     GET_ALL_QOUTES: `${API_BASE_URL}quote_accept/service-provider/quotes`,
+    GET_QUOTE_DETAIL: (serviceId: string) => `${API_BASE_URL}quote_accept/service-provider/quotes/${serviceId}`,
   },
 } as const;
 
