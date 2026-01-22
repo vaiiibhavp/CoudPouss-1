@@ -200,16 +200,19 @@ export default function RejectServiceRequestModal({
   const prevStep = () =>
     setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
   const handleClose = useCallback(() => {
-    onClose();
-    if (cancelSuccess) {
-      onCancelSuccess();
-    }
-    setTimeout(() => {
-      setStep(1);
-      setService(undefined);
-      setServiceBreakdown(undefined);
-    }, 300); // Reset after transition
-  }, [onClose]);
+  onClose();
+
+  if (cancelSuccess) {
+    onCancelSuccess();
+  }
+
+  setTimeout(() => {
+    setStep(1);
+    setService(undefined);
+    setServiceBreakdown(undefined);
+  }, 300);
+}, [onClose, cancelSuccess, onCancelSuccess]);
+
 
   return (
     <Dialog

@@ -139,6 +139,7 @@ interface ServiceDetailData {
   total_renegotiated: number;
   media: ServiceMedia;
   payment_breakdown: PaymentBreakdown;
+  service_code: string;
 }
 
 interface PaymentBreakdown {
@@ -366,7 +367,7 @@ export default function MyRequestsPage() {
               professional: {
                 id: serviceDetail.provider.id,
                 full_name: serviceDetail.provider.full_name,
-                profile_photo_url: serviceDetail.provider.profile_photo_url,
+                profile_photo_url: serviceDetail.provider?.profile_photo_url,
                 is_verified: serviceDetail.provider.is_verified,
                 is_favorate: serviceDetail.provider.is_favorate,
                 email: serviceDetail.provider.email,
@@ -1396,6 +1397,76 @@ export default function MyRequestsPage() {
                         </Box>
                       </Box>
                     )}
+                    {/* Security Code */}
+                    {(serviceDetail?.task_status === "accepted" ||
+                      serviceDetail?.task_status === "completed") &&
+                      serviceDetail && (
+                        <Card
+                          sx={{
+                            borderRadius: "0.75rem",
+                            border: "0.0625rem solid #E6E6E6",
+                            bgcolor: "#FFFFFF",
+                            padding: "0.8125rem 1rem",
+                            mb: "1rem",
+                            boxShadow: "none",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "1.25rem",
+                          }}
+                        >
+                          <Typography
+                            fontWeight={500}
+                            sx={{
+                              color: "#323232",
+                              fontSize: "1.125rem",
+                              lineHeight: "1.25rem",
+                            }}
+                          >
+                            Security Code
+                          </Typography>
+
+                          <Box sx={{ display: "flex", gap: "1.25rem" }}>
+                            {(serviceDetail?.service_code || "")
+                              .split("")
+                              .map((digit, index, arr) => (
+                                <Box
+                                  key={index}
+                                  sx={{
+                                    width: 48,
+                                    height: 48,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    borderRadius: "1.25rem",
+                                    bgcolor: "rgba(234, 240, 243, 0.3)",
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      color: "#0F232F",
+                                      fontSize: "1.25rem",
+                                      lineHeight: 1,
+                                    }}
+                                  >
+                                    {index >= arr.length - 3 ? "*" : digit}
+                                  </Typography>
+                                </Box>
+                              ))}
+                          </Box>
+
+                          <Typography
+                            fontWeight={400}
+                            sx={{
+                              color: "#424242",
+                              fontSize: "0.6875rem",
+                              lineHeight: "1rem",
+                            }}
+                          >
+                            Note: Final 3 digits will be given to you on service
+                            date.
+                          </Typography>
+                        </Card>
+                      )}
 
                     {/* PROFESSIONAL ROW */}
                     {selectedRequestData.professional &&
@@ -2003,7 +2074,7 @@ export default function MyRequestsPage() {
                     )}
 
                     {/* SUPPORTING DOCUMENTS */}
-                    {/* <Box>
+                    <Box>
                       <Typography
                         sx={{
                           fontSize: {
@@ -2075,7 +2146,7 @@ export default function MyRequestsPage() {
                           </Box>
                         ))}
                       </Box>
-                    </Box> */}
+                    </Box>
 
                     {/* ACTION BUTTONS */}
                     {serviceDetail?.task_status === "pending" && (
@@ -2185,6 +2256,9 @@ export default function MyRequestsPage() {
                 selectedRequestData={selectedRequestData}
                 serviceDetail={serviceDetail}
                 handleFavorite={handleFavorite}
+                onCancelSuccess={() => {
+                  fetchRequests();
+                }}
               />
             )}
           </Box>

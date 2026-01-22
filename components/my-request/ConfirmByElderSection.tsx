@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Box, Typography, Button, Card, Avatar } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { formatDateString } from "@/utils/utils";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import RejectServiceRequestModal from "../RejectServiceRequestModal";
 
 type ApiStatus = "pending" | "open" | "accepted" | "completed" | "cancelled";
 interface ProviderInfo {
@@ -40,7 +41,7 @@ interface Request {
     first_name: string;
     full_name: string;
     id: string;
-    profile_photo_url: string | null;
+    profile_image_url: string | null;
     is_verified: boolean;
     is_favorate: boolean;
     last_name: string;
@@ -113,15 +114,18 @@ interface CompletedSectionProps {
   serviceDetail: ServiceDetailData;
   selectedRequestData: Request;
   handleFavorite: (professionalId?: string, isFavorite?: boolean) => void;
+  onCancelSuccess: () => void;
 }
 
 export default function ConfirmByElderSection({
   selectedRequestData,
   serviceDetail,
   handleFavorite,
+  onCancelSuccess,
 }: CompletedSectionProps) {
   const router = useRouter();
   console.log("selectedRequestData vivek", selectedRequestData, serviceDetail);
+  const [openReject, setOpenReject] = useState(false);
 
   // Mock data if not provided
   const completedData = {
@@ -709,6 +713,7 @@ export default function ConfirmByElderSection({
                   >
                     <Avatar
                       src={
+                        selectedRequestData?.professional?.profile_image_url ||
                         selectedRequestData?.professional?.profile_photo_url ||
                         ""
                       }
@@ -840,155 +845,214 @@ export default function ConfirmByElderSection({
             </Typography>
 
             {/* Timeline */}
-            {serviceDetail.lifecycle?.map((item, index) => {
-              const stepNumber = item.completed ? null : index + 1;
+            {(serviceDetail.lifecycle?.length === 0 ||
+              !serviceDetail.lifecycle) && (
+              <Typography
+                fontSize={{ xs: 12, sm: 14 }}
+                fontWeight={400}
+                textAlign={"center"}
+              >
+                No Status Available
+              </Typography>
+            )}
+            {serviceDetail.lifecycle?.length !== 0 &&
+              serviceDetail.lifecycle?.map((item, index) => {
+                const stepNumber = item.completed ? null : index + 1;
 
-              return (
-                <Box key={item.id} sx={{ mb: 3, position: "relative" }}>
-                  <Box
-                    sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}
-                  >
+                return (
+                  <Box key={item.id} sx={{ mb: 3, position: "relative" }}>
                     <Box
-                      sx={{
-                        width: "1.5rem",
-                        height: "1.5rem",
-                        borderRadius: "50%",
-                        bgcolor: item.completed ? "#2E7D32" : "#424242",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
+                      sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}
                     >
-                      {item.completed ? (
-                        <CheckIcon
-                          sx={{ fontSize: "1.1rem", color: "white" }}
-                        />
-                      ) : (
-                        <Typography
-                          fontWeight="600"
-                          sx={{ color: "white", fontSize: "0.875rem" }}
-                        >
-                          {stepNumber}
-                        </Typography>
-                      )}
-                    </Box>
-
-                    <Box sx={{ flex: 1 }}>
-                      <Typography
-                        fontWeight={600}
-                        sx={{ color: "#1F2937", mb: 0.5 }}
+                      <Box
+                        sx={{
+                          width: "1.5rem",
+                          height: "1.5rem",
+                          borderRadius: "50%",
+                          bgcolor: item.completed ? "#2E7D32" : "#424242",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
                       >
-                        {item.name}
-                      </Typography>
+                        {item.completed ? (
+                          <CheckIcon
+                            sx={{ fontSize: "1.1rem", color: "white" }}
+                          />
+                        ) : (
+                          <Typography
+                            fontWeight="600"
+                            sx={{ color: "white", fontSize: "0.875rem" }}
+                          >
+                            {stepNumber}
+                          </Typography>
+                        )}
+                      </Box>
 
-                      {item.time && (
+                      <Box sx={{ flex: 1 }}>
                         <Typography
-                          fontWeight={400}
-                          sx={{
-                            color: "#737373",
-                            fontSize: "0.75rem",
-                            lineHeight: "1.125rem",
-                          }}
+                          fontWeight={600}
+                          sx={{ color: "#1F2937", mb: 0.5 }}
                         >
-                          {formatDateString(
-                            item.time,
-                            "ddd, DD MMM YYYY  -  h:mma",
-                          )}
+                          {item.name}
                         </Typography>
-                      )}
-                    </Box>
-                  </Box>
 
-                  {index < serviceDetail.lifecycle.length - 1 && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        left: "0.75rem",
-                        top: "1.5rem",
-                        width: "0.125rem",
-                        bottom: "-1.5rem",
-                        bgcolor: "#E5E7EB",
-                      }}
-                    />
-                  )}
-                </Box>
-              );
-            })}
+                        {item.time && (
+                          <Typography
+                            fontWeight={400}
+                            sx={{
+                              color: "#737373",
+                              fontSize: "0.75rem",
+                              lineHeight: "1.125rem",
+                            }}
+                          >
+                            {formatDateString(
+                              item.time,
+                              "ddd, DD MMM YYYY  -  h:mma",
+                            )}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+
+                    {index < serviceDetail.lifecycle.length - 1 && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          left: "0.75rem",
+                          top: "1.5rem",
+                          width: "0.125rem",
+                          bottom: "-1.5rem",
+                          bgcolor: "#E5E7EB",
+                        }}
+                      />
+                    )}
+                  </Box>
+                );
+              })}
+            {serviceDetail.task_status === "completed" && (
+              <Button
+                // onClick={handleNavigate}
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  borderRadius: {
+                    xs: "0.375rem",
+                    sm: "0.5rem",
+                  },
+                  pt: { xs: "0.5rem", sm: "0.625rem" },
+                  pr: { xs: "1rem", sm: "2rem", md: "3.75rem" },
+                  pb: { xs: "0.5rem", sm: "0.625rem" },
+                  pl: { xs: "1rem", sm: "2rem", md: "3.75rem" },
+                  gap: "0.625rem",
+                  bgcolor: "#214C65",
+                  fontSize: {
+                    xs: "0.875rem",
+                    sm: "0.9375rem",
+                    md: "1rem",
+                  },
+                  width: { xs: "100%", sm: "auto" },
+                  minWidth: {
+                    xs: "auto",
+                    sm: "120px",
+                    md: "200px",
+                  },
+                  "&:hover": {
+                    bgcolor: "#214C65",
+                  },
+                }}
+              >
+                Write A Review
+              </Button>
+            )}
           </Card>
 
           {/* Information Message */}
-          <Box sx={{ mb: "1rem", mt: "1rem" }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                mb: "0.5rem",
-              }}
-            >
-              <Image
-                src="/icons/warning.png"
-                alt="Warning"
-                width={20}
-                height={20}
-              />
-              <Typography variant="body1" fontWeight={500}>
-                Information message
-              </Typography>
-            </Box>
-            <Typography
-              fontWeight={400}
-              sx={{
-                color: "#323232",
-                fontSize: "0.75rem",
-                lineHeight: "150%",
-                letterSpacing: "0%",
-                verticalAlign: "middle",
-              }}
-            >
-              Could you please help us guarantee the quality of services
-              exchanged from this point forward? Our role is to connect you with
-              professionals and ensure your transaction through secure API
-              providers. We are a platform that helps you find professionals for
-              your needs. Could you please write to the professional to solve
-              your problems. We are not responsible for any damage to your
-              property or any other issue.
-            </Typography>
-          </Box>
+          {serviceDetail.task_status === "accepted" && (
+            <>
+              <Box sx={{ mb: "1rem", mt: "1rem" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    mb: "0.5rem",
+                  }}
+                >
+                  <Image
+                    src="/icons/warning.png"
+                    alt="Warning"
+                    width={20}
+                    height={20}
+                  />
+                  <Typography variant="body1" fontWeight={500}>
+                    Information message
+                  </Typography>
+                </Box>
+                <Typography
+                  fontWeight={400}
+                  sx={{
+                    color: "#323232",
+                    fontSize: "0.75rem",
+                    lineHeight: "150%",
+                    letterSpacing: "0%",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  Could you please help us guarantee the quality of services
+                  exchanged from this point forward? Our role is to connect you
+                  with professionals and ensure your transaction through secure
+                  API providers. We are a platform that helps you find
+                  professionals for your needs. Could you please write to the
+                  professional to solve your problems. We are not responsible
+                  for any damage to your property or any other issue.
+                </Typography>
+              </Box>
 
-          {/* Cancel Request Button */}
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-            }}
-          >
-            <Button
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                borderRadius: "0.5rem",
-                border: "0.0625rem solid #214C65",
-                color: "#214C65",
-                padding: "0.625rem 3.75rem",
-                gap: "0.625rem",
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                lineHeight: "1.125rem",
-                letterSpacing: "0%",
-                "&:hover": {
-                  border: "0.0625rem solid #214C65",
-                  bgcolor: "transparent",
-                },
-              }}
-            >
-              Cancel request
-            </Button>
-          </Box>
+              {/* Cancel Request Button */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Button
+                  onClick={() => setOpenReject(true)}
+                  variant="outlined"
+                  sx={{
+                    textTransform: "none",
+                    borderRadius: "0.5rem",
+                    border: "0.0625rem solid #214C65",
+                    color: "#214C65",
+                    padding: "0.625rem 3.75rem",
+                    gap: "0.625rem",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    "&:hover": {
+                      border: "0.0625rem solid #214C65",
+                      bgcolor: "transparent",
+                    },
+                  }}
+                >
+                  Cancel request
+                </Button>
+              </Box>
+            </>
+          )}
         </Box>
       </Box>
+      <RejectServiceRequestModal
+        serviceId={serviceDetail?.service_id || ""}
+        open={openReject}
+        onClose={() => setOpenReject(false)}
+        onReject={(reason) => {
+          console.log("Rejected with reason:", reason);
+        }}
+        onCancelSuccess={() => onCancelSuccess()}
+      />
     </Box>
   );
 }
