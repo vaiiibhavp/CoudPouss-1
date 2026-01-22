@@ -33,10 +33,16 @@ import { request } from "http";
 import CloseIcon from "@mui/icons-material/Close";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { getSafeImageSrc, STATUS_CONFIG } from "./helper";
+import {
+  getSafeImageSrc,
+  ServiceSearchApiResponse,
+  ServiceSearchItem,
+  STATUS_CONFIG,
+} from "./helper";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { toast } from "sonner";
 import { ApiResponse } from "@/types";
+import { log } from "console";
 
 export type ApiStatus =
   | "pending"
@@ -188,6 +194,9 @@ export default function MyRequestsPage() {
   const [serviceDetailLoading, setServiceDetailLoading] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const paymentRedirectIdRef = React.useRef<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<ServiceSearchItem[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   // const statusConfig =
   // STATUS_CONFIG[request.status] || STATUS_CONFIG.open;
 
@@ -368,7 +377,7 @@ export default function MyRequestsPage() {
               ...req,
               professional: {
                 id: serviceDetail.provider.id,
-                full_name: serviceDetail.provider.full_name,
+                full_name: serviceDetail.provider?.full_name,
                 profile_photo_url:
                   serviceDetail.provider?.profile_photo_url ||
                   serviceDetail.provider.profile_image_url,
@@ -483,7 +492,6 @@ export default function MyRequestsPage() {
       router.push(ROUTES.CHAT_id.replace(":id", provider?.id || ""));
     }
   };
-  console.log("selectedRequestData", selectedRequestData);
 
   const [favoriteLoading, setFavoriteLoading] = useState(false);
 
@@ -559,6 +567,50 @@ export default function MyRequestsPage() {
       setFavoriteLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!search.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+
+    const delay = setTimeout(async () => {
+      try {
+        const queryParams = new URLSearchParams({
+          status: getStatusParam(activeFilter) || "all",
+          search: search.trim(),
+          page: "1",
+          limit: "100",
+        });
+
+        const response = await apiGet<ServiceSearchApiResponse>(
+          `${API_ENDPOINTS.SERVICE_REQUEST.SEARCH_REQUEST}?${queryParams
+            .toString()
+            .toLowerCase()}`,
+        );
+
+        if (response?.success && response.data) {
+          setSearchResults(response.data.data?.recent_requests?.items || []);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (error) {
+        console.error("Search API error:", error);
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(delay);
+      setSearchLoading(false);
+    };
+  }, [search, activeFilter]);
+
+  console.log("searchResults", searchResults);
 
   return (
     <Box
@@ -652,9 +704,11 @@ export default function MyRequestsPage() {
           <Box
             sx={{
               display: "flex",
+              position: "relative",
               justifyContent: { xs: "stretch", sm: "flex-end" },
               mb: { xs: 0, sm: 4 },
               width: { xs: "100%", sm: "auto" },
+              flexDirection: "column",
             }}
           >
             <Box
@@ -671,6 +725,8 @@ export default function MyRequestsPage() {
             >
               <InputBase
                 placeholder="Search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 startAdornment={
                   <Image
                     src={"/icons/Loupe.png"}
@@ -700,6 +756,106 @@ export default function MyRequestsPage() {
                 }}
               />
             </Box>
+            {(searchLoading || searchResults.length > 0 || search.trim()) && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "110%",
+                  left: 0,
+                  width: "100%",
+                  bgcolor: "white",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 2,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  zIndex: 1300,
+                  maxHeight: 320,
+                  overflowY: "auto",
+                  p: 1,
+                  "&::-webkit-scrollbar": {
+                    display: "none",
+                  },
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                }}
+              >
+                {searchLoading && (
+                  <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
+                    Searching...
+                  </Typography>
+                )}
+                {!searchLoading &&
+                  searchResults.length === 0 &&
+                  search.trim() && (
+                    <Typography
+                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                    >
+                      No results found
+                    </Typography>
+                  )}
+                {!searchLoading &&
+                  searchResults.map((item) => (
+                    <Box
+                      key={item.id}
+                      onClick={() => {
+                        setSelectedRequest(item?.id);
+                        setSearch("");
+                        setSearchResults([]);
+                      }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        px: 1,
+                        py: 0.75,
+                        borderRadius: 1,
+                        cursor: "pointer",
+                        "&:hover": { bgcolor: "grey.100" },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 1,
+                          overflow: "hidden",
+                          flexShrink: 0,
+                          bgcolor: "grey.100",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Image
+                          src={
+                            item.category_logo ||
+                            "/icons/home_assistance_icon_home.svg"
+                          }
+                          alt={item.category_name || "Service"}
+                          width={32}
+                          height={32}
+                          style={{ objectFit: "cover" }}
+                        />
+                      </Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            color: "#214C65",
+                            lineHeight: 1.2,
+                          }}
+                        >
+                          {item.sub_category_name}
+                        </Typography>
+                        <Typography
+                          sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
+                        >
+                          {item.category_name}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+              </Box>
+            )}
           </Box>
         </Box>
 
@@ -765,7 +921,6 @@ export default function MyRequestsPage() {
                   const statusConfig =
                     STATUS_CONFIG[request.status || "pending"] ||
                     STATUS_CONFIG.open;
-                  console.log("request", request.status, statusConfig);
                   if (!statusConfig) return;
 
                   return (
@@ -2361,9 +2516,7 @@ export default function MyRequestsPage() {
         serviceId={serviceDetail?.service_id || ""}
         open={openReject}
         onClose={() => setOpenReject(false)}
-        onReject={(reason) => {
-          console.log("Rejected with reason:", reason);
-        }}
+        onReject={(reason) => {}}
         onCancelSuccess={() => {
           fetchRequests();
         }}

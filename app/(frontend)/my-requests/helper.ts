@@ -4,8 +4,38 @@ type UiStatusConfig = {
   bgColor: string;
   dotColor: string;
 };
+export interface ServiceSearchItem {
+  id: string;
+  category_id: string;
+  category_name: string;
+  category_logo: string;
+  sub_category_id: string;
+  sub_category_name: string;
+  sub_category_logo: string;
+  service_type_photo_url: string;
+  amount: number;
+  total_renegotiated: string;
+  status: string;
+  is_professional: boolean;
+  chosen_datetime: string;
+  created_at: string;
+  created_date: string;
+  quoteid: string | null;
+}
+export interface ServiceSearchApiResponse {
+  success: boolean;
+  message: string;
+  status_code: number;
+  data: {
+    recent_requests: {
+      items: ServiceSearchItem[];
+    };
+  };
+}
 
-export  const STATUS_CONFIG: Record<string, UiStatusConfig> = {
+
+
+export const STATUS_CONFIG: Record<string, UiStatusConfig> = {
   "pending": {
     label: "Responded",
     textColor: "#F59E0B",

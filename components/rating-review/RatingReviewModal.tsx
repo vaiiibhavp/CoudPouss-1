@@ -178,7 +178,7 @@ export const RatingReviewModal = ({
             </Box>
 
             <Typography fontSize="16px" mt={1} mb={2} fontWeight={500}>
-              How do you rate {data.full_name ?? ""}?
+              How do you rate {data?.full_name ?? ""}?
             </Typography>
 
             {/* Ratings */}

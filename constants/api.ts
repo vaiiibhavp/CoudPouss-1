@@ -63,6 +63,7 @@ export const API_ENDPOINTS = {
     GET_SERVICES: `${API_BASE_URL}service_confirmation/service_accept/get_services`,
     GET_SERVICE_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/get_service`,
     OPEN_SERVICES: `${API_BASE_URL}quote_request/open-services`,
+    SEARCH_REQUEST:`${API_BASE_URL}service_confirmation/service_accept/get_services`
   },
   CANCEL_SERVICE: {
     GET_CANCEL_DETAILS: (serviceId: string) => `${API_BASE_URL}service_request/service-info/${serviceId}`,
