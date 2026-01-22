@@ -1,17 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Container,
-  Typography,
-  Button,
-  Divider,
-  IconButton,
-  Drawer,
-  Snackbar,
-  Alert,
-} from "@mui/material";
+import { Box, Container, Typography, Button, Divider, IconButton, Drawer } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -39,8 +29,6 @@ export default function ProfilePage() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openSignOutModal, setOpenSignOutModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [signoutSnackbarOpen, setSignoutSnackbarOpen] = useState(false);
-  const [signoutSnackbarMessage, setSignoutSnackbarMessage] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check if user is authenticated on mount
@@ -59,8 +47,7 @@ export default function ProfilePage() {
     localStorage.removeItem("userEmail");
     dispatch(logout());
     setOpenSignOutModal(false);
-    setSignoutSnackbarMessage("Sign out successful");
-    setSignoutSnackbarOpen(true);
+    toast.success("Sign out successful");
     setTimeout(() => {
       router.push(ROUTES.HOME);
     }, 800);
@@ -435,21 +422,6 @@ export default function ProfilePage() {
         onConfirm={handleConfirmDelete}
         loading={deleting}
       />
-
-      <Snackbar
-        open={signoutSnackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSignoutSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSignoutSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          {signoutSnackbarMessage}
-        </Alert>
-      </Snackbar>
 
       {/* Sign Out Modal */}
       <SignOutModal

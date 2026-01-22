@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Typography, Button, IconButton, Drawer, Divider, Snackbar, Alert } from "@mui/material";
+import { Box, Typography, Button, IconButton, Drawer, Divider } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -18,6 +18,7 @@ import { AppDispatch } from "@/lib/redux/store";
 import { logout } from "@/lib/redux/authSlice";
 import { apiDelete } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import { toast } from "sonner";
 
 export default function ProfessionalProfilePage() {
   const router = useRouter();
@@ -27,8 +28,6 @@ export default function ProfessionalProfilePage() {
   const [openSignOutModal, setOpenSignOutModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [signoutSnackbarOpen, setSignoutSnackbarOpen] = useState(false);
-  const [signoutSnackbarMessage, setSignoutSnackbarMessage] = useState("");
 
   const tabs = [
     "My Profile",
@@ -54,8 +53,7 @@ export default function ProfessionalProfilePage() {
     localStorage.removeItem("role");
     dispatch(logout());
     setOpenSignOutModal(false);
-    setSignoutSnackbarMessage("Sign out successful");
-    setSignoutSnackbarOpen(true);
+    toast.success("Sign out successful");
     setTimeout(() => {
       router.push(ROUTES.HOME);
     }, 800);
@@ -65,7 +63,7 @@ export default function ProfessionalProfilePage() {
     setDeleting(true);
     try {
       const response = await apiDelete(API_ENDPOINTS.AUTH.DELETE_PROFILE);
-      
+
       if (response.success) {
         // Clear user data
         localStorage.removeItem("userInitial");
@@ -380,20 +378,6 @@ export default function ProfessionalProfilePage() {
         onClose={() => setOpenSignOutModal(false)}
         onConfirm={handleSignOut}
       />
-      <Snackbar
-        open={signoutSnackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSignoutSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSignoutSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          {signoutSnackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

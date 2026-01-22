@@ -1,10 +1,207 @@
 "use client";
 
-import React from "react";
-import { Box, Typography, Button } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import Image from "next/image";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
+
+interface UserData {
+  service_provider_type: string;
+}
+
+interface GetUserApiResponse {
+  status: string;
+  message: string;
+  data: {
+    user: UserData;
+  };
+}
+
+interface PlanData {
+  id?: string;
+  name?: string;
+  type?: string;
+  price?: number | string; // Allow both number and string (JSON may parse as string)
+  duration?: string;
+  description?: string;
+  features?: string[];
+  // Optional subscription-specific fields (may come from a different endpoint)
+  plan_end_date?: string;
+  next_payment_date?: string;
+  payment_method?: string;
+}
+
+interface PlansApiResponse {
+  status: string;
+  message: string;
+  data: {
+    plan: PlanData;
+  };
+}
 
 export default function ManageSubscription() {
+  const [loading, setLoading] = useState(true);
+  const [planData, setPlanData] = useState<PlanData | null>(null);
+  const [providerType, setProviderType] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch user data to get provider_type
+  useEffect(() => {
+    const fetchUserAndPlans = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // First, fetch user data to get provider_type
+        const userResponse = await apiGet<GetUserApiResponse>(
+          API_ENDPOINTS.AUTH.GET_USER
+        );
+
+        if (userResponse.success && userResponse.data?.data?.user) {
+          const userProviderType = userResponse.data.data.user.service_provider_type;
+          setProviderType(userProviderType);
+
+          // Then fetch plans based on provider_type
+          if (userProviderType) {
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
+            const plansEndpoint = `${apiBaseUrl}userService/auth/plans?provider_type=${userProviderType}`;
+            
+            const plansResponse = await apiGet<PlansApiResponse>(plansEndpoint);
+
+            if (plansResponse.success && plansResponse.data?.data?.plan) {
+              const plan = plansResponse.data.data.plan;
+              // Ensure price is a number (convert from string if needed)
+              if (plan.price !== undefined && typeof plan.price === "string") {
+                plan.price = parseFloat(plan.price);
+              }
+              console.log("Plan data:", plan); // Debug log
+              setPlanData(plan);
+            } else {
+              setError("Failed to load plan data");
+            }
+          } else {
+            setError("Provider type not found");
+          }
+        } else {
+          setError("Failed to load user data");
+        }
+      } catch (err) {
+        console.error("Error fetching subscription data:", err);
+        setError("Failed to load subscription data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserAndPlans();
+  }, []);
+
+  // Format date helper
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Format date with time helper
+  const formatDateTime = (dateString?: string): string => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Format currency helper
+  const formatCurrency = (amount?: number | string, currency?: string): string => {
+    if (amount === undefined || amount === null) return "N/A";
+    
+    // Convert string to number if needed
+    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+    
+    // Check if conversion resulted in a valid number
+    if (isNaN(numAmount)) return "N/A";
+    
+    const curr = currency || "EUR";
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: curr,
+      }).format(numAmount);
+    } catch (error) {
+      // Fallback if currency formatting fails
+      return `${curr === "EUR" ? "€" : "$"}${numAmount.toFixed(2)}`;
+    }
+  };
+
+  // Default benefits if not provided
+  const defaultBenefits = [
+    "Earn money through CoudPouss (secure escrow payments)",
+    "Certified Badge visible to all clients",
+    "Includes 1 service category, +€1 per extra category",
+    "Subscription billed via Bank Card, Google Pay, or Apple Pay",
+    "Profile reviewed within 72 hours by an administrator",
+  ];
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          p: { xs: "1.25rem 1rem", sm: "1.25rem 1.5rem", md: "1.25rem 1.5rem" },
+          bgcolor: "#FFFFFF",
+          borderRadius: "0.75rem",
+          border: "1px solid #DBE0E5",
+          width: "100%",
+          minHeight: { xs: "auto", md: "calc(100vh - 18.75rem)" },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !planData) {
+    return (
+      <Box
+        sx={{
+          p: { xs: "1.25rem 1rem", sm: "1.25rem 1.5rem", md: "1.25rem 1.5rem" },
+          bgcolor: "#FFFFFF",
+          borderRadius: "0.75rem",
+          border: "1px solid #DBE0E5",
+          width: "100%",
+          minHeight: { xs: "auto", md: "calc(100vh - 18.75rem)" },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Typography sx={{ color: "#EF4444" }}>
+          {error || "No subscription data available"}
+        </Typography>
+      </Box>
+    );
+  }
   return (
     <Box
       sx={{
@@ -75,13 +272,13 @@ export default function ManageSubscription() {
             variant="body2"
             sx={{ color: "#374151", mb: 0.5, lineHeight: 1.6 }}
           >
-            Your plan will end on September 1, 2024 at 12:00 AM
+            Your plan will end on {planData.plan_end_date ? formatDateTime(planData.plan_end_date) : "N/A"}
           </Typography>
           <Typography
             variant="body2"
             sx={{ color: "#6B7280", lineHeight: 1.6 }}
           >
-            After that, you will be automatically billed €15.99
+            After that, you will be automatically billed {formatCurrency(planData.price, "EUR")}
           </Typography>
         </Box>
       </Box>
@@ -143,7 +340,7 @@ export default function ManageSubscription() {
                 color: "#323232",
               }}
             >
-              Professional (Certified)
+              {planData.name || "Professional (Certified)"}
             </Typography>
             <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
               <Typography
@@ -154,7 +351,7 @@ export default function ManageSubscription() {
                   lineHeight: "2rem",
                 }}
               >
-                €15.99
+                {formatCurrency(planData.price, "EUR")}
               </Typography>
               <Typography
                 sx={{
@@ -166,7 +363,7 @@ export default function ManageSubscription() {
                   color: "#214C65",
                 }}
               >
-                Monthly
+                {planData.duration ? planData.duration.charAt(0).toUpperCase() + planData.duration.slice(1) : "Monthly"}
               </Typography>
             </Box>
           </Box>
@@ -209,7 +406,7 @@ export default function ManageSubscription() {
                   textWrap: { xs: "wrap", sm: "nowrap" },
                 }}
               >
-                September 1, 2024
+                {planData.next_payment_date ? formatDate(planData.next_payment_date) : "N/A"}
               </Typography>
             </Box>
 
@@ -257,7 +454,7 @@ export default function ManageSubscription() {
                     textWrap: { xs: "wrap", sm: "nowrap" },
                   }}
                 >
-                  Credit Card
+                  {planData.payment_method || "Credit Card"}
                 </Typography>
               </Box>
             </Box>
@@ -286,7 +483,7 @@ export default function ManageSubscription() {
                   textWrap: { xs: "wrap", sm: "nowrap" },
                 }}
               >
-                €15.99
+                {formatCurrency(planData.price, "EUR")}
               </Typography>
             </Box>
           </Box>
@@ -317,21 +514,21 @@ export default function ManageSubscription() {
         </Button>
 
         {/* Description */}
-        <Typography
-          variant="body2"
-          sx={{
-            fontWeight: 400,
-            fontSize: { xs: "14px", sm: "16px" },
-            lineHeight: "140%",
-            letterSpacing: "0%",
-            color: "#555555",
-            mb: { xs: 3, sm: 4 },
-          }}
-        >
-          Enjoy exclusive benefits with your Premium Membership. From enhanced
-          features to priority support, this plan unlocks the full experience
-          tailored just for you.
-        </Typography>
+        {planData.description && (
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 400,
+              fontSize: { xs: "14px", sm: "16px" },
+              lineHeight: "140%",
+              letterSpacing: "0%",
+              color: "#555555",
+              mb: { xs: 3, sm: 4 },
+            }}
+          >
+            {planData.description}
+          </Typography>
+        )}
 
        
 
@@ -350,13 +547,7 @@ export default function ManageSubscription() {
         </Typography>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 1.5, sm: 2 } }}>
-          {[
-            "Earn money through CoudPouss (secure escrow payments)",
-            "Certified Badge visible to all clients",
-            "Includes 1 service category, +€1 per extra category",
-            "Subscription billed via Bank Card, Google Pay, or Apple Pay",
-            "Profile reviewed within 72 hours by an administrator",
-          ].map((benefit, index) => (
+          {(planData.features && planData.features.length > 0 ? planData.features : defaultBenefits).map((benefit, index) => (
             <Box
               key={index}
               sx={{ display: "flex", alignItems: "flex-start", gap: { xs: 1, sm: 1.5 } }}
@@ -375,8 +566,7 @@ export default function ManageSubscription() {
                   alt="Benefit"
                   width={18}
                   height={18}
-                  style={{ objectFit: "contain" }}
-                />
+                  style={{ objectFit: "contain" }} />
               </Box>
               <Typography
                 sx={{

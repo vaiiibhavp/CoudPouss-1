@@ -8,8 +8,6 @@ import {
   Container,
   Typography,
   Button,
-  Snackbar,
-  Alert,
   Card,
   AppBar,
   Toolbar,
@@ -37,6 +35,7 @@ import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import CreateServiceRequestModal from "./CreateServiceRequestModal";
 import { setActiveItem } from "@/lib/redux/profileSlice";
+import { toast } from "sonner";
 
 // Helper function to get cookie value
 const getCookie = (name: string): string | undefined => {
@@ -170,8 +169,6 @@ export default function Header({
     useState<null | HTMLElement>(null);
   const [bookServiceModalOpen, setBookServiceModalOpen] = useState(false);
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
-  const [signoutSnackbarOpen, setSignoutSnackbarOpen] = useState(false);
-  const [signoutSnackbarMessage, setSignoutSnackbarMessage] = useState("");
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [isAccountUnderVerification, setIsAccountUnderVerification] =
     useState(false);
@@ -356,8 +353,7 @@ export default function Header({
   const handleLogout = () => {
     // perform logout and show a success toast before redirecting
     dispatch(logout());
-    setSignoutSnackbarMessage("Sign out successful");
-    setSignoutSnackbarOpen(true);
+    toast.success("Sign out successful");
     // close modal if open
     setSignOutModalOpen(false);
     // wait a short moment so user sees the toast, then redirect
@@ -1602,9 +1598,8 @@ export default function Header({
                           style={{ objectFit: "cover" }}
                         />
                       ) : userDetails ? (
-                        `${userDetails.first_name?.[0] || ""}${
-                          userDetails.last_name?.[0] || ""
-                        }`.toUpperCase() || user?.initial
+                        `${userDetails.first_name?.[0] || ""}${userDetails.last_name?.[0] || ""
+                          }`.toUpperCase() || user?.initial
                       ) : (
                         user?.initial
                       )}
@@ -1654,8 +1649,7 @@ export default function Header({
                         }}
                       >
                         {userDetails
-                          ? `${userDetails.first_name || ""} ${
-                              userDetails.last_name || ""
+                          ? `${userDetails.first_name || ""} ${userDetails.last_name || ""
                             }`.trim() || "User"
                           : "User"}
                       </Typography>
@@ -1684,9 +1678,10 @@ export default function Header({
                       </Button>
 
                       {
-                        // isAccountUnderVerification &&
-                        (userDetails?.role === "service_provider" ||
-                          userRole === "service_provider") && (
+
+
+                        isAccountUnderVerification &&
+                        (userDetails?.role === "service_provider" || userRole === "service_provider") && (
                           <Box
                             sx={{
                               display: "flex",
@@ -1751,7 +1746,7 @@ export default function Header({
                         }}
                       >
                         {userDetails?.role === "service_provider" ||
-                        userRole === "service_provider" ? (
+                          userRole === "service_provider" ? (
                           <>
                             <Button
                               component={Link}
@@ -2158,20 +2153,6 @@ export default function Header({
         onClose={handleStatusModalClose}
         status="rejected"
       />
-      <Snackbar
-        open={signoutSnackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSignoutSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSignoutSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          {signoutSnackbarMessage}
-        </Alert>
-      </Snackbar>
     </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,38 +8,36 @@ import {
   Typography,
   Button,
   IconButton,
-  Checkbox,
   Radio,
   RadioGroup,
   FormControlLabel,
+  CircularProgress,
+  RadioProps,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Image from "next/image";
-import HandymanIcon from "@mui/icons-material/Handyman";
-import YardIcon from "@mui/icons-material/Yard";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
-import ChildCareIcon from "@mui/icons-material/ChildCare";
-import PetsIcon from "@mui/icons-material/Pets";
-import ComputerIcon from "@mui/icons-material/Computer";
-import HomeIcon from "@mui/icons-material/Home";
+import { apiGet } from "@/lib/api";
+import { API_ENDPOINTS } from "@/constants/api";
 
 interface Category {
   id: string;
-  name: string;
-  icon: React.ReactNode;
+  category_name: string;
+  category_logo: string;
 }
 
 interface Service {
   id: string;
-  name: string;
-  image: string;
-  categoryId: string;
+  subcategory_name: string;
+  image: string | null;
 }
 
 interface SelectedService {
   categoryId: string;
   categoryName: string;
+  categoryLogo: string;
   serviceId: string;
   serviceName: string;
   serviceImage: string;
@@ -49,72 +47,139 @@ interface AddServiceModalProps {
   open: boolean;
   onClose: () => void;
   onAddServices: (services: SelectedService[]) => void;
+  existingServices?: SelectedService[];
 }
 
-const categories: Category[] = [
-  { id: "diy", name: "DIY", icon: <HandymanIcon /> },
-  { id: "gardening", name: "Gardening", icon: <YardIcon /> },
-  { id: "moving", name: "Moving", icon: <LocalShippingIcon /> },
-  { id: "housekeeping", name: "Housekeeping", icon: <CleaningServicesIcon /> },
-  { id: "childcare", name: "Childcare", icon: <ChildCareIcon /> },
-  { id: "pets", name: "Pets", icon: <PetsIcon /> },
-  { id: "it", name: "IT", icon: <ComputerIcon /> },
-  { id: "homecare", name: "Homecare", icon: <HomeIcon /> },
-];
-
-const services: Service[] = [
-  {
-    id: "furniture-assembly",
-    name: "Furniture Assembly",
-    image: "/image/explore-service-section-1.png",
-    categoryId: "diy",
-  },
-  {
-    id: "interior-painting",
-    name: "Interior Painting",
-    image: "/image/explore-service-section-2.png",
-    categoryId: "diy",
-  },
-  {
-    id: "tv-mounting",
-    name: "TV Mounting",
-    image: "/image/explore-service-section-3.png",
-    categoryId: "diy",
-  },
-  {
-    id: "plumbing",
-    name: "Plumbing",
-    image: "/image/explore-service-section-1.png",
-    categoryId: "diy",
-  },
-  {
-    id: "green-waste-removal",
-    name: "Green Waste Removal",
-    image: "/image/explore-service-section-2.png",
-    categoryId: "gardening",
-  },
-  {
-    id: "lawn-mowing",
-    name: "Lawn Mowing",
-    image: "/image/explore-service-section-3.png",
-    categoryId: "gardening",
-  },
-  {
-    id: "tree-trimming",
-    name: "Tree Trimming",
-    image: "/image/explore-service-section-1.png",
-    categoryId: "gardening",
-  },
-];
+// Custom bullet radio to match BookServiceModal design
+const BulletRadio = (props: RadioProps) => {
+  return (
+    <Radio
+      {...props}
+      disableRipple
+      icon={
+        <Box
+          sx={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            border: "2px solid #C5D3DC",
+            bgcolor: "#FFFFFF",
+            boxShadow: "0px 4px 10px rgba(44, 101, 135, 0.12)",
+          }}
+        />
+      }
+      checkedIcon={
+        <Box
+          sx={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            bgcolor: "#2C6587",
+            boxShadow: "0px 4px 12px rgba(44, 101, 135, 0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              bgcolor: "#FFFFFF",
+            }}
+          />
+        </Box>
+      }
+      sx={{
+        p: 0.5,
+        "&:hover": { backgroundColor: "transparent" },
+      }}
+    />
+  );
+};
 
 export default function AddServiceModal({
   open,
   onClose,
   onAddServices,
+  existingServices = [],
 }: AddServiceModalProps) {
   const [step, setStep] = useState<"category" | "service">("category");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [subcategories, setSubcategories] = useState<Service[]>([]);
+  const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
+
+  // Fetch categories
+  const fetchCategories = useCallback(async () => {
+    setCategoriesLoading(true);
+    try {
+      const response = await apiGet<{
+        message: string;
+        data: Array<{
+          id: string;
+          category_name: string;
+          category_logo: string;
+        }>;
+        success: boolean;
+        status_code: number;
+      }>(API_ENDPOINTS.HOME.ALL_CATEGORIES);
+
+      if (response.success && response.data?.data) {
+        setCategories(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, []);
+
+  // Fetch subcategories
+  const fetchSubcategories = useCallback(async (catId: string) => {
+    setSubcategoriesLoading(true);
+    try {
+      const endpoint = `${API_ENDPOINTS.HOME.HOME}/${catId}`;
+      const response = await apiGet<{
+        message: string;
+        data: {
+          Banner: {
+            url: string | null;
+            category_name: string;
+            file_name: string | null;
+            file_type: string | null;
+          };
+          subcategories: Array<{
+            id: string;
+            subcategory_name: string;
+            image: string | null;
+          }>;
+        };
+        success: boolean;
+        status_code: number;
+      }>(endpoint);
+
+      if (response.success && response.data?.data) {
+        setSubcategories(response.data.data.subcategories || []);
+      }
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      setSubcategories([]);
+    } finally {
+      setSubcategoriesLoading(false);
+    }
+  }, []);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    if (open) {
+      fetchCategories();
+    }
+  }, [open, fetchCategories]);
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -130,31 +195,32 @@ export default function AddServiceModal({
 
   const handleNext = () => {
     if (step === "category" && selectedCategory) {
+      fetchSubcategories(selectedCategory);
       setStep("service");
     } else if (step === "service" && selectedServices.length > 0) {
-      // Convert selected services to the format needed
       const category = categories.find((c) => c.id === selectedCategory);
       const servicesData: SelectedService[] = selectedServices.map((serviceId) => {
-        const service = services.find((s) => s.id === serviceId);
+        const service = subcategories.find((s) => s.id === serviceId);
         return {
           categoryId: selectedCategory,
-          categoryName: category?.name || "",
+          categoryName: category?.category_name || "",
+          categoryLogo: category?.category_logo || "",
           serviceId: service?.id || "",
-          serviceName: service?.name || "",
-          serviceImage: service?.image || "",
+          serviceName: service?.subcategory_name || "",
+          serviceImage: service?.image || "/image/explore-service-section-1.png",
         };
       });
-      
+
       onAddServices(servicesData);
       handleClose();
     }
   };
 
-  const handleSkip = () => {
-    if (step === "category") {
-      handleClose();
-    } else {
+  const handleBack = () => {
+    if (step === "service") {
       setStep("category");
+      setSelectedServices([]);
+      setSubcategories([]);
     }
   };
 
@@ -162,251 +228,320 @@ export default function AddServiceModal({
     setStep("category");
     setSelectedCategory("");
     setSelectedServices([]);
+    setSubcategories([]);
     onClose();
   };
-
-  const filteredServices = services.filter(
-    (service) => service.categoryId === selectedCategory
-  );
 
   return (
     <Dialog
       open={open}
       onClose={handleClose}
-      maxWidth="sm"
+      maxWidth="xs"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
-          p: 2,
-          maxHeight: "80vh",
+          borderRadius: "12px",
+          p: 0,
+          minHeight: "500px",
         },
       }}
     >
       <DialogContent sx={{ p: 3 }}>
-        <Box sx={{ position: "relative" }}>
-          {/* Close Button */}
+        {/* Header */}
+        <Box sx={{ position: "relative", mb: 2 }}>
           <IconButton
             onClick={handleClose}
-            sx={{
-              position: "absolute",
-              right: -16,
-              top: -16,
-              color: "#6B7280",
-            }}
+            size="small"
+            sx={{ position: "absolute", right: -8, top: -8, color: "#9CA3AF" }}
           >
             <CloseIcon />
           </IconButton>
 
-          {/* Category Selection Step */}
-          {step === "category" && (
-            <Box>
-              <Typography
-                variant="h6"
-                fontWeight="600"
-                sx={{ color: "#1F2937", mb: 3 }}
-              >
-                Select a category
-              </Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mt: 1 }}>
+            <Box
+              component="img"
+              src="/image/fi_9329880.png"
+              alt="Logo"
+              sx={{ width: 60, height: 60, mb: 1.5 }}
+            />
+            <Typography
+              sx={{
+                fontSize: "1.125rem",
+                fontWeight: 500,
+                color: "#2C6587",
+                lineHeight: "100%",
+                letterSpacing: "0%",
+                textAlign: "center",
+              }}
+            >
+              {step === "category" ? "Add Service Category" : "Select Services"}
+            </Typography>
+          </Box>
+        </Box>
 
-              {/* Category List */}
-              <RadioGroup
+        {/* Subtitle */}
+        <Typography
+          sx={{
+            fontSize: "0.875rem",
+            color: "#939393",
+            mb: 1
+          }}
+        >
+          {step === "category" ? "Select a category" : "Select subcategories"}
+        </Typography>
+
+        {/* Content */}
+        <Box
+          sx={{
+            minHeight: "300px",
+            maxHeight: "400px",
+            overflowY: "auto",
+            mb: 3,
+            "&::-webkit-scrollbar": { display: "none" },
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          {step === "category" ? (
+            // Category Selection - SELECT INPUT
+            categoriesLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress sx={{ color: "#2C6587" }} />
+              </Box>
+            ) : (
+              <Select
                 value={selectedCategory}
                 onChange={(e) => handleCategorySelect(e.target.value)}
-              >
-                <Box
-                  sx={{
-                    maxHeight: "18.75rem",
-                    overflowY: "auto",
-                    "&::-webkit-scrollbar": {
-                      width: "0.375rem",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      backgroundColor: "#D1D5DB",
-                      borderRadius: "0.1875rem",
-                    },
-                  }}
-                >
-                  {categories.map((category) => (
-                    <Box
-                      key={category.id}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        p: 2,
-                        mb: 1,
-                        borderRadius: 2,
-                        cursor: "pointer",
-                        bgcolor:
-                          selectedCategory === category.id
-                            ? "#F0F9FF"
-                            : "transparent",
-                        "&:hover": {
-                          bgcolor: "#F9FAFB",
-                        },
-                      }}
-                      onClick={() => handleCategorySelect(category.id)}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <Box sx={{ color: "#6B7280" }}>{category.icon}</Box>
-                        <Typography variant="body1" sx={{ color: "#374151" }}>
-                          {category.name}
-                        </Typography>
-                      </Box>
-                      <FormControlLabel
-                        value={category.id}
-                        control={
-                          <Radio
-                            checked={selectedCategory === category.id}
-                            sx={{
-                              color: "#D1D5DB",
-                              "&.Mui-checked": {
-                                color: "#2F6B8E",
-                              },
-                            }}
-                          />
-                        }
-                        label=""
-                        sx={{ m: 0 }}
-                      />
+                displayEmpty
+                IconComponent={KeyboardArrowDownIcon}
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return (
+                      <Typography sx={{ color: "#939393", fontSize: "1rem" }}>
+                        Select a category
+                      </Typography>
+                    );
+                  }
+                  const cat = categories.find((c) => c.id === selected);
+                  return (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      {cat?.category_logo && (
+                        <Image
+                          src={cat.category_logo}
+                          alt={cat.category_name}
+                          width={24}
+                          height={24}
+                          style={{ objectFit: "contain" }}
+                        />
+                      )}
+                      <Typography sx={{ color: "#2C6587", fontWeight: 500 }}>
+                        {cat?.category_name}
+                      </Typography>
                     </Box>
-                  ))}
-                </Box>
-              </RadioGroup>
-            </Box>
-          )}
-
-          {/* Service Selection Step */}
-          {step === "service" && (
-            <Box>
-              <Typography
-                variant="h6"
-                fontWeight="600"
-                sx={{ color: "#1F2937", mb: 3 }}
-              >
-                Select services
-              </Typography>
-
-              <Box
+                  );
+                }}
                 sx={{
-                  maxHeight: "25rem",
-                  overflowY: "auto",
-                  "&::-webkit-scrollbar": {
-                    width: "6px",
+                  width: "100%",
+                  borderRadius: "8px",
+                  "& .MuiSelect-select": {
+                    color: "#2C6587",
+                    py: 1.5,
                   },
-                  "&::-webkit-scrollbar-thumb": {
-                    backgroundColor: "#D1D5DB",
-                      borderRadius: "0.1875rem",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#E5E7EB",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#2C6587",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#2C6587",
+                  },
+                  "& .MuiSelect-icon": {
+                    color: "#6B7280",
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 250,
+                      mt: 1,
+                      borderRadius: "8px",
+                      boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.08)",
+                    },
                   },
                 }}
               >
-                {filteredServices.map((service) => (
+                {categories.map((category) => (
+                  <MenuItem
+                    key={category.id}
+                    value={category.id}
+                    sx={{
+                      py: 1.5,
+                      "&.Mui-selected": {
+                        bgcolor: "#F0F9FF",
+                        "&:hover": { bgcolor: "#E0F2FE" },
+                      },
+                      "&:hover": {
+                        bgcolor: "#F9FAFB",
+                      },
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
+                      {category.category_logo && (
+                        <Image
+                          src={category.category_logo}
+                          alt={category.category_name}
+                          width={24}
+                          height={24}
+                          style={{ objectFit: "contain" }}
+                        />
+                      )}
+                      <Typography sx={{ color: "#424242", flex: 1 }}>
+                        {category.category_name}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            )
+          ) : (
+            // Service Selection
+            subcategoriesLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress sx={{ color: "#2C6587" }} />
+              </Box>
+            ) : subcategories.length === 0 ? (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <Typography variant="body2" sx={{ color: "#9CA3AF" }}>
+                  No services available for this category
+                </Typography>
+              </Box>
+            ) : (
+              subcategories.map((service) => {
+                const isAlreadyAdded = existingServices.some(
+                  (existing) => existing.serviceId === service.id
+                );
+                const isSelected = selectedServices.includes(service.id);
+                const isDisabled = isAlreadyAdded;
+
+                return (
                   <Box
                     key={service.id}
                     sx={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      p: 2,
-                      mb: 1,
-                      borderRadius: 2,
-                      border: "0.0625rem solid #E5E7EB",
-                      cursor: "pointer",
-                      bgcolor: selectedServices.includes(service.id)
-                        ? "#F0F9FF"
-                        : "white",
+                      py: 1.5,
+                      px: 1,
+                      cursor: isDisabled ? "not-allowed" : "pointer",
+                      borderRadius: "8px",
+                      opacity: isDisabled ? 0.5 : 1,
                       "&:hover": {
-                        bgcolor: "#F9FAFB",
+                        bgcolor: isDisabled ? "transparent" : "#F9FAFB",
                       },
                     }}
-                    onClick={() => handleServiceToggle(service.id)}
+                    onClick={() => !isDisabled && handleServiceToggle(service.id)}
                   >
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 1,
-                          overflow: "hidden",
-                          position: "relative",
-                        }}
-                      >
+                      {service.image && (
                         <Image
                           src={service.image}
-                          alt={service.name}
-                          fill
-                          style={{ objectFit: "cover" }}
+                          alt={service.subcategory_name}
+                          width={24}
+                          height={24}
+                          style={{ objectFit: "contain" }}
                         />
+                      )}
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontSize: "1rem",
+                            color: isDisabled ? "#9CA3AF" : isSelected ? "#2C6587" : "#424242",
+                            fontWeight: isSelected ? 500 : 400,
+                          }}
+                        >
+                          {service.subcategory_name}
+                        </Typography>
+                        {isAlreadyAdded && (
+                          <Typography
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "#10B981",
+                              fontWeight: 500,
+                            }}
+                          >
+                            ✓ Already Added
+                          </Typography>
+                        )}
                       </Box>
-                      <Typography variant="body1" sx={{ color: "#374151" }}>
-                        {service.name}
-                      </Typography>
                     </Box>
-                    <Checkbox
-                      checked={selectedServices.includes(service.id)}
-                      sx={{
-                        color: "#D1D5DB",
-                        "&.Mui-checked": {
-                          color: "#2F6B8E",
-                        },
-                      }}
+                    <FormControlLabel
+                      value={service.id}
+                      control={
+                        <BulletRadio
+                          checked={isAlreadyAdded || isSelected}
+                          disabled={isDisabled}
+                        />
+                      }
+                      label=""
+                      sx={{ m: 0 }}
                     />
                   </Box>
-                ))}
-              </Box>
-            </Box>
+                );
+              })
+            )
           )}
+        </Box>
 
-          {/* Action Buttons */}
-          <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleSkip}
-              sx={{
-                textTransform: "none",
-                py: 1.5,
-                fontSize: "1rem",
-                fontWeight: "500",
-                borderRadius: 2,
-                borderColor: "#D1D5DB",
-                color: "#374151",
-                "&:hover": {
-                  borderColor: "#9CA3AF",
-                  bgcolor: "#F9FAFB",
-                },
-              }}
-            >
-              {step === "service" ? "Back" : "Skip"}
-            </Button>
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleNext}
-              disabled={
-                (step === "category" && !selectedCategory) ||
-                (step === "service" && selectedServices.length === 0)
-              }
-              sx={{
-                textTransform: "none",
-                py: 1.5,
-                fontSize: "1rem",
-                fontWeight: "500",
-                borderRadius: 2,
-                bgcolor: "#2F6B8E",
-                "&:hover": {
-                  bgcolor: "#1e4a5f",
-                },
-                "&:disabled": {
-                  bgcolor: "#D1D5DB",
-                  color: "#9CA3AF",
-                },
-              }}
-            >
-              Next
-            </Button>
-          </Box>
+        {/* Footer Buttons */}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button
+            onClick={step === "service" ? handleBack : handleClose}
+            variant="outlined"
+            fullWidth
+            sx={{
+              borderColor: "#2C6587",
+              color: "#2C6587",
+              textTransform: "none",
+              fontSize: "1rem",
+              fontWeight: 500,
+              py: 1.5,
+              borderRadius: "8px",
+              "&:hover": {
+                borderColor: "#1e4a5f",
+                bgcolor: "rgba(44, 101, 135, 0.05)",
+              },
+            }}
+          >
+            {step === "service" ? "Back" : "Cancel"}
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={
+              (step === "category" && !selectedCategory) ||
+              (step === "service" && selectedServices.length === 0)
+            }
+            variant="contained"
+            fullWidth
+            sx={{
+              bgcolor: "#2C6587",
+              color: "white",
+              textTransform: "none",
+              fontSize: "1rem",
+              fontWeight: 500,
+              py: 1.5,
+              borderRadius: "8px",
+              "&:hover": {
+                bgcolor: "#1e4a5f",
+              },
+              "&:disabled": {
+                bgcolor: "#E5E7EB",
+                color: "#9CA3AF",
+              },
+            }}
+          >
+            {step === "category" ? "Add Category" : "Add Services"}
+          </Button>
         </Box>
       </DialogContent>
     </Dialog>
