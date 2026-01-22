@@ -61,6 +61,7 @@ interface Request {
     full_name: string;
     id: string;
     profile_photo_url: string | null;
+    profile_image_url: string | null;
     is_verified: boolean;
     is_favorate: boolean;
     last_name: string;
@@ -78,6 +79,7 @@ interface ProviderInfo {
   is_verified: boolean;
   last_name: string;
   profile_photo_url: string | null;
+  profile_image_url: string | null;
 }
 interface ApiServiceRequest {
   id: string;
@@ -367,7 +369,12 @@ export default function MyRequestsPage() {
               professional: {
                 id: serviceDetail.provider.id,
                 full_name: serviceDetail.provider.full_name,
-                profile_photo_url: serviceDetail.provider?.profile_photo_url,
+                profile_photo_url:
+                  serviceDetail.provider?.profile_photo_url ||
+                  serviceDetail.provider.profile_image_url,
+                profile_image_url:
+                  serviceDetail.provider?.profile_image_url ||
+                  serviceDetail.provider.profile_photo_url,
                 is_verified: serviceDetail.provider.is_verified,
                 is_favorate: serviceDetail.provider.is_favorate,
                 email: serviceDetail.provider.email,

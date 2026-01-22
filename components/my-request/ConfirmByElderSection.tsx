@@ -14,6 +14,7 @@ import { ROUTES } from "@/constants/routes";
 import { formatDateString } from "@/utils/utils";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import RejectServiceRequestModal from "../RejectServiceRequestModal";
+import { RatingReviewModal } from "../rating-review/RatingReviewModal";
 
 type ApiStatus = "pending" | "open" | "accepted" | "completed" | "cancelled";
 interface ProviderInfo {
@@ -25,6 +26,7 @@ interface ProviderInfo {
   is_verified: boolean;
   last_name: string;
   profile_photo_url: string | null;
+  profile_image_url: string | null;
 }
 interface Request {
   id: string;
@@ -42,6 +44,7 @@ interface Request {
     full_name: string;
     id: string;
     profile_image_url: string | null;
+    profile_photo_url: string | null;
     is_verified: boolean;
     is_favorate: boolean;
     last_name: string;
@@ -124,8 +127,8 @@ export default function ConfirmByElderSection({
   onCancelSuccess,
 }: CompletedSectionProps) {
   const router = useRouter();
-  console.log("selectedRequestData vivek", selectedRequestData, serviceDetail);
   const [openReject, setOpenReject] = useState(false);
+  const [openRating, setOpenRating] = useState(false);
 
   // Mock data if not provided
   const completedData = {
@@ -933,7 +936,7 @@ export default function ConfirmByElderSection({
               })}
             {serviceDetail.task_status === "completed" && (
               <Button
-                // onClick={handleNavigate}
+                onClick={() => setOpenRating(true)}
                 variant="contained"
                 sx={{
                   textTransform: "none",
@@ -1052,6 +1055,13 @@ export default function ConfirmByElderSection({
           console.log("Rejected with reason:", reason);
         }}
         onCancelSuccess={() => onCancelSuccess()}
+      />
+      <RatingReviewModal
+        open={openRating}
+        data={serviceDetail.provider}
+        onClose={() => setOpenRating(false)}
+        onReject={() => {}}
+        service_id={serviceDetail.service_id ?? null}
       />
     </Box>
   );

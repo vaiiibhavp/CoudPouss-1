@@ -77,6 +77,10 @@ export const API_ENDPOINTS = {
     GET_FAVORITES: `${API_BASE_URL}service_confirmation/favorite-provider/fetch`,
     UPDATE_FAVORITE: (professionalId: string) => `${API_BASE_URL}service_confirmation/favorite-provider/add/${professionalId}`,
     DELETE_FAVORITE: (professionalId: string) => `${API_BASE_URL}service_confirmation/favorite-provider/remove/${professionalId}`,
+  },
+  RATING:{
+    CREATE_RATING:`${API_BASE_URL}service_confirmation/ratings/submit`
   }
+  
 } as const;
 
