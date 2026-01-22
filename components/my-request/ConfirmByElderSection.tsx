@@ -674,34 +674,32 @@ export default function ConfirmByElderSection({
                   >
                     About professional
                   </Typography>
+
                   <IconButton
                     sx={{
                       padding: 0,
                       width: "1.5rem",
                       height: "1.5rem",
                     }}
+                    size="small"
+                    onClick={() =>
+                      handleFavorite(
+                        selectedRequestData.professional?.id,
+                        selectedRequestData.professional?.is_favorate,
+                      )
+                    }
                   >
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        handleFavorite(
-                          selectedRequestData.professional?.id,
-                          selectedRequestData.professional?.is_favorate,
-                        )
-                      }
-                    >
-                      {selectedRequestData.professional?.is_favorate ? (
-                        <FavoriteIcon
-                          fontSize="small"
-                          sx={{ color: "#E0245E" }}
-                        />
-                      ) : (
-                        <FavoriteBorderIcon
-                          fontSize="small"
-                          sx={{ color: "#6B7280" }}
-                        />
-                      )}
-                    </IconButton>
+                    {selectedRequestData.professional?.is_favorate ? (
+                      <FavoriteIcon
+                        fontSize="small"
+                        sx={{ color: "#E0245E" }}
+                      />
+                    ) : (
+                      <FavoriteBorderIcon
+                        fontSize="small"
+                        sx={{ color: "#6B7280" }}
+                      />
+                    )}
                   </IconButton>
                 </Box>
                 <Box

@@ -1834,6 +1834,7 @@ export default function MyRequestsPage() {
                               </Button>
                               <Button
                                 variant="contained"
+                                onClick={()=>router.push('/about-professional')}
                                 sx={{
                                   textTransform: "none",
                                   borderRadius: {
