@@ -216,12 +216,12 @@ const authSlice = createSlice({
         const initial = localStorage.getItem("userInitial");
         // Check both localStorage and cookies for role
         const role = localStorage.getItem("role") || getCookie("userRole");
-        // const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token");
 
         if (email && initial && role) {
           state.user = { email, initial, role };
           state.isAuthenticated = true;
-          // state.accessToken = token
+          state.accessToken = token;
         }
       }
     },

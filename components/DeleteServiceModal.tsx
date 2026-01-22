@@ -23,9 +23,8 @@ export default function DeleteServiceModal({
   onClose,
   onConfirm,
 }: DeleteServiceModalProps) {
-  const handleDelete = () => {
-    onConfirm();
-    onClose();
+  const handleDelete = async () => {
+    await onConfirm();
   };
 
   return (

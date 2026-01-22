@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/redux/store";
 import Image from "next/image";
 import {
   Box,
@@ -15,7 +17,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { apiGet, apiPost } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -44,6 +46,7 @@ interface Request {
   };
   message: string;
   videos: string[];
+  quoteId?: string;
 }
 interface ProviderInfo {
   email: string;
@@ -125,6 +128,8 @@ interface ServiceDetailApiResponse {
 
 export default function MyRequestsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { accessToken } = useSelector((state: RootState) => state.auth);
   const [activeFilter, setActiveFilter] = useState("All");
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [openReject, setOpenReject] = useState(false);
@@ -139,6 +144,7 @@ export default function MyRequestsPage() {
     null,
   );
   const [serviceDetailLoading, setServiceDetailLoading] = useState(false);
+  const paymentRedirectIdRef = React.useRef<string | null>(null);
 
   // Format date from ISO string to "16 Aug 2025" format
   const formatDate = (dateString: string): string => {
@@ -226,6 +232,7 @@ export default function MyRequestsPage() {
         "/image/service-image-2.png",
         "/image/service-image-3.png",
       ], // TODO: Get from API if available
+      quoteId: apiRequest.quoteid || undefined,
     };
   };
 
@@ -245,6 +252,18 @@ export default function MyRequestsPage() {
 
         // Auto-select first request if available
         setSelectedRequest((prevSelected) => {
+          // Check for payment redirect first
+          const redirectId = paymentRedirectIdRef.current;
+          if (redirectId) {
+            const found = mappedRequests.find((r) => r.id === redirectId);
+            if (found) {
+              setOpenSummary(true);
+              paymentRedirectIdRef.current = null;
+              localStorage.removeItem("justPaidServiceId");
+              return redirectId;
+            }
+          }
+
           if (mappedRequests.length > 0 && !prevSelected) {
             return mappedRequests[0].id;
           } else if (mappedRequests.length > 0 && prevSelected) {
@@ -294,34 +313,50 @@ export default function MyRequestsPage() {
     const storedInitial = localStorage.getItem("userInitial");
     const storedEmail = localStorage.getItem("userEmail");
 
+    // Check for payment return
+    const justPaidId = localStorage.getItem("justPaidServiceId");
+    const paymentStatus = searchParams.get("payment_status");
+
+    if (justPaidId) {
+      if (paymentStatus === "success") {
+        // Success: Trigger the success flow (switch tab, open modal)
+        paymentRedirectIdRef.current = justPaidId;
+        setActiveFilter("Validation");
+      } else if (paymentStatus === "cancelled") {
+        // Cancelled: Just select the request again so user lands on details
+        setSelectedRequest(justPaidId);
+        // Clean up immediately as we aren't waiting for a fetch loop to trigger a modal
+        localStorage.removeItem("justPaidServiceId");
+      }
+      // If no status param (e.g. manual refresh), do nothing or keep default behavior
+    }
+
     if (!storedInitial || !storedEmail) {
       router.push(ROUTES.LOGIN);
-    } else {
+    } else if (accessToken) {
       fetchRequests();
     }
 
-    apiCallToGetAllCreatedRequests()
+    // apiCallToGetAllCreatedRequests()
 
-  }, [router]);
+  }, [router, accessToken, fetchRequests]);
 
-  const apiCallToGetAllCreatedRequests = async() => {
-    // API call to fetch all created service requests
-    try{
-      let response = await apiGet(API_ENDPOINTS.SERVICE_REQUESTS.CREATE_REQUEST);
-
-      console.log(response)
-    }catch(error){
-      console.log("Error fetching service requests:", error);
+  // Fetch service details when selectedRequest changes
+  useEffect(() => {
+    if (selectedRequest) {
+      fetchServiceDetail(selectedRequest);
     }
-  }
+  }, [selectedRequest, fetchServiceDetail]);
+
+
 
   // API call to get service requests details
-  const apiCallToGetDetailsOfCreatedRequests = async(requestId : string) => {
-    try{
+  const apiCallToGetDetailsOfCreatedRequests = async (requestId: string) => {
+    try {
       let response = await apiGet(API_ENDPOINTS.SERVICE_REQUESTS.REQUEST_DETAILS(requestId));
-      
+
       console.log(response)
-    }catch(error){
+    } catch (error) {
       console.log("Error fetching service requests:", error);
     }
   }
@@ -517,6 +552,15 @@ export default function MyRequestsPage() {
             sx={{
               width: { xs: "100%", lg: 400 },
               flexShrink: 0,
+              position: "sticky",
+              top: "20px",
+              overflowY: "auto",
+              maxHeight: "calc(100dvh - 40px)",
+              "&::-webkit-scrollbar": {
+                display: "none",
+              },
+              msOverflowStyle: "none",
+              scrollbarWidth: "none",
             }}
           >
             <Box
@@ -524,10 +568,11 @@ export default function MyRequestsPage() {
                 display: "flex",
                 flexDirection: "column",
                 gap: { xs: 1.5, sm: 2 },
+
               }}
             >
               {loading ? (
-                <Box sx={{ textAlign: "center", py: { xs: 3, sm: 4 } }}>
+                <Box sx={{ textAlign: "center", py: { xs: 3, sm: 4 }, }}>
                   <Typography
                     sx={{
                       color: "text.secondary",
@@ -570,6 +615,7 @@ export default function MyRequestsPage() {
                         borderColor: "#2F6B8E",
                         boxShadow: 2,
                       },
+
                     }}
                   >
                     <Box sx={{ display: "flex", gap: { xs: 1.5, sm: 2 } }}>
@@ -1398,7 +1444,7 @@ export default function MyRequestsPage() {
                           </Typography>
                         </Box>
                       ) : (serviceDetail?.media?.videos &&
-                          serviceDetail.media.videos.length > 0) ||
+                        serviceDetail.media.videos.length > 0) ||
                         (selectedRequestData.videos &&
                           selectedRequestData.videos.length > 0) ? (
                         <Box
@@ -1701,7 +1747,6 @@ export default function MyRequestsPage() {
           fetchRequests();
         }}
       />
-      ;
       <ConfirmServiceRequestModal
         open={openConfirm}
         onClose={() => setOpenConfirm(false)}
@@ -1712,7 +1757,6 @@ export default function MyRequestsPage() {
         rate={499}
         providerName="Wade Warren"
       />
-      ;
       <ProceedToPaymentModal
         open={openPayment}
         onClose={() => setOpenPayment(false)}
@@ -1723,6 +1767,8 @@ export default function MyRequestsPage() {
         finalizedQuoteAmount={499}
         platformFeePercent={10}
         taxes={12}
+        serviceId={selectedRequestData?.id}
+        quoteId={selectedRequestData?.quoteId}
       />
       <ServiceConfirmSummaryModal
         open={openSummary}
@@ -1733,16 +1779,18 @@ export default function MyRequestsPage() {
           setOpenPayment(false);
           setShowTracking(true);
         }}
-        serviceTitle="Furniture Assembly"
-        serviceCategory="DIY Services"
-        location="Paris, 75001"
-        dateLabel="16 Aug, 2025"
-        timeLabel="10:00 am"
-        providerName="Wade Warren"
-        providerPhone="+97125111111"
-        finalizedQuoteAmount={499}
+        serviceTitle={serviceDetail?.sub_category_name || serviceDetail?.category_name || "Service"}
+        serviceCategory={serviceDetail?.category_name || "Category"}
+        serviceImage={serviceDetail?.sub_category_logo || serviceDetail?.category_logo || "/image/service-image-1.png"}
+        location={serviceDetail?.elder_address || "Location not available"}
+        dateLabel={selectedRequestData?.date || "Date"}
+        timeLabel={selectedRequestData?.time || "Time"}
+        providerName={serviceDetail?.provider?.full_name || "Provider"}
+        providerPhone={serviceDetail?.provider?.email || ""} // Using email as phone fallback or just empty
+        providerAvatar={serviceDetail?.provider?.profile_photo_url || "/icons/testimonilas-1.png"}
+        finalizedQuoteAmount={selectedRequestData?.quote || 0}
         platformFeePercent={10}
-        taxes={12}
+        taxes={12} // TODO: Calculate or fetch dynamically
       />
     </Box>
   );

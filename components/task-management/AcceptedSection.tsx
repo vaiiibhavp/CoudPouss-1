@@ -127,7 +127,7 @@ export default function AcceptedSection({ data, setSelectedQuots }: AcceptedSect
           setServiceStarted(true);
           toast.success(msg)
         }
-        else{
+        else {
 
           toast.error(msg || "Failed to confirm service start");
         }
@@ -157,7 +157,7 @@ export default function AcceptedSection({ data, setSelectedQuots }: AcceptedSect
   const handleRenegotiateProceed = async (amount: string) => {
     try {
       const sanitized = String(amount).replace(/[^0-9.\-]/g, "");
-      const endpoint = `quoteService/${data.id}/submit-adjustment`;
+      const endpoint = `quote_accept/${data.id}/submit-adjustment`;
       const response = await apiPost<any>(endpoint, { adjustment_amount: sanitized });
 
       if (response?.data?.status === "success") {
@@ -1089,6 +1089,7 @@ export default function AcceptedSection({ data, setSelectedQuots }: AcceptedSect
         open={openRenegotiateModal}
         onClose={() => setOpenRenegotiateModal(false)}
         onProceed={handleRenegotiateProceed}
+        serviceId={data.id}
         finalizedAmount={(() => {
           const str = data.paymentBreakdown?.finalizedQuoteAmount || data.finalizedQuoteAmount || "";
           const num = Number(String(str).replace(/[^0-9.\-]/g, ""));
@@ -1119,6 +1120,25 @@ export default function AcceptedSection({ data, setSelectedQuots }: AcceptedSect
         open={openClientApprovalModal}
         onClose={() => setOpenClientApprovalModal(false)}
         onProceed={handleClientApprovalProceed}
+        serviceId={data.id}
+        paymentBreakdown={{
+          base_amount: (() => {
+            const str = data.paymentBreakdown?.finalizedQuoteAmount || "0";
+            return Number(String(str).replace(/[^0-9.\-]/g, ""));
+          })(),
+          platform_fee: (() => {
+            const str = data.paymentBreakdown?.platformFee || "0";
+            return Number(String(str).replace(/[^0-9.\-]/g, ""));
+          })(),
+          taxes: (() => {
+            const str = data.paymentBreakdown?.taxes || "0";
+            return Number(String(str).replace(/[^0-9.\-]/g, ""));
+          })(),
+          total: (() => {
+            const str = data.paymentBreakdown?.total || "0";
+            return Number(String(str).replace(/[^0-9.\-]/g, ""));
+          })(),
+        }}
       />
 
       {/* Enter Security Code Modal */}
@@ -1126,6 +1146,7 @@ export default function AcceptedSection({ data, setSelectedQuots }: AcceptedSect
         open={openEnterSecurityCodeModal}
         onClose={() => setOpenEnterSecurityCodeModal(false)}
         onValidate={handleValidateSecurityCode}
+        serviceId={data.id}
       />
 
       {/* Security Code Success Modal */}

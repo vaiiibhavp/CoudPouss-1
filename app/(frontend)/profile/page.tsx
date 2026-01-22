@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Box, Container, Typography, Button, Divider, IconButton, Drawer, Snackbar, Alert } from "@mui/material";
+import { Box, Container, Typography, Button, Divider, IconButton, Drawer } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -17,6 +17,7 @@ import { AppDispatch } from "@/lib/redux/store";
 import { logout } from "@/lib/redux/authSlice";
 import { apiDelete } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -25,8 +26,6 @@ export default function ProfilePage() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openSignOutModal, setOpenSignOutModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [signoutSnackbarOpen, setSignoutSnackbarOpen] = useState(false);
-  const [signoutSnackbarMessage, setSignoutSnackbarMessage] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check if user is authenticated on mount
@@ -45,8 +44,7 @@ export default function ProfilePage() {
     localStorage.removeItem("userEmail");
     dispatch(logout());
     setOpenSignOutModal(false);
-    setSignoutSnackbarMessage("Sign out successful");
-    setSignoutSnackbarOpen(true);
+    toast.success("Sign out successful");
     setTimeout(() => {
       router.push(ROUTES.HOME);
     }, 800);
@@ -73,7 +71,7 @@ export default function ProfilePage() {
     setDeleting(true);
     try {
       const response = await apiDelete(API_ENDPOINTS.AUTH.DELETE_PROFILE);
-      
+
       if (response.success) {
         // Clear user data
         localStorage.removeItem("userInitial");
@@ -109,7 +107,7 @@ export default function ProfilePage() {
 
       {/* Main Content */}
       <Box
-        
+
         sx={{
           flex: 1,
           px: { xs: "1rem", md: "5rem" },
@@ -207,8 +205,8 @@ export default function ProfilePage() {
                         activeMenuItem === item.id
                           ? "#FFFFFF"
                           : item.id === "Sign Out"
-                          ? "#2C6587"
-                          : "#6D6D6D",
+                            ? "#2C6587"
+                            : "#6D6D6D",
                       bgcolor:
                         activeMenuItem === item.id ? "#2C6587" : "transparent",
                       "&:hover": {
@@ -216,8 +214,8 @@ export default function ProfilePage() {
                           activeMenuItem === item.id
                             ? "#2C6587"
                             : item.id === "Sign Out"
-                            ? "transparent"
-                            : "grey.50",
+                              ? "transparent"
+                              : "grey.50",
                       },
                     }}
                   >
@@ -298,8 +296,8 @@ export default function ProfilePage() {
                         activeMenuItem === item.id
                           ? "#FFFFFF"
                           : item.id === "Sign Out"
-                          ? "#2C6587"
-                          : "#6D6D6D",
+                            ? "#2C6587"
+                            : "#6D6D6D",
                       bgcolor:
                         activeMenuItem === item.id ? "#2C6587" : "transparent",
                       "&:hover": {
@@ -307,8 +305,8 @@ export default function ProfilePage() {
                           activeMenuItem === item.id
                             ? "#2C6587"
                             : item.id === "Sign Out"
-                            ? "transparent"
-                            : "grey.50",
+                              ? "transparent"
+                              : "grey.50",
                       },
                     }}
                   >
@@ -365,21 +363,6 @@ export default function ProfilePage() {
         onConfirm={handleConfirmDelete}
         loading={deleting}
       />
-
-      <Snackbar
-        open={signoutSnackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSignoutSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSignoutSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
-        >
-          {signoutSnackbarMessage}
-        </Alert>
-      </Snackbar>
 
       {/* Sign Out Modal */}
       <SignOutModal

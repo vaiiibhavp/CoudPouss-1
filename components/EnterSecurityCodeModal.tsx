@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,22 +8,39 @@ import {
   Typography,
   Button,
   TextField,
+  CircularProgress,
 } from "@mui/material";
 import Image from "next/image";
+import { apiPost, apiGet } from "@/lib/api";
+import { toast } from "sonner";
 
 interface EnterSecurityCodeModalProps {
   open: boolean;
   onClose: () => void;
   onValidate: () => void;
+  serviceId: number | string;
+  onDataFetched?: (data: any) => void; // Optional callback to pass fetched data
 }
 
 export default function EnterSecurityCodeModal({
   open,
   onClose,
   onValidate,
+  serviceId,
+  onDataFetched,
 }: EnterSecurityCodeModalProps) {
   const [code, setCode] = useState(["", "", ""]);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Reset fields when modal closes
+  useEffect(() => {
+    if (!open) {
+      setCode(["", "", ""]);
+      setError(false);
+      setLoading(false);
+    }
+  }, [open]);
 
   const handleChange = (index: number, value: string) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
@@ -40,11 +57,67 @@ export default function EnterSecurityCodeModal({
     }
   };
 
-  const handleValidate = () => {
-    if (code.every((digit) => digit !== "")) {
-      onValidate();
-    } else {
+  const handleValidate = async () => {
+    // Check if all digits are filled
+    if (!code.every((digit) => digit !== "")) {
       setError(true);
+      return;
+    }
+
+    setLoading(true);
+    setError(false);
+
+    try {
+      // Step 1: Validate the security code
+      const securityCode = code.join("");
+
+      const endpoint = `quote_accept/validate-service-code/${serviceId}`;
+      const response = await apiPost<any>(endpoint, {
+        entered_code: securityCode,
+      });
+
+      console.log({ validateResponse: response });
+
+      if (response.success) {
+        toast.success(response.data?.message || "Service code validated successfully!");
+
+        // Step 2: Fetch completed task details after successful validation
+        try {
+          const detailsEndpoint = `quote_accept/${serviceId}/completed-task-details`;
+          const detailsResponse = await apiGet<any>(detailsEndpoint);
+
+          console.log({ detailsResponse });
+
+          if (detailsResponse.success && detailsResponse.data) {
+            // Pass the fetched data to parent component if callback is provided
+            if (onDataFetched) {
+              onDataFetched(detailsResponse.data);
+            }
+          } else {
+            console.warn("Failed to fetch task details:", detailsResponse.error?.message);
+          }
+        } catch (detailsError) {
+          console.error("Error fetching task details:", detailsError);
+          // Don't block the success flow if details fetch fails
+        }
+
+        // Call the success callback to proceed
+        onValidate();
+      } else {
+        const errorMessage = response.error?.message || "Invalid security code";
+        toast.error(errorMessage);
+        setError(true);
+      }
+    } catch (error: any) {
+      console.error("Error validating service code:", error);
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to validate service code";
+      toast.error(errorMessage);
+      setError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,12 +164,12 @@ export default function EnterSecurityCodeModal({
 
           {/* Title */}
           <Typography
-            
+
             fontWeight="600"
             sx={{
               color: "#2C6587",
               mb: "1rem",
-              fontSize:"1.375rem",
+              fontSize: "1.375rem",
             }}
           >
             Enter Security Code
@@ -108,7 +181,7 @@ export default function EnterSecurityCodeModal({
               color: "#737373",
               mb: "1rem",
               lineHeight: "1.125rem",
-              fontSize:"0.875rem",
+              fontSize: "0.875rem",
               px: 2,
             }}
           >
@@ -118,7 +191,7 @@ export default function EnterSecurityCodeModal({
 
           {/* Security Code Display */}
           <Typography
-            sx={{ color: "#0F232F", mb: "0.75rem", fontSize:"1.188rem", lineHeight:"1.75rem" }}
+            sx={{ color: "#0F232F", mb: "0.75rem", fontSize: "1.188rem", lineHeight: "1.75rem" }}
           >
             3 2 5 - 5 5 8
           </Typography>
@@ -140,6 +213,7 @@ export default function EnterSecurityCodeModal({
                     fontSize: "1.25rem",
                     fontWeight: 600,
                     padding: "0.75rem 0",
+                    color: error ? "#EF5350" : "#000000",
                   },
                 }}
                 sx={{
@@ -176,9 +250,10 @@ export default function EnterSecurityCodeModal({
             variant="contained"
             fullWidth
             onClick={handleValidate}
+            disabled={loading}
             sx={{
-              bgcolor: "#E6E6E6",
-              color: "#424242",
+              bgcolor: code.every((digit) => digit !== "") ? "#2C6587" : "#E6E6E6",
+              color: code.every((digit) => digit !== "") ? "#FFFFFF" : "#424242",
               textTransform: "none",
               fontSize: "19px",
               lineHeight: "20px",
@@ -187,13 +262,22 @@ export default function EnterSecurityCodeModal({
               borderRadius: 2,
               fontWeight: 700,
               mt: 2,
-              boxShadow:"none",
+              boxShadow: "none",
               "&:hover": {
-                boxShadow:"none"
+                boxShadow: "none",
+                bgcolor: code.every((digit) => digit !== "") ? "#214C65" : "#E6E6E6",
+              },
+              "&:disabled": {
+                bgcolor: "#9CA3AF",
+                color: "#FFFFFF",
               },
             }}
           >
-            Validate
+            {loading ? (
+              <CircularProgress size={24} sx={{ color: "#FFFFFF" }} />
+            ) : (
+              "Validate"
+            )}
           </Button>
         </Box>
       </DialogContent>
