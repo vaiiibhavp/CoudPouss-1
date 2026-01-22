@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Box, Typography, Button, Card, Avatar } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -11,7 +11,73 @@ import IconButton from "@mui/material/IconButton";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { formatDateString } from "@/utils/utils";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import RejectServiceRequestModal from "../RejectServiceRequestModal";
+import { RatingReviewModal } from "../rating-review/RatingReviewModal";
 
+type ApiStatus = "pending" | "open" | "accepted" | "completed" | "cancelled";
+interface ProviderInfo {
+  email: string;
+  first_name: string;
+  full_name: string;
+  id: string;
+  is_favorate: boolean;
+  is_verified: boolean;
+  last_name: string;
+  profile_photo_url: string | null;
+  profile_image_url: string | null;
+}
+interface Request {
+  id: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  status: ApiStatus;
+  image: string;
+  category: string;
+  location: string;
+  quote: number;
+  professional?: {
+    email: string;
+    first_name: string;
+    full_name: string;
+    id: string;
+    profile_image_url: string | null;
+    profile_photo_url: string | null;
+    is_verified: boolean;
+    is_favorate: boolean;
+    last_name: string;
+  };
+  message: string;
+  videos: string[];
+  quoteId?: string;
+}
+interface LifecycleItem {
+  id: number;
+  name: string;
+  time: string | null;
+  completed: boolean;
+}
+interface ServiceDetailData {
+  service_id: string;
+  task_status: string;
+  service_description: string;
+  chosen_datetime: string;
+  category_name: string;
+  category_logo: string;
+  sub_category_name: string;
+  provider: ProviderInfo;
+  sub_category_logo: string;
+  elder_address: string;
+  lifecycle: LifecycleItem[];
+  total_renegotiated: number;
+  media: ServiceMedia;
+}
+interface ServiceMedia {
+  photos: string[];
+  videos: string[];
+}
 interface CompletedData {
   id: number;
   title: string;
@@ -36,6 +102,7 @@ interface CompletedData {
     status: string;
     date: string;
     completed: boolean;
+    name: string;
   }[];
   review: {
     clientName: string;
@@ -46,14 +113,25 @@ interface CompletedData {
 }
 
 interface CompletedSectionProps {
-  data?: CompletedData;
+  // data?: CompletedData;
+  serviceDetail: ServiceDetailData;
+  selectedRequestData: Request;
+  handleFavorite: (professionalId?: string, isFavorite?: boolean) => void;
+  onCancelSuccess: () => void;
 }
 
-export default function ConfirmByElderSection({ data }: CompletedSectionProps) {
+export default function ConfirmByElderSection({
+  selectedRequestData,
+  serviceDetail,
+  handleFavorite,
+  onCancelSuccess,
+}: CompletedSectionProps) {
   const router = useRouter();
+  const [openReject, setOpenReject] = useState(false);
+  const [openRating, setOpenRating] = useState(false);
 
   // Mock data if not provided
-  const completedData: CompletedData = data || {
+  const completedData = {
     id: 1,
     title: "Gardening Service",
     image: "/image/main.png",
@@ -128,15 +206,9 @@ export default function ConfirmByElderSection({ data }: CompletedSectionProps) {
   return (
     <Box>
       {/* Main Grid Layout */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-          gap: 4,
-        }}
-      >
+      <Box>
         {/* Left Column */}
-        <Box>
+        <Box sx={{ display: "none" }}>
           {/* Service Header with Profile Picture */}
           <Card
             sx={{
@@ -556,110 +628,148 @@ export default function ConfirmByElderSection({ data }: CompletedSectionProps) {
         </Box>
 
         {/* Right Column */}
-        <Box>
+        <Box
+          sx={{
+            flex: 1,
+            bgcolor: "white",
+            borderRadius: { xs: 2, sm: 2.5, md: 3 },
+            pt: 0,
+            position: "relative",
+            minHeight: { xs: 400, sm: 500, md: 600 },
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           {/* About Professional */}
-          <Card
-            sx={{
-              borderRadius: "0.75rem",
-              border: "0.0625rem solid #E6E6E6",
-              bgcolor: "#FFFFFF",
-              padding: "0.8125rem 1rem",
-              mb: "1rem",
-              boxShadow: "none",
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography
-                fontWeight={400}
+          {serviceDetail.task_status !== "pending" &&
+            serviceDetail.task_status !== "open" && (
+              <Card
                 sx={{
-                  color: "#323232",
-                  fontSize: "1rem",
-                  lineHeight: "1.125rem",
-                  letterSpacing: "0%",
+                  borderRadius: "0.75rem",
+                  border: "0.0625rem solid #E6E6E6",
+                  bgcolor: "#FFFFFF",
+                  padding: "0.8125rem 1rem",
+                  mb: "1rem",
+                  boxShadow: "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
                 }}
               >
-                About professional
-              </Typography>
-              <IconButton
-                sx={{
-                  padding: 0,
-                  width: "1.5rem",
-                  height: "1.5rem",
-                }}
-              >
-                <FavoriteBorderIcon
-                  sx={{ fontSize: "1.2rem", color: "#323232" }}
-                />
-              </IconButton>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <Avatar
-                  src={completedData.clientAvatar}
-                  alt={completedData.clientName}
-                  sx={{ width: "2.5rem", height: "2.5rem" }}
-                />
-                <Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography
-                      fontWeight={600}
-                      sx={{
-                        color: "#0F232F",
-                        fontSize: "1rem",
-                        lineHeight: "1.125rem",
-                        letterSpacing: "0%",
-                      }}
-                    >
-                      {completedData.clientName}
-                    </Typography>
-                    <Image
-                      src="/icons/verify.png"
-                      alt="Verified"
-                      width={24}
-                      height={24}
-                      style={{ width: "1.5rem", height: "1.5rem" }}
-                    />
-                  </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography
+                    fontWeight={400}
+                    sx={{
+                      color: "#323232",
+                      fontSize: "1rem",
+                      lineHeight: "1.125rem",
+                      letterSpacing: "0%",
+                    }}
+                  >
+                    About professional
+                  </Typography>
+
+                  <IconButton
+                    sx={{
+                      padding: 0,
+                      width: "1.5rem",
+                      height: "1.5rem",
+                    }}
+                    size="small"
+                    onClick={() =>
+                      handleFavorite(
+                        selectedRequestData.professional?.id,
+                        selectedRequestData.professional?.is_favorate,
+                      )
+                    }
+                  >
+                    {selectedRequestData.professional?.is_favorate ? (
+                      <FavoriteIcon
+                        fontSize="small"
+                        sx={{ color: "#E0245E" }}
+                      />
+                    ) : (
+                      <FavoriteBorderIcon
+                        fontSize="small"
+                        sx={{ color: "#6B7280" }}
+                      />
+                    )}
+                  </IconButton>
                 </Box>
-              </Box>
-              <Button
-                variant="outlined"
-                sx={{
-                  textTransform: "none",
-                  borderRadius: "0.5rem",
-                  border: "0.0625rem solid #214C65",
-                  color: "#214C65",
-                  padding: "0.625rem 3.75rem",
-                  gap: "0.625rem",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  lineHeight: "1.125rem",
-                  letterSpacing: "0%",
-                  "&:hover": {
-                    border: "0.0625rem solid #214C65",
-                    bgcolor: "transparent",
-                  },
-                }}
-              >
-                Chat
-              </Button>
-            </Box>
-          </Card>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Box
+                    sx={{ display: "flex", alignItems: "center", gap: "1rem" }}
+                  >
+                    <Avatar
+                      src={
+                        selectedRequestData?.professional?.profile_image_url ||
+                        selectedRequestData?.professional?.profile_photo_url ||
+                        ""
+                      }
+                      alt={selectedRequestData?.professional?.full_name}
+                      sx={{ width: "2.5rem", height: "2.5rem" }}
+                    />
+                    <Box>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <Typography
+                          fontWeight={600}
+                          sx={{
+                            color: "#0F232F",
+                            fontSize: "1rem",
+                            lineHeight: "1.125rem",
+                            letterSpacing: "0%",
+                          }}
+                        >
+                          {selectedRequestData.professional?.full_name ?? ""}
+                        </Typography>
+                        <Image
+                          src="/icons/verify.png"
+                          alt="Verified"
+                          width={24}
+                          height={24}
+                          style={{ width: "1.5rem", height: "1.5rem" }}
+                        />
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: "0.5rem",
+                      border: "0.0625rem solid #214C65",
+                      color: "#214C65",
+                      padding: "0.625rem 3.75rem",
+                      gap: "0.625rem",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      lineHeight: "1.125rem",
+                      letterSpacing: "0%",
+                      "&:hover": {
+                        border: "0.0625rem solid #214C65",
+                        bgcolor: "transparent",
+                      },
+                    }}
+                  >
+                    Chat
+                  </Button>
+                </Box>
+              </Card>
+            )}
 
           {/* Address */}
           <Card
@@ -736,153 +846,221 @@ export default function ConfirmByElderSection({ data }: CompletedSectionProps) {
             </Typography>
 
             {/* Timeline */}
-            {completedData.serviceTimeline.map((item, index) => {
-              const stepNumber = index >= 5 ? index - 4 : null;
-              return (
-                <Box key={index} sx={{ mb: 3, position: "relative" }}>
-                  <Box
-                    sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}
-                  >
+            {(serviceDetail.lifecycle?.length === 0 ||
+              !serviceDetail.lifecycle) && (
+              <Typography
+                fontSize={{ xs: 12, sm: 14 }}
+                fontWeight={400}
+                textAlign={"center"}
+              >
+                No Status Available
+              </Typography>
+            )}
+            {serviceDetail.lifecycle?.length !== 0 &&
+              serviceDetail.lifecycle?.map((item, index) => {
+                const stepNumber = item.completed ? null : index + 1;
+
+                return (
+                  <Box key={item.id} sx={{ mb: 3, position: "relative" }}>
                     <Box
-                      sx={{
-                        width: "1.5rem",
-                        height: "1.5rem",
-                        borderRadius: "50%",
-                        bgcolor: item.completed ? "#2E7D32" : "#424242",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
+                      sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}
                     >
-                      {item.completed ? (
-                        <CheckIcon
-                          sx={{ fontSize: "1.1rem", color: "white" }}
-                        />
-                      ) : (
+                      <Box
+                        sx={{
+                          width: "1.5rem",
+                          height: "1.5rem",
+                          borderRadius: "50%",
+                          bgcolor: item.completed ? "#2E7D32" : "#424242",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {item.completed ? (
+                          <CheckIcon
+                            sx={{ fontSize: "1.1rem", color: "white" }}
+                          />
+                        ) : (
+                          <Typography
+                            fontWeight="600"
+                            sx={{ color: "white", fontSize: "0.875rem" }}
+                          >
+                            {stepNumber}
+                          </Typography>
+                        )}
+                      </Box>
+
+                      <Box sx={{ flex: 1 }}>
                         <Typography
-                          variant="body2"
-                          fontWeight="600"
-                          sx={{ color: "white", fontSize: "0.875rem" }}
+                          fontWeight={600}
+                          sx={{ color: "#1F2937", mb: 0.5 }}
                         >
-                          {stepNumber}
+                          {item.name}
                         </Typography>
-                      )}
+
+                        {item.time && (
+                          <Typography
+                            fontWeight={400}
+                            sx={{
+                              color: "#737373",
+                              fontSize: "0.75rem",
+                              lineHeight: "1.125rem",
+                            }}
+                          >
+                            {formatDateString(
+                              item.time,
+                              "ddd, DD MMM YYYY  -  h:mma",
+                            )}
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography
-                        variant="body1"
-                        fontWeight="600"
+
+                    {index < serviceDetail.lifecycle.length - 1 && (
+                      <Box
                         sx={{
-                          color: "#1F2937",
-                          mb: 0.5,
+                          position: "absolute",
+                          left: "0.75rem",
+                          top: "1.5rem",
+                          width: "0.125rem",
+                          bottom: "-1.5rem",
+                          bgcolor: "#E5E7EB",
                         }}
-                      >
-                        {item.status}
-                      </Typography>
-                      <Typography
-                        fontWeight={400}
-                        sx={{
-                          color: "#737373",
-                          fontSize: "0.75rem",
-                          lineHeight: "1.125rem",
-                          letterSpacing: "0%",
-                        }}
-                      >
-                        {item.date}
-                      </Typography>
-                    </Box>
+                      />
+                    )}
                   </Box>
-                  {index < completedData.serviceTimeline.length - 1 && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        left: "0.75rem",
-                        top: "1.5rem",
-                        width: "0.125rem",
-                        bottom: "-1.5rem",
-                        bgcolor: "#E5E7EB",
-                      }}
-                    />
-                  )}
-                </Box>
-              );
-            })}
+                );
+              })}
+            {serviceDetail.task_status === "completed" && (
+              <Button
+                onClick={() => setOpenRating(true)}
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  borderRadius: {
+                    xs: "0.375rem",
+                    sm: "0.5rem",
+                  },
+                  pt: { xs: "0.5rem", sm: "0.625rem" },
+                  pr: { xs: "1rem", sm: "2rem", md: "3.75rem" },
+                  pb: { xs: "0.5rem", sm: "0.625rem" },
+                  pl: { xs: "1rem", sm: "2rem", md: "3.75rem" },
+                  gap: "0.625rem",
+                  bgcolor: "#214C65",
+                  fontSize: {
+                    xs: "0.875rem",
+                    sm: "0.9375rem",
+                    md: "1rem",
+                  },
+                  width: { xs: "100%", sm: "auto" },
+                  minWidth: {
+                    xs: "auto",
+                    sm: "120px",
+                    md: "200px",
+                  },
+                  "&:hover": {
+                    bgcolor: "#214C65",
+                  },
+                }}
+              >
+                Write A Review
+              </Button>
+            )}
           </Card>
 
           {/* Information Message */}
-          <Box sx={{ mb: "1rem", mt: "1rem" }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                mb: "0.5rem",
-              }}
-            >
-              <Image
-                src="/icons/warning.png"
-                alt="Warning"
-                width={20}
-                height={20}
-              />
-              <Typography variant="body1" fontWeight={500}>
-                Information message
-              </Typography>
-            </Box>
-            <Typography
-              fontWeight={400}
-              sx={{
-                color: "#323232",
-                fontSize: "0.75rem",
-                lineHeight: "150%",
-                letterSpacing: "0%",
-                verticalAlign: "middle",
-              }}
-            >
-              Could you please help us guarantee the quality of services
-              exchanged from this point forward? Our role is to connect you with
-              professionals and ensure your transaction through secure API
-              providers. We are a platform that helps you find professionals for
-              your needs. Could you please write to the professional to solve
-              your problems. We are not responsible for any damage to your
-              property or any other issue.
-            </Typography>
-          </Box>
+          {serviceDetail.task_status === "accepted" && (
+            <>
+              <Box sx={{ mb: "1rem", mt: "1rem" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    mb: "0.5rem",
+                  }}
+                >
+                  <Image
+                    src="/icons/warning.png"
+                    alt="Warning"
+                    width={20}
+                    height={20}
+                  />
+                  <Typography variant="body1" fontWeight={500}>
+                    Information message
+                  </Typography>
+                </Box>
+                <Typography
+                  fontWeight={400}
+                  sx={{
+                    color: "#323232",
+                    fontSize: "0.75rem",
+                    lineHeight: "150%",
+                    letterSpacing: "0%",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  Could you please help us guarantee the quality of services
+                  exchanged from this point forward? Our role is to connect you
+                  with professionals and ensure your transaction through secure
+                  API providers. We are a platform that helps you find
+                  professionals for your needs. Could you please write to the
+                  professional to solve your problems. We are not responsible
+                  for any damage to your property or any other issue.
+                </Typography>
+              </Box>
 
-          {/* Cancel Request Button */}
-
-          <Box
-          
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-          >
-            <Button
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                borderRadius: "0.5rem",
-                border: "0.0625rem solid #214C65",
-                color: "#214C65",
-                padding: "0.625rem 3.75rem",
-                gap: "0.625rem",
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                lineHeight: "1.125rem",
-                letterSpacing: "0%",
-                "&:hover": {
-                  border: "0.0625rem solid #214C65",
-                  bgcolor: "transparent",
-                },
-              }}
-            >
-              Cancel request
-            </Button>
-          </Box>
+              {/* Cancel Request Button */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Button
+                  onClick={() => setOpenReject(true)}
+                  variant="outlined"
+                  sx={{
+                    textTransform: "none",
+                    borderRadius: "0.5rem",
+                    border: "0.0625rem solid #214C65",
+                    color: "#214C65",
+                    padding: "0.625rem 3.75rem",
+                    gap: "0.625rem",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    lineHeight: "1.125rem",
+                    letterSpacing: "0%",
+                    "&:hover": {
+                      border: "0.0625rem solid #214C65",
+                      bgcolor: "transparent",
+                    },
+                  }}
+                >
+                  Cancel request
+                </Button>
+              </Box>
+            </>
+          )}
         </Box>
       </Box>
+      <RejectServiceRequestModal
+        serviceId={serviceDetail?.service_id || ""}
+        open={openReject}
+        onClose={() => setOpenReject(false)}
+        onReject={(reason) => {
+          console.log("Rejected with reason:", reason);
+        }}
+        onCancelSuccess={() => onCancelSuccess()}
+      />
+      <RatingReviewModal
+        open={openRating}
+        data={serviceDetail.provider}
+        onClose={() => setOpenRating(false)}
+        onReject={() => {}}
+        service_id={serviceDetail.service_id ?? null}
+      />
     </Box>
   );
 }

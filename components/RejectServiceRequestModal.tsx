@@ -124,6 +124,7 @@ export default function RejectServiceRequestModal({
   const [serviceBreakdown, setServiceBreakdown] =
     useState<CancellationBreakdown>();
   const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
 
   useEffect(() => {
     if (serviceId && open) {
@@ -158,7 +159,8 @@ export default function RejectServiceRequestModal({
 
       if (response.success) {
         setStep(4);
-        onCancelSuccess();
+        // onCancelSuccess();
+        setCancelSuccess(true);
       } else {
         console.error("Cancel failed:");
       }
@@ -198,13 +200,19 @@ export default function RejectServiceRequestModal({
   const prevStep = () =>
     setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
   const handleClose = useCallback(() => {
-    onClose();
-    setTimeout(() => {
-      setStep(1);
-      setService(undefined);
-      setServiceBreakdown(undefined);
-    }, 300); // Reset after transition
-  }, [onClose]);
+  onClose();
+
+  if (cancelSuccess) {
+    onCancelSuccess();
+  }
+
+  setTimeout(() => {
+    setStep(1);
+    setService(undefined);
+    setServiceBreakdown(undefined);
+  }, 300);
+}, [onClose, cancelSuccess, onCancelSuccess]);
+
 
   return (
     <Dialog

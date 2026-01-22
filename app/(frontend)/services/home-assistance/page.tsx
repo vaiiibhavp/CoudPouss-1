@@ -87,7 +87,7 @@ interface HomeApiResponse {
 
 export default function HomeAssistancePage() {
   const router = useRouter();
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -121,8 +121,8 @@ export default function HomeAssistancePage() {
   }, []);
   // Check if user is authenticated on mount
   useEffect(() => {
-    const storedInitial = localStorage.getItem('userInitial');
-    const storedEmail = localStorage.getItem('userEmail');
+    const storedInitial = localStorage.getItem("userInitial");
+    const storedEmail = localStorage.getItem("userEmail");
 
     // If user details are not present, redirect to login
     if (!storedInitial || !storedEmail) {
@@ -131,13 +131,6 @@ export default function HomeAssistancePage() {
   }, [router]);
 
   // Service cards data
-  
-  
- 
-
-  
-
-  
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -149,32 +142,45 @@ export default function HomeAssistancePage() {
       router.push(ROUTES.LOGIN);
     }
 
-    apiCallToAllCategoriesList()
+    apiCallToAllCategoriesList();
   }, [router]);
 
+  const apiCallToAllCategoriesList = async () => {
+    let serviceName = "home assistance";
+    try {
+      const response = await apiGet(
+        API_ENDPOINTS.HOME.SERVICENAME(serviceName),
+      );
 
-  const apiCallToAllCategoriesList = async() => {
-    let serviceName = "home assistance"
-    try{
-      const response = await apiGet(API_ENDPOINTS.HOME.SERVICENAME(serviceName))
-
-      if(response){
-        console.log("API call successful")
+      if (response) {
+        console.log("API call successful");
       }
-      console.log(response)
-    }catch(err){  
-      console.log(err)
-    } 
-  }
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   // Service categories
   const serviceCategories = [
-    { name: "DIY", icon: "/icons/diy.png", borderTopLeftRadius: "2.5rem", },
+    { name: "DIY", icon: "/icons/diy.png", borderTopLeftRadius: "2.5rem" },
     { name: "Gardening", icon: "/icons/gardening.png" },
-    { name: "Housekeeping", icon: "/icons/housekeeping.png", borderTopRightRadius: "2.5rem" },
-    { name: "Childcare", icon: "/icons/childcare.png", borderBottomLeftRadius: "2.5rem" },
+    {
+      name: "Housekeeping",
+      icon: "/icons/housekeeping.png",
+      borderTopRightRadius: "2.5rem",
+    },
+    {
+      name: "Childcare",
+      icon: "/icons/childcare.png",
+      borderBottomLeftRadius: "2.5rem",
+    },
     { name: "Pets", icon: "/icons/pets.png" },
-    { name: "Homecare", icon: "/icons/homecare.png", borderBottomRightRadius: "2.5rem" },
+    {
+      name: "Homecare",
+      icon: "/icons/homecare.png",
+      borderBottomRightRadius: "2.5rem",
+    },
   ];
 
   // Service cards data
@@ -697,7 +703,8 @@ export default function HomeAssistancePage() {
                 key={category.id}
                 sx={{ mb: "3.75rem", ml: "5rem" }}
                 ref={(el) => {
-                  categoryRefs.current[category.id] = el as HTMLDivElement | null;
+                  categoryRefs.current[category.id] =
+                    el as HTMLDivElement | null;
                 }}
               >
                 <Typography
@@ -767,6 +774,7 @@ export default function HomeAssistancePage() {
                           overflow: "hidden",
                           bgcolor: "#EAF0F35C",
                           p: "0.75rem",
+                          pb:0
                         }}
                       >
                         <Box
@@ -788,6 +796,7 @@ export default function HomeAssistancePage() {
                               width={376}
                               height={225}
                               style={{
+                                display: "block",
                                 width: "376px",
                                 height: "225px",
                                 objectFit: "cover",
@@ -819,7 +828,7 @@ export default function HomeAssistancePage() {
                             alignItems: "center",
                             bgcolor: "white",
                             px: "1.25rem",
-                            py: "0.969rem",
+                            py: "0.75rem", 
                             borderRadius: "0.75rem",
                             mt: "0.5rem",
                           }}
@@ -828,7 +837,7 @@ export default function HomeAssistancePage() {
                             sx={{
                               color: "primary.normal",
                               fontSize: "1.125rem",
-                              lineHeight: "2rem",
+                              lineHeight: "1.4rem",
                             }}
                           >
                             {subcategory.subcategory_name}
@@ -840,7 +849,7 @@ export default function HomeAssistancePage() {
                               setSelectedCategoryId(category.id);
                               setSelectedSubcategoryId(subcategory.id);
                               setIsModalOpen(true);
-                            }}
+                            }}  
                             sx={{
                               bgcolor: "primary.normal",
                               color: "white",

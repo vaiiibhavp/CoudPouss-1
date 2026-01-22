@@ -1,7 +1,7 @@
 // components/Header.tsx
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   Box,
@@ -33,6 +33,8 @@ import { AppDispatch, RootState } from "@/lib/redux/store";
 import { setUserFromStorage, logout } from "@/lib/redux/authSlice";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import CreateServiceRequestModal from "./CreateServiceRequestModal";
+import { setActiveItem } from "@/lib/redux/profileSlice";
 import { toast } from "sonner";
 
 // Helper function to get cookie value
@@ -62,10 +64,12 @@ interface Service {
 interface SearchService {
   category: string;
   service: string;
-  id: number;
+  id: string;
   category_logo_url?: string;
   category_name?: string;
   sub_category_name?: string;
+  sub_category_id: string;
+  category_id: string;
 }
 
 interface HomeApiResponse {
@@ -116,7 +120,7 @@ interface GetUserApiResponse {
 
 // Helper function to map service names to routes and icons
 const getServiceRouteAndIcon = (
-  serviceName: string
+  serviceName: string,
 ): { route: string; icon: string } => {
   const nameLower = serviceName.toLowerCase().trim();
 
@@ -152,7 +156,7 @@ export default function Header({
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   // Check if we're on professional dashboard or its sub-routes (including professional profile)
@@ -178,6 +182,18 @@ export default function Header({
   const [userDetailsLoading, setUserDetailsLoading] = useState(false);
   const servicesMenuCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isHoveringServicesRef = useRef(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] =
+    useState<string>("");
+
+  console.log("searchResults", searchResults, selectedSubcategoryId);
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedCategoryId("");
+    setSelectedSubcategoryId("");
+  }, []);
 
   useEffect(() => {
     // Sync Redux state with localStorage on component mount
@@ -195,7 +211,9 @@ export default function Header({
 
       setUserDetailsLoading(true);
       try {
-        const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
+        const response = await apiGet<GetUserApiResponse>(
+          API_ENDPOINTS.AUTH.GET_USER,
+        );
 
         if (response.success && response.data) {
           const apiData = response.data;
@@ -306,7 +324,7 @@ export default function Header({
       try {
         setSearchLoading(true);
         const url = `${API_ENDPOINTS.HOME.HOME}?search=${encodeURIComponent(
-          term
+          term,
         )}`;
         const response = await apiGet<SearchApiResponse>(url);
         if (response.success && response.data?.data?.services) {
@@ -343,9 +361,13 @@ export default function Header({
       router.push(ROUTES.HOME);
     }, 800);
   };
+  const redirectToLogin = () => {
+    router.push(ROUTES.LOGIN);
+  };
 
   const handleServicesMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     // Clear any pending close timeout
+    if (!isAuthenticated) return;
     if (servicesMenuCloseTimeoutRef.current) {
       clearTimeout(servicesMenuCloseTimeoutRef.current);
       servicesMenuCloseTimeoutRef.current = null;
@@ -398,7 +420,7 @@ export default function Header({
   };
 
   const handleNotificationsMenuOpen = (
-    event: React.MouseEvent<HTMLElement>
+    event: React.MouseEvent<HTMLElement>,
   ) => {
     setNotificationsMenuAnchor(event.currentTarget);
   };
@@ -636,106 +658,110 @@ export default function Header({
               {(searchLoading ||
                 searchResults.length > 0 ||
                 searchTerm.trim()) && (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: "110%",
-                      left: 0,
-                      width: "100%",
-                      bgcolor: "white",
-                      border: "1px solid #e0e0e0",
-                      borderRadius: 2,
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                      zIndex: 1300,
-                      maxHeight: 320,
-                      overflowY: "auto",
-                      p: 1,
-                      "&::-webkit-scrollbar": {
-                        display: "none",
-                      },
-                      scrollbarWidth: "none",
-                      msOverflowStyle: "none",
-                    }}
-                  >
-                    {searchLoading && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "110%",
+                    left: 0,
+                    width: "100%",
+                    bgcolor: "white",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 2,
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                    zIndex: 1300,
+                    maxHeight: 320,
+                    overflowY: "auto",
+                    p: 1,
+                    "&::-webkit-scrollbar": {
+                      display: "none",
+                    },
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                  }}
+                >
+                  {searchLoading && (
+                    <Typography
+                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                    >
+                      Searching...
+                    </Typography>
+                  )}
+                  {!searchLoading &&
+                    searchResults.length === 0 &&
+                    searchTerm.trim() && (
                       <Typography
                         sx={{ color: "text.secondary", px: 1, py: 0.5 }}
                       >
-                        Searching...
+                        No results found
                       </Typography>
                     )}
-                    {!searchLoading &&
-                      searchResults.length === 0 &&
-                      searchTerm.trim() && (
-                        <Typography
-                          sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                        >
-                          No results found
-                        </Typography>
-                      )}
-                    {!searchLoading &&
-                      searchResults.map((item) => (
+                  {!searchLoading &&
+                    searchResults.map((item) => (
+                      <Box
+                        key={item.id}
+                        // onClick={() => {
+                        //   setSelectedCategoryId(item.category_id);
+                        //   setSelectedSubcategoryId(item.sub_category_id);
+                        //   setIsModalOpen(true);
+                        // }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          px: 1,
+                          py: 0.75,
+                          borderRadius: 1,
+                          cursor: "pointer",
+                          "&:hover": { bgcolor: "grey.100" },
+                        }}
+                      >
                         <Box
-                          key={item.id}
                           sx={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 1,
+                            overflow: "hidden",
+                            flexShrink: 0,
+                            bgcolor: "grey.100",
                             display: "flex",
                             alignItems: "center",
-                            gap: 1,
-                            px: 1,
-                            py: 0.75,
-                            borderRadius: 1,
-                            cursor: "pointer",
-                            "&:hover": { bgcolor: "grey.100" },
+                            justifyContent: "center",
                           }}
                         >
-                          <Box
+                          <Image
+                            src={
+                              item.category_logo_url ||
+                              "/icons/home_assistance_icon_home.svg"
+                            }
+                            alt={item.category_name || "Service"}
+                            width={32}
+                            height={32}
+                            style={{ objectFit: "cover" }}
+                          />
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography
                             sx={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              flexShrink: 0,
-                              bgcolor: "grey.100",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
+                              fontWeight: 600,
+                              color: "#214C65",
+                              lineHeight: 1.2,
                             }}
                           >
-                            <Image
-                              src={
-                                item.category_logo_url ||
-                                "/icons/home_assistance_icon_home.svg"
-                              }
-                              alt={item.category_name || "Service"}
-                              width={32}
-                              height={32}
-                              style={{ objectFit: "cover" }}
-                            />
-                          </Box>
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography
-                              sx={{
-                                fontWeight: 600,
-                                color: "#214C65",
-                                lineHeight: 1.2,
-                              }}
-                            >
-                              {item.sub_category_name}
-                            </Typography>
-                            <Typography
-                              sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                            >
-                              {item.category_name}
-                            </Typography>
-                          </Box>
+                            {item.sub_category_name}
+                          </Typography>
+                          <Typography
+                            sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
+                          >
+                            {item.category_name}
+                          </Typography>
                         </Box>
-                      ))}
-                  </Box>
-                )}
+                      </Box>
+                    ))}
+                </Box>
+              )}
 
               {!isProfessionalDashboard && (
                 <>
-
                   <Box
                     onMouseEnter={handleServicesMenuOpen}
                     onMouseLeave={handleServicesButtonMouseLeave}
@@ -743,6 +769,9 @@ export default function Header({
                   >
                     <Button
                       // endIcon={<ExpandMoreIcon />}
+                      onClick={() => {
+                        if (!isAuthenticated) redirectToLogin();
+                      }}
                       sx={{
                         color: "text.secondary",
                         textTransform: "none",
@@ -794,7 +823,7 @@ export default function Header({
                       <Box>
                         <Typography
                           sx={{
-                            color: "#555555",
+                            color: "#2C6587",
                             lineHeight: "1.125rem",
                             mb: 2,
                             fontSize: "1rem",
@@ -902,16 +931,36 @@ export default function Header({
                         })} */}
 
                             <Box sx={{ cursor: "pointer" }}>
-                              <Image src="/image/HomeServiceBox.png" alt="services" width={183} height={158} />
+                              <Image
+                                src="/image/HomeServiceBox.png"
+                                alt="services"
+                                width={183}
+                                height={158}
+                              />
                             </Box>
                             <Box sx={{ cursor: "pointer" }}>
-                              <Image src="/image/TransportSercviceBox.png" alt="services" width={183} height={158} />
+                              <Image
+                                src="/image/TransportSercviceBox.png"
+                                alt="services"
+                                width={183}
+                                height={158}
+                              />
                             </Box>
                             <Box sx={{ cursor: "pointer" }}>
-                              <Image src="/image/personalServiceBox.png" alt="services" width={183} height={158} />
+                              <Image
+                                src="/image/personalServiceBox.png"
+                                alt="services"
+                                width={183}
+                                height={158}
+                              />
                             </Box>
                             <Box sx={{ cursor: "pointer" }}>
-                              <Image src="/image/techSupportBox.png" alt="services" width={183} height={158} />
+                              <Image
+                                src="/image/techSupportBox.png"
+                                alt="services"
+                                width={183}
+                                height={158}
+                              />
                             </Box>
                           </Box>
                         ) : (
@@ -932,41 +981,45 @@ export default function Header({
                     </Menu>
                   </Box>
 
-                  <Box
-                    sx={{
-                      py: "14px",
-                      bgColor: "red",
-                      marginLeft: "40px",
-                      borderBottom:
-                        pathname === ROUTES.MY_REQUESTS ? "0.125rem solid #2C6587 " : "none",
-                    }}
-                  >
-                    <Button
-                      component={Link}
-                      href={ROUTES.MY_REQUESTS}
+                  {isAuthenticated && (
+                    <Box
                       sx={{
-                        p: 0,
-
-                        textWrap: "nowrap",
-                        fontSize: "1rem",
-                        lineHeight: "20px",
-                        color:
+                        py: "14px",
+                        bgColor: "red",
+                        marginLeft: "40px",
+                        borderBottom:
                           pathname === ROUTES.MY_REQUESTS
-                            ? "#2C6587"
-                            : "#555555",
-                        textTransform: "none",
-                        display: { xs: "none", lg: "block" },
-
-                        borderColor: "primary.main",
-                        borderRadius: 0,
-                        "&:hover": {
-                          bgcolor: "transparent",
-                        },
+                            ? "0.125rem solid #2C6587 "
+                            : "none",
                       }}
                     >
-                      My Requests
-                    </Button>
-                  </Box>
+                      <Button
+                        component={Link}
+                        href={ROUTES.MY_REQUESTS}
+                        sx={{
+                          p: 0,
+
+                          textWrap: "nowrap",
+                          fontSize: "1rem",
+                          lineHeight: "20px",
+                          color:
+                            pathname === ROUTES.MY_REQUESTS
+                              ? "#2C6587"
+                              : "#555555",
+                          textTransform: "none",
+                          display: { xs: "none", lg: "block" },
+
+                          borderColor: "primary.main",
+                          borderRadius: 0,
+                          "&:hover": {
+                            bgcolor: "transparent",
+                          },
+                        }}
+                      >
+                        My Requests
+                      </Button>
+                    </Box>
+                  )}
                 </>
               )}
             </Box>
@@ -1660,7 +1713,6 @@ export default function Header({
                               Account under verification
                             </Typography>
 
-
                             <Button
                               onClick={() => {
                                 setStatusModalOpen(true);
@@ -1673,13 +1725,14 @@ export default function Header({
                                 fontWeight: 600,
                                 padding: "10px 60px",
                                 fontSize: "14px",
-                                lineHeight: "16px"
+                                lineHeight: "16px",
                               }}
                             >
                               Check Status
                             </Button>
                           </Box>
-                        )}
+                        )
+                      }
                       <Divider color={"#E7E7E7"} />
 
                       {/* Menu Items */}
@@ -1840,7 +1893,10 @@ export default function Header({
                             <Button
                               component={Link}
                               href={ROUTES.PROFILE}
-                              onClick={handleProfileMenuClose}
+                              onClick={() => {
+                                dispatch(setActiveItem("Transactions"));
+                                handleProfileMenuClose();
+                              }}
                               sx={{
                                 textTransform: "none",
                                 color: "#989898",
@@ -1980,103 +2036,109 @@ export default function Header({
             {(searchLoading ||
               searchResults.length > 0 ||
               searchTerm.trim()) && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "110%",
-                    left: 0,
-                    width: "100%",
-                    bgcolor: "white",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: 2,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                    zIndex: 1300,
-                    maxHeight: 320,
-                    overflowY: "auto",
-                    p: 1,
-                    "&::-webkit-scrollbar": {
-                      display: "none",
-                    },
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                  }}
-                >
-                  {searchLoading && (
-                    <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
-                      Searching...
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "110%",
+                  left: 0,
+                  width: "100%",
+                  bgcolor: "white",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 2,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  zIndex: 1300,
+                  maxHeight: 320,
+                  overflowY: "auto",
+                  p: 1,
+                  "&::-webkit-scrollbar": {
+                    display: "none",
+                  },
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                }}
+              >
+                {searchLoading && (
+                  <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
+                    Searching...
+                  </Typography>
+                )}
+                {!searchLoading &&
+                  searchResults.length === 0 &&
+                  searchTerm.trim() && (
+                    <Typography
+                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                    >
+                      No results found
                     </Typography>
                   )}
-                  {!searchLoading &&
-                    searchResults.length === 0 &&
-                    searchTerm.trim() && (
-                      <Typography
-                        sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                      >
-                        No results found
-                      </Typography>
-                    )}
-                  {!searchLoading &&
-                    searchResults.map((item) => (
+                {!searchLoading &&
+                  searchResults.map((item) => (
+                    <Box
+                      key={item.id}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        px: 1,
+                        py: 0.75,
+                        borderRadius: 1,
+                        cursor: "pointer",
+                        "&:hover": { bgcolor: "grey.100" },
+                      }}
+                    >
                       <Box
-                        key={item.id}
                         sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 1,
+                          overflow: "hidden",
+                          flexShrink: 0,
+                          bgcolor: "grey.100",
                           display: "flex",
                           alignItems: "center",
-                          gap: 1,
-                          px: 1,
-                          py: 0.75,
-                          borderRadius: 1,
-                          cursor: "pointer",
-                          "&:hover": { bgcolor: "grey.100" },
+                          justifyContent: "center",
                         }}
                       >
-                        <Box
+                        <Image
+                          src={
+                            item.category_logo_url ||
+                            "/icons/home_assistance_icon_home.svg"
+                          }
+                          alt={item.category_name || "Service"}
+                          width={32}
+                          height={32}
+                          style={{ objectFit: "cover" }}
+                        />
+                      </Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
                           sx={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 1,
-                            overflow: "hidden",
-                            flexShrink: 0,
-                            bgcolor: "grey.100",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            fontWeight: 600,
+                            color: "#214C65",
+                            lineHeight: 1.2,
                           }}
                         >
-                          <Image
-                            src={
-                              item.category_logo_url ||
-                              "/icons/home_assistance_icon_home.svg"
-                            }
-                            alt={item.category_name || "Service"}
-                            width={32}
-                            height={32}
-                            style={{ objectFit: "cover" }}
-                          />
-                        </Box>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography
-                            sx={{
-                              fontWeight: 600,
-                              color: "#214C65",
-                              lineHeight: 1.2,
-                            }}
-                          >
-                            {item.sub_category_name}
-                          </Typography>
-                          <Typography
-                            sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                          >
-                            {item.category_name}
-                          </Typography>
-                        </Box>
+                          {item.sub_category_name}
+                        </Typography>
+                        <Typography
+                          sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
+                        >
+                          {item.category_name}
+                        </Typography>
                       </Box>
-                    ))}
-                </Box>
-              )}
+                    </Box>
+                  ))}
+              </Box>
+            )}
           </Box>
         </Box>
       </AppBar>
+      <CreateServiceRequestModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        preSelectedCategoryId={selectedCategoryId}
+        preSelectedSubcategoryId={selectedSubcategoryId}
+      />
       <BookServiceModal
         open={bookServiceModalOpen}
         onClose={() => setBookServiceModalOpen(false)}

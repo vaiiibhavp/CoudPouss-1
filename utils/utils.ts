@@ -1,4 +1,21 @@
 import { PhoneNumberUtil } from "google-libphonenumber";
+import moment from "moment";
+
+type DateInput = string | number | Date | null | undefined;
+
+export const formatDateString = (
+  input: DateInput,
+  format: string,
+  fallback = "--",
+): string => {
+  if (!input) return fallback;
+
+  const m = moment(input);
+  if (!m.isValid()) return fallback;
+
+  return m.format(format);
+};
+
 
 export const formatTime = (ts: any) => {
     if (!ts) return "";

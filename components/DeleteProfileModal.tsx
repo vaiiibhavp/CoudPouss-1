@@ -85,7 +85,7 @@ export default function DeleteProfileModal({
             mb: 2,
           }}
         >
-          Are you sure you want to delete your your account?
+          Are you sure want to delete your account?
         </Typography>
 
         {/* Warning/Consequences Text */}

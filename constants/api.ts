@@ -71,6 +71,7 @@ export const API_ENDPOINTS = {
     GET_SERVICES: `${API_BASE_URL}service_confirmation/service_accept/get_services`,
     GET_SERVICE_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/get_service`,
     OPEN_SERVICES: `${API_BASE_URL}quote_request/open-services`,
+    SEARCH_REQUEST:`${API_BASE_URL}service_confirmation/service_accept/get_services`
   },
   CANCEL_SERVICE: {
     GET_CANCEL_DETAILS: (serviceId: string) =>
@@ -85,4 +86,13 @@ export const API_ENDPOINTS = {
     GET_QUOTE_DETAIL: (serviceId: string) =>
       `${API_BASE_URL}quote_accept/service-provider/quotes/${serviceId}`,
   },
+  FAVORITE_REAQUEST: {
+    GET_FAVORITES: `${API_BASE_URL}service_confirmation/favorite-provider/fetch`,
+    UPDATE_FAVORITE: (professionalId: string) => `${API_BASE_URL}service_confirmation/favorite-provider/add/${professionalId}`,
+    DELETE_FAVORITE: (professionalId: string) => `${API_BASE_URL}service_confirmation/favorite-provider/remove/${professionalId}`,
+  },
+  RATING:{
+    CREATE_RATING:`${API_BASE_URL}service_confirmation/ratings/submit`
+  }
+  
 } as const;
