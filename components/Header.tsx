@@ -36,6 +36,7 @@ import { setUserFromStorage, logout } from "@/lib/redux/authSlice";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import CreateServiceRequestModal from "./CreateServiceRequestModal";
+import { setActiveItem } from "@/lib/redux/profileSlice";
 
 // Helper function to get cookie value
 const getCookie = (name: string): string | undefined => {
@@ -826,7 +827,7 @@ export default function Header({
                       <Box>
                         <Typography
                           sx={{
-                            color: "#555555",
+                            color: "#2C6587",
                             lineHeight: "1.125rem",
                             mb: 2,
                             fontSize: "1rem",
@@ -1897,7 +1898,10 @@ export default function Header({
                             <Button
                               component={Link}
                               href={ROUTES.PROFILE}
-                              onClick={handleProfileMenuClose}
+                              onClick={() => {
+                                dispatch(setActiveItem("Transactions"));
+                                handleProfileMenuClose();
+                              }}
                               sx={{
                                 textTransform: "none",
                                 color: "#989898",

@@ -86,7 +86,7 @@ interface ServiceCard {
 
 // Helper function to map service names to routes and icons
 const getServiceRouteAndIcon = (
-  serviceName: string
+  serviceName: string,
 ): { route: string; icon: string } => {
   const nameLower = serviceName.toLowerCase().trim();
 
@@ -111,7 +111,7 @@ const getServiceRouteAndIcon = (
 // Helper function to get colors for service cards based on category name
 const getCategoryColors = (
   categoryName: string,
-  index: number
+  index: number,
 ): { bgColor: string; buttonColor: string; buttonHover: string } => {
   const nameLower = categoryName.toLowerCase().trim();
 
@@ -235,7 +235,7 @@ export default function AuthenticatedHomePage() {
     setServiceCardsLoading(true);
     try {
       const response = await apiGet<BannersApiResponse>(
-        API_ENDPOINTS.HOME.ALL_BANNERS
+        API_ENDPOINTS.HOME.ALL_BANNERS,
       );
       if (response.success && response.data) {
         const categories = response.data.data?.categories || [];
@@ -258,7 +258,7 @@ export default function AuthenticatedHomePage() {
                 category.banner_url || "/image/explore-service-section-1.png",
               alt: category.category_name,
             };
-          }
+          },
         );
 
         setServiceCards(mappedCards);
@@ -984,15 +984,10 @@ export default function AuthenticatedHomePage() {
           >
             <Typography
               variant="h3"
-              fontWeight="bold"
+              fontWeight="800"
               sx={{
-                color: "#2F6B8E",
-                fontSize: {
-                  xs: "1.5rem",
-                  sm: "1.875rem",
-                  md: "2rem",
-                  lg: "2.5rem",
-                },
+                color: "#323232",
+                fontSize: { xs: 18, sm: 20, md: 24, lg: 27 },
               }}
             >
               Explore All Services
@@ -1460,122 +1455,119 @@ export default function AuthenticatedHomePage() {
                   const reviews = professional.total_reviews || 0;
 
                   return (
-                                                    <Box
-                                    key={professional.id}
-                                    sx={{
-                                        width: "100%",
-                                        maxWidth:"308px",
-                                        borderRadius: "1.125rem",
-                                        p: "0.875rem",
-                                        textAlign: "center",
-                                        position: "relative",
-                                        border: "0.0625rem solid #DFE8ED",
-                                    }}
-                                >
-                                    {/* Heart Icon */}
-                                    <IconButton
-                                        sx={{
-                                            position: "absolute",
-                                            top: 8,
-                                            right: 8,
-                                            color: "#2C6587",
-                                            p: 0.5,
-                                        }}
-                                    >
-                                        <FavoriteIcon sx={{ fontSize: 20 }} />
-                                    </IconButton>
+                    <Box
+                      key={professional.id}
+                      sx={{
+                        width: "100%",
+                        maxWidth: "308px",
+                        borderRadius: "1.125rem",
+                        p: "0.875rem",
+                        textAlign: "center",
+                        position: "relative",
+                        border: "0.0625rem solid #DFE8ED",
+                      }}
+                    >
+                      {/* Heart Icon */}
+                      <IconButton
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          color: "#2C6587",
+                          p: 0.5,
+                        }}
+                      >
+                        <FavoriteIcon sx={{ fontSize: 20 }} />
+                      </IconButton>
 
-                                    {/* Profile Picture */}
-                                    <Box
-                                        sx={{
-                                            width: 92,
-                                            height: 92,
-                                            borderRadius: "50%",
-                                            bgcolor: "grey.300",
-                                            margin: "0 auto 0.75rem",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        {professional.profile_photo_url ? (
-                                            <Image
-                                                src={professional.profile_photo_url}
-                                                alt={fullName}
-                                                width={92}
-                                                height={92}
-                                                style={{
-                                                    objectFit: "cover",
-                                                    borderRadius: "50%",
-                                                    width: "100%",
-                                                    height: "100%",
-                                                }}
-                                            />
-                                        ) : (
-                                            <AccountCircleIcon
-                                                sx={{ fontSize: 80, color: "grey.500" }}
-                                            />
-                                        )}
-                                    </Box>
+                      {/* Profile Picture */}
+                      <Box
+                        sx={{
+                          width: 92,
+                          height: 92,
+                          borderRadius: "50%",
+                          bgcolor: "grey.300",
+                          margin: "0 auto 0.75rem",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {professional.profile_photo_url ? (
+                          <Image
+                            src={professional.profile_photo_url}
+                            alt={fullName}
+                            width={92}
+                            height={92}
+                            style={{
+                              objectFit: "cover",
+                              borderRadius: "50%",
+                              width: "100%",
+                              height: "100%",
+                            }}
+                          />
+                        ) : (
+                          <AccountCircleIcon
+                            sx={{ fontSize: 80, color: "grey.500" }}
+                          />
+                        )}
+                      </Box>
 
-                                    {/* Name */}
-                                    <Typography
-                                        sx={{
-                                            mb: 1,
-                                            textAlign: "left",
-                                            color: "#323232",
-                                            fontSize: "1.125rem",
-                                            fontWeight: 600,
-                                        }}
-                                    >
-                                        {fullName}
-                                    </Typography>
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        {/* Rating */}
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                gap: 0.5,
-                                                mb: "0.375rem",
-                                                alignItems: "center",
-                                            }}
-                                        >
-                                            <Typography
-                                                sx={{
-                                                    textAlign: "left",
-                                                    color: "secondary.naturalGray",
-                                                    fontSize: "1.063rem",
-                                                    lineHeight:"20px",
-                                                }}
-                                            >
-                                                {rating > 0 ? rating.toFixed(1) : "0.0"}
-                                            </Typography>
-                                            <StarIcon
-                                                sx={{ fontSize: 16, color: "#F59E0B" }}
-                                            />
-                                        </Box>
+                      {/* Name */}
+                      <Typography
+                        sx={{
+                          mb: 1,
+                          textAlign: "left",
+                          color: "#323232",
+                          fontSize: "1.125rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {fullName}
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        {/* Rating */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 0.5,
+                            mb: "0.375rem",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              textAlign: "left",
+                              color: "secondary.naturalGray",
+                              fontSize: "1.063rem",
+                              lineHeight: "20px",
+                            }}
+                          >
+                            {rating > 0 ? rating.toFixed(1) : "0.0"}
+                          </Typography>
+                          <StarIcon sx={{ fontSize: 16, color: "#F59E0B" }} />
+                        </Box>
 
-                                        {/* Reviews */}
-                                        <Typography
-                                            variant="caption"
-                                            color="#999999"
-                                            sx={{
-                                                fontSize: "0.688rem",
-                                                lineHeight: "1rem",
-                                            }}
-                                        >
-                                            ({reviews}{" "}
-                                            {reviews === 1 ? "Review" : "Reviews"})
-                                        </Typography>
-                                    </Box>
-                                </Box>
+                        {/* Reviews */}
+                        <Typography
+                          variant="caption"
+                          color="#999999"
+                          sx={{
+                            fontSize: "0.688rem",
+                            lineHeight: "1rem",
+                          }}
+                        >
+                          ({reviews} {reviews === 1 ? "Review" : "Reviews"})
+                        </Typography>
+                      </Box>
+                    </Box>
                   );
                 })
               )}

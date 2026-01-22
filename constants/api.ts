@@ -32,7 +32,7 @@ export const API_ENDPOINTS = {
     HOME: `${API_BASE_URL}home_module/home`,
     ALL_CATEGORIES: `${API_BASE_URL}home_module/all_categories`,
     ALL_BANNERS: `${API_BASE_URL}home_module/all_banners`,
-    SERVICENAME:(serviceName:string) => `${API_BASE_URL}home_module/home?service_name=${serviceName}`,
+    SERVICENAME: (serviceName: string) => `${API_BASE_URL}home_module/home?service_name=${serviceName}`,
   },
   USER: {
     PROFILE: `${API_BASE_URL}/user/profile`,
@@ -41,7 +41,8 @@ export const API_ENDPOINTS = {
   PROFILE: {
     USER_PROFILE: `${API_BASE_URL}profile_module/user_profile`,
     UPDATE_PROFILE: `${API_BASE_URL}profile_module/profile`,
-    UPLOAD_FILES: `${API_BASE_URL}profile_module/upload-files`,},
+    UPLOAD_FILES: `${API_BASE_URL}profile_module/upload-files`,
+  },
   SERVICE_REQUESTS: {
     REQUEST_DETAILS: (requestId: string) => `${API_BASE_URL}service-request/service-requests/${requestId}`,
     CREATE_REQUEST: `${API_BASE_URL}service-request/service-requests`,
@@ -72,5 +73,10 @@ export const API_ENDPOINTS = {
     GET_ALL_QOUTES: `${API_BASE_URL}quote_accept/service-provider/quotes`,
     GET_QUOTE_DETAIL: (serviceId: string) => `${API_BASE_URL}quote_accept/service-provider/quotes/${serviceId}`,
   },
+  FAVORITE_REAQUEST: {
+    GET_FAVORITES: `${API_BASE_URL}service_confirmation/favorite-provider/fetch`,
+    UPDATE_FAVORITE: (professionalId: string) => `${API_BASE_URL}service_confirmation/favorite-provider/add/${professionalId}`,
+    DELETE_FAVORITE: (professionalId: string) => `${API_BASE_URL}service_confirmation/favorite-provider/remove/${professionalId}`,
+  }
 } as const;
 

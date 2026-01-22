@@ -22,17 +22,20 @@ import TransactionsHistory from "./components/TransactionsHistory";
 import RatingsReviews from "./components/RatingsReviews";
 import DeleteProfileModal from "@/components/DeleteProfileModal";
 import SignOutModal from "@/components/SignOutModal";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "@/lib/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/lib/redux/store";
 import { logout } from "@/lib/redux/authSlice";
 import { apiDelete } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import { toast } from "sonner";
+import { setActiveItem } from "@/lib/redux/profileSlice";
 
 export default function ProfilePage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const [activeMenuItem, setActiveMenuItem] = useState("My Profile");
+  const { activeMenuItem } = useSelector((state: RootState) => state.profile);
+
+  // const [activeMenuItem, setActiveMenuItem] = useState("My Profile");
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openSignOutModal, setOpenSignOutModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -202,7 +205,8 @@ export default function ProfilePage() {
                       if (item.action) {
                         item.action();
                       } else {
-                        setActiveMenuItem(item.id);
+                        // setActiveMenuItem(item.id);
+                        dispatch(setActiveItem(item.id));
                       }
                     }}
                     sx={{
@@ -318,7 +322,8 @@ export default function ProfilePage() {
                       if (item.action) {
                         item.action();
                       } else {
-                        setActiveMenuItem(item.id);
+                        // setActiveMenuItem(item.id);
+                        dispatch(setActiveItem(item.id));
                         setMobileMenuOpen(false);
                       }
                     }}
