@@ -2,7 +2,7 @@
  * API endpoints constants
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 // const API_HOME_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 
 export const API_ENDPOINTS = {
@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
     RESET_PASSWORD: `${API_BASE_URL}userService/auth/reset/confirm`,
     VERIFY_EMAIL: `${API_BASE_URL}userService/auth/verify-email`,
     PLANS_ALL: `${API_BASE_URL}userService/auth/plans/all`,
+    PLANS: (providerType: string) => `${API_BASE_URL}userService/auth/plans?provider_type=${providerType}`,
     SELECT_PLAN: `${API_BASE_URL}userService/auth/select-plan`,
     EXPERIENCE: `${API_BASE_URL}userService/auth/experience`,
     GET_USER: `${API_BASE_URL}userService/auth/get_user`,
@@ -32,18 +33,26 @@ export const API_ENDPOINTS = {
     HOME: `${API_BASE_URL}home_module/home`,
     ALL_CATEGORIES: `${API_BASE_URL}home_module/all_categories`,
     ALL_BANNERS: `${API_BASE_URL}home_module/all_banners`,
-    SERVICENAME:(serviceName:string) => `${API_BASE_URL}home_module/home?service_name=${serviceName}`,
+    SERVICENAME: (serviceName: string) =>
+      `${API_BASE_URL}home_module/home?service_name=${serviceName}`,
   },
   USER: {
     PROFILE: `${API_BASE_URL}/user/profile`,
     UPDATE: `${API_BASE_URL}/user/update`,
+    UPDATE_SUBCATEGORIES: (catId: string) =>
+      `${API_BASE_URL}userService/update-subcategories/${catId}`,
+    REMOVE_SERVICE: (subCatId: string) =>
+      `${API_BASE_URL}userService/remove-service/${subCatId}`,
+    PROVIDER_SERVICES: `${API_BASE_URL}userService/provider-services`,
   },
   PROFILE: {
     USER_PROFILE: `${API_BASE_URL}profile_module/user_profile`,
     UPDATE_PROFILE: `${API_BASE_URL}profile_module/profile`,
-    UPLOAD_FILES: `${API_BASE_URL}profile_module/upload-files`,},
+    UPLOAD_FILES: `${API_BASE_URL}profile_module/upload-files`,
+  },
   SERVICE_REQUESTS: {
-    REQUEST_DETAILS: (requestId: string) => `${API_BASE_URL}service-request/service-requests/${requestId}`,
+    REQUEST_DETAILS: (requestId: string) =>
+      `${API_BASE_URL}service-request/service-requests/${requestId}`,
     CREATE_REQUEST: `${API_BASE_URL}service-request/service-requests`,
   },
   SERVICES: {
@@ -64,13 +73,16 @@ export const API_ENDPOINTS = {
     OPEN_SERVICES: `${API_BASE_URL}quote_request/open-services`,
   },
   CANCEL_SERVICE: {
-    GET_CANCEL_DETAILS: (serviceId: string) => `${API_BASE_URL}service_request/service-info/${serviceId}`,
-    CANCEL_REQUEST: (serviceId: string) => `${API_BASE_URL}service_request/cancel/${serviceId}`,
-    CANCEL_REQUEST_BREAKDOWN: (serviceId: string) => `${API_BASE_URL}service_request/get-payment/${serviceId}`
+    GET_CANCEL_DETAILS: (serviceId: string) =>
+      `${API_BASE_URL}service_request/service-info/${serviceId}`,
+    CANCEL_REQUEST: (serviceId: string) =>
+      `${API_BASE_URL}service_request/cancel/${serviceId}`,
+    CANCEL_REQUEST_BREAKDOWN: (serviceId: string) =>
+      `${API_BASE_URL}service_request/get-payment/${serviceId}`,
   },
   QOUTE_REQUEST: {
     GET_ALL_QOUTES: `${API_BASE_URL}quote_accept/service-provider/quotes`,
-    GET_QUOTE_DETAIL: (serviceId: string) => `${API_BASE_URL}quote_accept/service-provider/quotes/${serviceId}`,
+    GET_QUOTE_DETAIL: (serviceId: string) =>
+      `${API_BASE_URL}quote_accept/service-provider/quotes/${serviceId}`,
   },
 } as const;
-
