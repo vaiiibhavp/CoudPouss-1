@@ -83,9 +83,10 @@ export default function ProfessionalDetails() {
   return (
     <Box
       sx={{
-        maxWidth: 1100,
+        // maxWidth: 1100,
         mx: "auto",
-        p: 1,
+        m:2,
+        p:2,
         display: "flex",
         flexDirection: "column",
         gap: "28px",
