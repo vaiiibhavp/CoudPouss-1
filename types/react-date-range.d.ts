@@ -21,3 +21,6 @@ declare module 'react-date-range' {
   const _default: any;
   export default _default;
 }
+
+declare module 'react-date-range/dist/styles.css';
+declare module 'react-date-range/dist/theme/default.css';

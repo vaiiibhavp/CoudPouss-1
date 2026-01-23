@@ -22,12 +22,12 @@ import {
   Popover,
 } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material/Select";
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
-import { DateRange } from 'react-date-range';
-import 'react-date-range/dist/styles.css';
-import 'react-date-range/dist/theme/default.css';
+import { DateRange } from "react-date-range";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
 
 interface Transaction {
   id: string;
@@ -74,7 +74,7 @@ interface TransactionsApiResponse {
 // Helper function to format date
 const formatDate = (dateString?: string): string => {
   if (!dateString) return "N/A";
-  
+
   try {
     const date = new Date(dateString);
     const day = date.getDate();
@@ -85,7 +85,7 @@ const formatDate = (dateString?: string): string => {
     const ampm = hours >= 12 ? "PM" : "AM";
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, "0");
-    
+
     return `${day} ${month} ${year} - ${displayHours}:${displayMinutes}${ampm}`;
   } catch {
     return dateString;
@@ -95,27 +95,37 @@ const formatDate = (dateString?: string): string => {
 // Helper function to format amount
 const formatAmount = (amount?: number | string): string => {
   if (amount === undefined || amount === null) return "€0.00";
-  
+
   const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
   if (isNaN(numAmount as number)) return "€0.00";
-  
-  return `€${(numAmount as number).toFixed(2)}`;
-}
 
+  return `€${(numAmount as number).toFixed(2)}`;
+};
 
 // Helper function to get status color
 const getStatusColor = (status: string): string => {
   if (!status) return "#10B981";
   const lowerStatus = status.toLowerCase();
-  if (lowerStatus === "success" || lowerStatus === "completed") return "#10B981";
+  if (lowerStatus === "success" || lowerStatus === "completed")
+    return "#10B981";
   if (lowerStatus === "pending") return "#F59E0B";
   if (lowerStatus === "failed") return "#EF4444";
   return "#10B981"; // default
 };
 // Helper function to map API response to component format
-const mapApiTransactionToTransaction = (apiTransaction: ApiTransaction): Transaction => {
-  const id = apiTransaction.id || apiTransaction.transaction_id || apiTransaction.transactionId || "";
-  const elderName = apiTransaction.elder_name || apiTransaction.elderName || apiTransaction.name || "Unknown";
+const mapApiTransactionToTransaction = (
+  apiTransaction: ApiTransaction,
+): Transaction => {
+  const id =
+    apiTransaction.id ||
+    apiTransaction.transaction_id ||
+    apiTransaction.transactionId ||
+    "";
+  const elderName =
+    apiTransaction.elder_name ||
+    apiTransaction.elderName ||
+    apiTransaction.name ||
+    "Unknown";
   const avatar =
     apiTransaction.avatar ||
     // support various API property names
@@ -129,13 +139,25 @@ const mapApiTransactionToTransaction = (apiTransaction: ApiTransaction): Transac
     (apiTransaction as any).stripe_payment_intent_id ||
     apiTransaction.id ||
     "";
-  const totalAmount = formatAmount(apiTransaction.total_amount || apiTransaction.totalAmount || apiTransaction.amount);
+  const totalAmount = formatAmount(
+    apiTransaction.total_amount ||
+      apiTransaction.totalAmount ||
+      apiTransaction.amount,
+  );
 
-  const dateString = apiTransaction.payment_date || apiTransaction.paymentDate || apiTransaction.created_at || apiTransaction.createdAt;
+  const dateString =
+    apiTransaction.payment_date ||
+    apiTransaction.paymentDate ||
+    apiTransaction.created_at ||
+    apiTransaction.createdAt;
   const paymentDate = formatDate(dateString);
 
-  const paymentStatus = apiTransaction.payment_status || apiTransaction.paymentStatus || apiTransaction.status || "Completed";
-  
+  const paymentStatus =
+    apiTransaction.payment_status ||
+    apiTransaction.paymentStatus ||
+    apiTransaction.status ||
+    "Completed";
+
   return {
     id,
     elderName,
@@ -182,10 +204,13 @@ export default function TransactionsHistory() {
 
       if (response.success && response.data) {
         const apiData = (response.data.data || response.data) as any;
-        const apiTransactions: ApiTransaction[] = apiData?.Transactions || apiData?.transactions || [];
-        
+        const apiTransactions: ApiTransaction[] =
+          apiData?.Transactions || apiData?.transactions || [];
+
         if (Array.isArray(apiTransactions) && apiTransactions.length > 0) {
-          const mappedTransactions = apiTransactions.map(mapApiTransactionToTransaction);
+          const mappedTransactions = apiTransactions.map(
+            mapApiTransactionToTransaction,
+          );
           setTransactions(mappedTransactions);
         } else {
           setTransactions([]);
@@ -218,13 +243,15 @@ export default function TransactionsHistory() {
   // Popover state for date picker and date-range selection state
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const openDatePopover = Boolean(anchorEl);
-  const [selectionRange, setSelectionRange] = useState<any[]>([{ startDate: new Date(), endDate: new Date(), key: 'selection' }]);
+  const [selectionRange, setSelectionRange] = useState<any[]>([
+    { startDate: new Date(), endDate: new Date(), key: "selection" },
+  ]);
 
   const handleOpenDatePopover = (e: React.MouseEvent<HTMLElement>) => {
     // sync selectionRange with current start/end
     const s = startDate ? new Date(startDate) : new Date();
     const en = endDate ? new Date(endDate) : s;
-    setSelectionRange([{ startDate: s, endDate: en, key: 'selection' }]);
+    setSelectionRange([{ startDate: s, endDate: en, key: "selection" }]);
     setAnchorEl(e.currentTarget);
   };
 
@@ -249,7 +276,6 @@ export default function TransactionsHistory() {
   return (
     <Box
       sx={{
-        
         borderRadius: 3,
         flex: 1,
         display: "flex",
@@ -381,251 +407,281 @@ export default function TransactionsHistory() {
                 onClick={handleOpenDatePopover}
                 endIcon={<ArrowDropDownIcon />}
                 sx={{
-                  borderRadius: '4px',
-                  border: '1px solid #DCDDDD',
-                  padding: '7px',
-                  fontSize: '16px',
-                  textTransform: 'none',
-                  color: startDate || endDate ? '#545454' : '#818285',
-                  backgroundColor: '#FFFFFF',
+                  borderRadius: "4px",
+                  border: "1px solid #DCDDDD",
+                  padding: "7px",
+                  fontSize: "16px",
+                  textTransform: "none",
+                  color: startDate || endDate ? "#545454" : "#818285",
+                  backgroundColor: "#FFFFFF",
                 }}
               >
-                {startDate && endDate ? `${startDate} - ${endDate}` : 'Date'}
+                {startDate && endDate ? `${startDate} - ${endDate}` : "Date"}
               </Button>
               <Popover
                 open={openDatePopover}
                 anchorEl={anchorEl}
                 onClose={handleCloseDatePopover}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
               >
                 <Box sx={{ p: 1 }}>
                   <DateRange
                     ranges={selectionRange}
-                    onChange={(ranges: any) => setSelectionRange([ranges.selection])}
+                    onChange={(ranges: any) =>
+                      setSelectionRange([ranges.selection])
+                    }
                     moveRangeOnFirstSelection={false}
                     editableDateInputs={true}
                   />
-                  <Box sx={{ p: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                    <Button onClick={handleClearDates} color="inherit">Clear</Button>
-                    <Button onClick={handleApplyDates} variant="contained">Apply</Button>
+                  <Box
+                    sx={{
+                      p: 1,
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: 1,
+                    }}
+                  >
+                    <Button onClick={handleClearDates} color="inherit">
+                      Clear
+                    </Button>
+                    <Button onClick={handleApplyDates} variant="contained">
+                      Apply
+                    </Button>
                   </Box>
                 </Box>
               </Popover>
             </Box>
           </Box>
         </Box>
-        <Table
+        <TableContainer
           sx={{
-            minWidth: 650,
-
-            "& .MuiTableBody-root .MuiTableRow-root": {
-              "&:not(:last-child)": {
-                marginBottom: "8px",
-              },
-            },
+            width: "100%",
+            overflowX: "auto",
+            "&::-webkit-scrollbar": { height: 6 },
           }}
         >
-          <TableHead>
-            <TableRow
-              sx={{
-                bgcolor: "#F5F5F5",
-                justifyContent: "space-between",
-              }}
-            >
-              <TableCell
-                sx={{
-                  color: "#2F6B8E",
-                  fontWeight: 500,
-                  fontSize: "0.95rem",
-                  padding: "12px 40px",
-                }}
-              >
-                Elder's Name
-              </TableCell>
-              <TableCell
-                sx={{
-                  color: "#2F6B8E",
-                  fontWeight: 500,
-                  fontSize: "0.95rem",
-                  padding: "12px 40px",
-                }}
-              >
-                Transaction ID
-              </TableCell>
-              <TableCell
-                sx={{
-                  color: "#2F6B8E",
-                  fontWeight: 500,
-                  fontSize: "0.95rem",
-                  padding: "12px 40px",
-                }}
-              >
-                Total Amount
-              </TableCell>
-              <TableCell
-                sx={{
-                  color: "#2F6B8E",
-                  fontWeight: 500,
-                  fontSize: "0.95rem",
-                  padding: "12px 40px",
-                }}
-              >
-                Payment Date & Time
-              </TableCell>
-              <TableCell
-                sx={{
-                  color: "#2F6B8E",
-                  fontWeight: 500,
-                  fontSize: "0.95rem",
-                  padding: "12px 40px",
-                }}
-              >
-                Payment Status
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                  <CircularProgress />
-                </TableCell>
-              </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                  <Typography sx={{ color: "error.main" }}>{error}</Typography>
-                </TableCell>
-              </TableRow>
-            ) : transactions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                  <Typography sx={{ color: "text.secondary" }}>
-                    No transactions found
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              transactions.map((transaction, index) => (
+          <Table
+            sx={{
+              minWidth: 900,
+
+              // "& .MuiTableBody-root .MuiTableRow-root": {
+              //   "&:not(:last-child)": {
+              //     marginBottom: "8px",
+              //   },
+              // },
+            }}
+          >
+            <TableHead>
               <TableRow
-                key={transaction.id}
                 sx={{
-                  bgcolor: index % 2 === 0 ? "grey.50" : "white",
-                  "&:hover": {
-                    bgcolor: "grey.100",
-                  },
+                  bgcolor: "#F5F5F5",
+                  justifyContent: "space-between",
                 }}
               >
                 <TableCell
                   sx={{
+                    color: "#2F6B8E",
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
                     padding: "12px 40px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    fontWeight: 400,
-                    fontStyle: "regular",
-                    fontSize: "14px",
-                    lineHeight: "18px",
-                    letterSpacing: "0%",
-                    verticalAlign: "middle",
-                    color: "#545454",
                   }}
                 >
-                  <Avatar
-                    src={transaction.avatar}
-                    alt={transaction.elderName}
-                    sx={{ width: 40, height: 40 }}
-                  />
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: "#545454",
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      lineHeight: "18px",
-                    }}
-                  >
-                    {transaction.elderName}
-                  </Typography>
+                  Elder's Name
                 </TableCell>
                 <TableCell
                   sx={{
+                    color: "#2F6B8E",
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
                     padding: "12px 40px",
-                    fontWeight: 400,
-                    fontStyle: "regular",
-                    fontSize: "14px",
-                    lineHeight: "18px",
-                    letterSpacing: "0%",
-                    verticalAlign: "middle",
-                    color: "#545454",
                   }}
                 >
-                  {transaction.transactionId}
+                  Transaction ID
                 </TableCell>
                 <TableCell
                   sx={{
+                    color: "#2F6B8E",
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
                     padding: "12px 40px",
-                    fontWeight: 400,
-                    fontStyle: "regular",
-                    fontSize: "14px",
-                    lineHeight: "18px",
-                    letterSpacing: "0%",
-                    verticalAlign: "middle",
-                    color: "#545454",
                   }}
                 >
-                  {transaction.totalAmount}
+                  Total Amount
                 </TableCell>
                 <TableCell
                   sx={{
+                    color: "#2F6B8E",
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
                     padding: "12px 40px",
-                    fontWeight: 400,
-                    fontStyle: "regular",
-                    fontSize: "14px",
-                    lineHeight: "18px",
-                    letterSpacing: "0%",
-                    verticalAlign: "middle",
-                    color: "#545454",
                   }}
                 >
-                  {transaction.paymentDate}
+                  Payment Date & Time
                 </TableCell>
                 <TableCell
                   sx={{
+                    color: "#2F6B8E",
+                    fontWeight: 500,
+                    fontSize: "0.95rem",
                     padding: "12px 40px",
-                    fontWeight: 400,
-                    fontStyle: "regular",
-                    fontSize: "14px",
-                    lineHeight: "18px",
-                    letterSpacing: "0%",
-                    verticalAlign: "middle",
                   }}
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: getStatusColor(transaction.paymentStatus),
-                      fontWeight: 400,
-                      fontSize: "14px",
-                      lineHeight: "18px",
-                    }}
-                  >
-                    {transaction.paymentStatus}
-                  </Typography>
+                  Payment Status
                 </TableCell>
               </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                    <CircularProgress />
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                    <Typography sx={{ color: "error.main" }}>
+                      {error}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : transactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                    <Typography sx={{ color: "text.secondary" }}>
+                      No transactions found
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                transactions.map((transaction, index) => (
+                  <TableRow
+                    key={transaction.id}
+                    sx={{
+                      bgcolor: index % 2 === 0 ? "grey.50" : "white",
+                      "&:hover": {
+                        bgcolor: "grey.100",
+                      },
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        px: { xs: 2, sm: 3, md: 5 },
+                        py: 1.5,
+
+                        fontWeight: 400,
+                        fontStyle: "regular",
+                        fontSize: "14px",
+                        lineHeight: "18px",
+                        letterSpacing: "0%",
+                        // verticalAlign: "middle",
+                        color: "#545454",
+                      }}
+                      >
+                      <Box
+                        sx={{
+                          gap: 1.5,
+                          width: "100%",
+                          display: "flex",
+                          verticalAlign: "top",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Avatar
+                          src={transaction.avatar}
+                          alt={transaction.elderName}
+                          sx={{ width: 40, height: 40 }}
+                        />
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            color: "#545454",
+                            fontWeight: 400,
+                            fontSize: "14px",
+                            lineHeight: "18px",
+                          }}
+                        >
+                          {transaction.elderName}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        px: { xs: 2, sm: 3, md: 5 },
+                        py: 1.5,
+                        fontWeight: 400,
+                        fontStyle: "regular",
+                        fontSize: "14px",
+                        lineHeight: "18px",
+                        letterSpacing: "0%",
+                        verticalAlign: "middle",
+                        color: "#545454",
+                      }}
+                    >
+                      {transaction.transactionId}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        px: { xs: 2, sm: 3, md: 5 },
+                        py: 1.5,
+                        fontWeight: 400,
+                        fontStyle: "regular",
+                        fontSize: "14px",
+                        lineHeight: "18px",
+                        letterSpacing: "0%",
+                        verticalAlign: "middle",
+                        color: "#545454",
+                      }}
+                    >
+                      {transaction.totalAmount}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        px: { xs: 2, sm: 3, md: 5 },
+                        py: 1.5,
+                        fontWeight: 400,
+                        fontStyle: "regular",
+                        fontSize: "14px",
+                        lineHeight: "18px",
+                        letterSpacing: "0%",
+                        verticalAlign: "middle",
+                        color: "#545454",
+                      }}
+                    >
+                      {transaction.paymentDate}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        px: { xs: 2, sm: 3, md: 5 },
+                        py: 1.5,
+                        fontWeight: 400,
+                        fontStyle: "regular",
+                        fontSize: "14px",
+                        lineHeight: "18px",
+                        letterSpacing: "0%",
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: getStatusColor(transaction.paymentStatus),
+                          fontWeight: 400,
+                          fontSize: "14px",
+                          lineHeight: "18px",
+                        }}
+                      >
+                        {transaction.paymentStatus}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </TableContainer>
     </Box>
   );
 }
-
-
-
-
-
-

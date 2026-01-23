@@ -1092,7 +1092,7 @@ export default function MyRequestsPage() {
               gap: 4,
               bgcolor: "white",
               zIndex: 10,
-              height: "100vh",
+              minHeight: "100vh",
               alignItems: "stretch",
             }}
           >

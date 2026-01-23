@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/GridLegacy";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { apiPost } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import { useEffect, useState } from "react";
@@ -46,6 +46,7 @@ export default function ProfessionalDetails() {
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   console.log("professional", professional);
 
@@ -93,7 +94,7 @@ export default function ProfessionalDetails() {
     >
       {/* Header */}
       <Box sx={{ display: "flex", gap: 2, p: 1, alignItems: "center" }}>
-        <IconButton sx={{ p: 0 }}>
+        <IconButton sx={{ p: 0 }} onClick={()=>router.back()}>
           <ArrowBackIosIcon fontSize="small" />
         </IconButton>
         <Typography
