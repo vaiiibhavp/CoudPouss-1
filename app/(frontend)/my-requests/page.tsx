@@ -1534,6 +1534,7 @@ export default function MyRequestsPage() {
                           </Typography>
                           <Button
                             variant="contained"
+                            onClick={()=>router.push(`/chat/${serviceDetail?.provider?.id}`)}
                             sx={{
                               textTransform: "none",
                               borderRadius: { xs: "0.375rem", sm: "0.5rem" },

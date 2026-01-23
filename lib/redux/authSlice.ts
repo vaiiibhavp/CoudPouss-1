@@ -37,7 +37,11 @@ interface LoginResponse {
 interface User {
   email: string;
   initial: string;
-  role: string
+  role: string;
+  address?: string;
+  mobile?: string;
+  user_id?: string
+  name?: string
 }
 
 interface AuthState {
@@ -132,6 +136,10 @@ export const loginUser = createAsyncThunk<
         email: data.user_data?.email || apiPayload["email"] || "",
         initial: (data.user_data?.name?.charAt(0) || "U").toUpperCase(),
         role: data.user_data?.role || "",
+        address: data.user_data?.address || "",
+        mobile: data.user_data?.mobile || "",
+        user_id: data.user_data?.user_id || "",
+        name: data.user_data?.name || ""
       };
 
       return {

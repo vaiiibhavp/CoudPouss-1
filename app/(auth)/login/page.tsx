@@ -27,6 +27,7 @@ import { AppDispatch, RootState } from "@/lib/redux/store";
 import CountrySelectDropdown from "@/components/CountrySelectDropdown";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { upsertUserProfile } from "@/services/chatFirestore.service";
 
 // Yup validation schema
 const loginSchema = Yup.object().shape({
@@ -167,19 +168,20 @@ export default function LoginPage() {
     );
     console.log("auth", auth);
     if (loginUser.fulfilled.match(result)) {
-      // If your backend provides a custom token, use that.
-      // Otherwise, keep the email login but wrap it in a try/catch
-      console.log("result.payload.user.email", result.payload.user.email);
+      const backendUser = result.payload.user;
 
       try {
-        const emailFromBackend = result.payload.user.email;
-        await signInWithEmailAndPassword(
-          auth,
-          emailFromBackend,
-          values.password,
-        );
-      } catch (firebaseError) {
-        console.error("Firebase Auth failed", firebaseError);
+        await upsertUserProfile({
+          user_id: backendUser.user_id ?? "",
+          name: backendUser.name ?? "",
+          email: backendUser.email,
+          mobile: backendUser.mobile,
+          role: backendUser.role,
+          address: backendUser.address,
+        });
+        console.log('firebase user created');
+      } catch (err) {
+        console.error("Firestore sync failed", err);
       }
     }
   };
