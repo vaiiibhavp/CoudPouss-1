@@ -27,6 +27,7 @@
     "react-international-phone": "^4.6.1",
     "react-redux": "^9.2.0",
     "react-speech-recognition": "^4.0.1",
+    "regenerator-runtime": "^0.14.1",
     "sonner": "^2.0.7",
     "yup": "^1.7.1"
   },

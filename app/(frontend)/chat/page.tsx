@@ -25,7 +25,7 @@ import {
   subscribeToThreads,
   uploadChatImage,
 } from "@/services/chatFirestore.service";
-import { apiGet } from "@/lib/api";
+import { apiGet, apiPostFormData } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import { NoChatSelected } from "./components/NoChatSelected";
 import { UserChat } from "./components/UserChat";
@@ -59,6 +59,7 @@ interface UIMessage {
   sender: "user" | "other";
   createdAt: string;
   photoURL?: string;
+  attachments?: string[];
 }
 export default function ChatPage() {
   const router = useRouter();
@@ -178,6 +179,8 @@ export default function ChatPage() {
     const unsubscribe = subscribeToMessages(
       selectedChat,
       (firebaseMessages) => {
+        console.log("firebaseMessages", firebaseMessages);
+
         const mapped = firebaseMessages.map((msg) => {
           const isMe = msg.senderId === userData.id;
 
@@ -202,6 +205,7 @@ export default function ChatPage() {
                 : new Date(msg.createdAt).toISOString()
               : "",
             photoURL: photo,
+            attachments: msg.attachments || [],
           };
         });
 
@@ -244,37 +248,65 @@ export default function ChatPage() {
   //     setMessageInput(textToSend); // Restore on error
   //   }
   // };
+  // Inside ChatPage.tsx
+ const uploadFile = async (file: File): Promise<string | null> => {
+  try {
+    const formData = new FormData();
+    
+    formData.append("file", file);
+    
+    const response = await apiPostFormData<{ url: string }>(
+      API_ENDPOINTS.SERVICE_REQUEST.UPLOAD_FILE,
+      formData,
+    );
+
+    if (response.success && response.data?.url) {
+      return response.data.url;
+    }
+    return null;
+  } catch (error) {
+    console.error(`Error uploading ${file.name}:`, error);
+    return null;
+  }
+};
+
+const uploadFiles = async (files: File[]): Promise<string[]> => {
+  // Promise.all triggers all uploads simultaneously
+  const uploadPromises = files.map((file) => uploadFile(file));
+  
+  const urls = await Promise.all(uploadPromises);
+
+  // Clean up and return only successful URLs
+  return urls.filter((url): url is string => url !== null);
+};
   const handleSendMessage = async (text: string, files: File[]) => {
     if (!userData || !selectedChat) return;
-    console.log("files", files);
 
     try {
-      let uploadedUrls: string[] = [];
+      let imageUrls: string[] = [];
 
-      // 1. If there are files, upload them first
+      // 1. Upload images and get back full URLs
       if (files.length > 0) {
-        // Use Promise.all to upload all images simultaneously
-        uploadedUrls = await Promise.all(
-          files.map((file) => uploadChatImage(file, selectedChat)),
-        );
+        imageUrls = await uploadFiles(files);
       }
 
       const receiverId = activeChat.participantIds.find(
         (id: string) => id !== userData.id,
       );
 
-      // 2. Send the message with text and the new URLs
+      // 2. Send the full URLs to Firestore
       await sendTextMessage({
         threadId: selectedChat,
         text: text,
         senderId: userData.id,
         receiverId,
-        imageUrls: uploadedUrls, // Pass the array of URLs
+        imageUrls: imageUrls, // Sending the full http://... link
       });
     } catch (error) {
-      console.error("Failed to send message with attachments:", error);
+      console.error("Failed to process message:", error);
     }
   };
+  
   const filteredChatUsers = React.useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
@@ -296,6 +328,7 @@ export default function ChatPage() {
       return displayName.includes(query) || lastMsg.includes(query);
     });
   }, [chatUsers, searchQuery, userData?.id]);
+  
 
   return (
     <Box
@@ -557,6 +590,7 @@ export default function ChatPage() {
                         message={{
                           ...message,
                           createdAt: new Date(message.createdAt),
+                          attachments: message.attachments || [],
                         }}
                       />
                     ))}

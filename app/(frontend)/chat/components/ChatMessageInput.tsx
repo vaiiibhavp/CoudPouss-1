@@ -6,6 +6,7 @@ import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import Dictaphone from "./Dictaphone";
 
 interface ChatMessageInputProps {
   value: string;
@@ -31,17 +32,21 @@ export const ChatMessageInput = ({
 }: ChatMessageInputProps) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [images, setImages] = useState<File[]>([]);
-  const [baseValueBeforeSpeech, setBaseValueBeforeSpeech] = useState(""); // Track text before mic started
-  
-  /* ---------------- Speech Recognition ---------------- */
+  const [baseValueBeforeSpeech, setBaseValueBeforeSpeech] = useState("");
+
   const {
     transcript,
     listening,
     resetTranscript,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
-  
-  console.log("baseValueBeforeSpeech", baseValueBeforeSpeech,transcript,listening);
+
+  console.log(
+    "baseValueBeforeSpeech",
+    baseValueBeforeSpeech,
+    transcript,
+    listening,
+  );
   // Append transcript to input in real time
   useEffect(() => {
     if (listening) {
@@ -111,6 +116,22 @@ export const ChatMessageInput = ({
     });
 
     e.target.value = "";
+  };
+  const startListening = async () => {
+    if (!browserSupportsSpeechRecognition) return;
+
+    setBaseValueBeforeSpeech(value);
+    resetTranscript();
+
+    SpeechRecognition.startListening({
+      continuous: true,
+      language: "en-IN",
+    });
+  };
+
+  const stopListening = () => {
+    SpeechRecognition.stopListening();
+    setBaseValueBeforeSpeech("");
   };
 
   return (
@@ -192,9 +213,16 @@ export const ChatMessageInput = ({
             height={24}
           />
         </IconButton>
+        {/* <Dictaphone
+          listening={listening}
+          supported={browserSupportsSpeechRecognition}
+          onStart={startListening}
+          onStop={stopListening}
+          onReset={resetTranscript}
+        /> */}
 
         <InputBase
-          placeholder={listening ? "Listening...." : "Type a message..."}
+          placeholder={listening ? "Listening..." : "Type a message..."}
           value={value}
           multiline
           maxRows={4}
