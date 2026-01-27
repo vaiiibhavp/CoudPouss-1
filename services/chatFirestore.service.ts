@@ -12,7 +12,7 @@ import {
   addDoc,
   getDocs,
 } from 'firebase/firestore';
-
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db } from '@/lib/firebase';
 
 /* =======================
@@ -250,44 +250,44 @@ export function subscribeToMessages(
    Send Message
 ======================= */
 
-export async function sendTextMessage(payload: {
-  threadId: string;
-  text: string;
-  senderId: string;
-  receiverId: string;
-}) {
-  const text = payload.text.trim();
-  if (!text) return;
+// export async function sendTextMessage(payload: {
+//   threadId: string;
+//   text: string;
+//   senderId: string;
+//   receiverId: string;
+// }) {
+//   const text = payload.text.trim();
+//   if (!text) return;
 
-  const timestamp = serverTimestamp();
+//   const timestamp = serverTimestamp();
 
-  const messagesRef = collection(
-    db,
-    THREADS_COLLECTION,
-    payload.threadId,
-    MESSAGES_SUBCOLLECTION
-  );
+//   const messagesRef = collection(
+//     db,
+//     THREADS_COLLECTION,
+//     payload.threadId,
+//     MESSAGES_SUBCOLLECTION
+//   );
 
-  await addDoc(messagesRef, {
-    text,
-    senderId: payload.senderId,
-    receiverId: payload.receiverId,
-    type: 'text',
-    createdAt: timestamp,
-  });
+//   await addDoc(messagesRef, {
+//     text,
+//     senderId: payload.senderId,
+//     receiverId: payload.receiverId,
+//     type: 'text',
+//     createdAt: timestamp,
+//   });
 
-  const threadRef = doc(db, THREADS_COLLECTION, payload.threadId);
+//   const threadRef = doc(db, THREADS_COLLECTION, payload.threadId);
 
-  await setDoc(
-    threadRef,
-    {
-      lastMessage: text,
-      lastMessageSenderId: payload.senderId,
-      updatedAt: timestamp,
-    },
-    { merge: true }
-  );
-}
+//   await setDoc(
+//     threadRef,
+//     {
+//       lastMessage: text,
+//       lastMessageSenderId: payload.senderId,
+//       updatedAt: timestamp,
+//     },
+//     { merge: true }
+//   );
+// }
 
 // chatFirestore.service.ts
 
@@ -369,4 +369,51 @@ export function listenSpecificUsers(userIds: string[], onNext: (users: any[]) =>
     const users = snapshot.docs.map(doc => doc.data());
     onNext(users);
   });
+}
+
+const storage = getStorage();
+
+/**
+ * Uploads a file to Firebase Storage and returns the public URL
+ */
+export const uploadChatImage = async (file: File, threadId: string): Promise<string> => {
+  const fileExtension = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
+  const storageRef = ref(storage, `threads/${threadId}/images/${fileName}`);
+
+  const snapshot = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snapshot.ref);
+};
+
+/**
+ * Updated Send Message function
+ */
+export async function sendTextMessage(payload: {
+  threadId: string;
+  text: string;
+  senderId: string;
+  receiverId: string;
+  imageUrls?: string[]; // Add this
+}) {
+  const timestamp = serverTimestamp();
+  const messagesRef = collection(db, "threads", payload.threadId, "messages");
+
+  const messageData = {
+    text: payload.text,
+    senderId: payload.senderId,
+    receiverId: payload.receiverId,
+    imageUrls: payload.imageUrls || [], // Store the URLs here
+    type: payload.imageUrls?.length ? 'image' : 'text',
+    createdAt: timestamp,
+  };
+
+  await addDoc(messagesRef, messageData);
+
+  // Update thread last message
+  const threadRef = doc(db, "threads", payload.threadId);
+  await setDoc(threadRef, {
+    lastMessage: payload.imageUrls?.length ? "Sent an image" : payload.text,
+    lastMessageSenderId: payload.senderId,
+    updatedAt: timestamp,
+  }, { merge: true });
 }

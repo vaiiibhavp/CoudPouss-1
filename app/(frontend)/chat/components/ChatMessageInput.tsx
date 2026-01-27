@@ -186,7 +186,7 @@ export const ChatMessageInput = ({
           disabled={!browserSupportsSpeechRecognition}
         >
           <Image
-            src={listening ? "/icons/micActive.png" : "/icons/micGray.png"}
+            src={listening ? "/icons/Microphone.png" : "/icons/micGray.png"}
             alt="mic"
             width={24}
             height={24}
@@ -194,7 +194,7 @@ export const ChatMessageInput = ({
         </IconButton>
 
         <InputBase
-          placeholder={listening ? "Listening..." : "Type a message..."}
+          placeholder={listening ? "Listening...." : "Type a message..."}
           value={value}
           multiline
           maxRows={4}

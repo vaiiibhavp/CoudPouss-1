@@ -23,6 +23,7 @@ import {
   sendTextMessage,
   subscribeToMessages,
   subscribeToThreads,
+  uploadChatImage,
 } from "@/services/chatFirestore.service";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -78,6 +79,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -219,29 +221,81 @@ export default function ChatPage() {
     return () => unsubscribe();
   }, [userData]);
 
-  const handleSendMessage = async () => {
-    if (!messageInput.replace(/\s/g, "").length || !userData || !selectedChat)
-      return;
+  // const handleSendMessage = async () => {
+  //   if (!messageInput.replace(/\s/g, "").length || !userData || !selectedChat)
+  //     return;
 
-    const textToSend = messageInput; // Don't trim the actual content
-    setMessageInput(""); // Clear immediately for Optimistic UI
+  //   const textToSend = messageInput; // Don't trim the actual content
+  //   setMessageInput(""); // Clear immediately for Optimistic UI
+
+  //   try {
+  //     const receiverId = activeChat.participantIds.find(
+  //       (id: string) => id !== userData.id,
+  //     );
+  //     if (!receiverId) return;
+  //     await sendTextMessage({
+  //       threadId: selectedChat,
+  //       text: textToSend, // Send the raw text with newlines/spaces
+  //       senderId: userData.id,
+  //       receiverId,
+  //     });
+  //   } catch (error) {
+  //     console.error("Failed to send:", error);
+  //     setMessageInput(textToSend); // Restore on error
+  //   }
+  // };
+  const handleSendMessage = async (text: string, files: File[]) => {
+    if (!userData || !selectedChat) return;
+    console.log("files", files);
 
     try {
+      let uploadedUrls: string[] = [];
+
+      // 1. If there are files, upload them first
+      if (files.length > 0) {
+        // Use Promise.all to upload all images simultaneously
+        uploadedUrls = await Promise.all(
+          files.map((file) => uploadChatImage(file, selectedChat)),
+        );
+      }
+
       const receiverId = activeChat.participantIds.find(
         (id: string) => id !== userData.id,
       );
-      if (!receiverId) return;
+
+      // 2. Send the message with text and the new URLs
       await sendTextMessage({
         threadId: selectedChat,
-        text: textToSend, // Send the raw text with newlines/spaces
+        text: text,
         senderId: userData.id,
         receiverId,
+        imageUrls: uploadedUrls, // Pass the array of URLs
       });
     } catch (error) {
-      console.error("Failed to send:", error);
-      setMessageInput(textToSend); // Restore on error
+      console.error("Failed to send message with attachments:", error);
     }
   };
+  const filteredChatUsers = React.useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return chatUsers;
+
+    return chatUsers.filter((chat) => {
+      // 1. Get the "other" person's ID
+      const otherUserId = chat.participantIds.find(
+        (id: string) => id !== userData?.id,
+      );
+
+      // 2. Get their name from the Metadata saved directly on the thread
+      const meta = chat.participantsMeta?.[otherUserId];
+      const displayName = (meta?.name || "Chat").toLowerCase();
+
+      // 3. (Optional) Search within the last message text too
+      const lastMsg = (chat.lastMessage || "").toLowerCase();
+
+      return displayName.includes(query) || lastMsg.includes(query);
+    });
+  }, [chatUsers, searchQuery, userData?.id]);
 
   return (
     <Box
@@ -338,6 +392,8 @@ export default function ChatPage() {
                     />
                     <InputBase
                       placeholder="Search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       sx={{
                         flex: 1,
                         fontSize: "0.9rem",
@@ -382,7 +438,7 @@ export default function ChatPage() {
                   },
                 }}
               >
-                {chatUsers.length === 0 ? (
+                {filteredChatUsers.length === 0 ? (
                   <Box
                     sx={{
                       p: 3,
@@ -398,7 +454,7 @@ export default function ChatPage() {
                     </Typography>
                   </Box>
                 ) : (
-                  chatUsers.map((chat) => {
+                  filteredChatUsers.map((chat) => {
                     const otherUserId = chat.participantIds.find(
                       (id: string) => id !== userData?.id,
                     );
