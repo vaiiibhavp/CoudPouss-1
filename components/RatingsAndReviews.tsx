@@ -1,106 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import {
   Box,
   Typography,
-  Card,
   Avatar,
   IconButton,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-
-interface Review {
-  id: string;
-  reviewerName: string;
-  reviewerAvatar: string;
-  daysAgo: number;
-  rating: number;
-  reviewText: string;
-  fullReviewText: string;
-  serviceName: string;
-}
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/redux/store";
 
 export default function RatingsAndReviews() {
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(
     new Set()
   );
 
-  const reviews: Review[] = [
-    {
-      id: "1",
-      reviewerName: "Reviewer Name",
-      reviewerAvatar: "/icons/testimonilas-1.png",
-      daysAgo: 2,
-      rating: 3,
-      reviewText:
-        "This project exceeded my expectations! The attention to detail and the quality of work was outstanding. I highly recommend this team for futu...",
-      fullReviewText:
-        "This project exceeded my expectations! The attention to detail and the quality of work was outstanding. I highly recommend this team for future projects. They were professional, timely, and delivered exactly what was promised.",
-      serviceName: "See Full Review",
-    },
-    {
-      id: "2",
-      reviewerName: "Alice Johnson",
-      reviewerAvatar: "/icons/testimonilas-2.png",
-      daysAgo: 3,
-      rating: 3,
-      reviewText:
-        "The service was prompt and professional. I was very pleased with the outcome and would definitely work with them again.",
-      fullReviewText:
-        "The service was prompt and professional. I was very pleased with the outcome and would definitely work with them again.",
-      serviceName: "Snow Lock",
-    },
-    {
-      id: "3",
-      reviewerName: "John Smith",
-      reviewerAvatar: "/icons/testimonilas-3.png",
-      daysAgo: 5,
-      rating: 3,
-      reviewText:
-        "A fantastic experience from start to finish. The team was communicative and delivered on time.",
-      fullReviewText:
-        "A fantastic experience from start to finish. The team was communicative and delivered on time.",
-      serviceName: "Read More",
-    },
-    {
-      id: "4",
-      reviewerName: "Reviewer Name",
-      reviewerAvatar: "/icons/testimonilas-1.png",
-      daysAgo: 2,
-      rating: 3,
-      reviewText:
-        "This project exceeded my expectations! The attention to detail and the quality of work was outstanding. I highly recommend this team for futu...",
-      fullReviewText:
-        "This project exceeded my expectations! The attention to detail and the quality of work was outstanding. I highly recommend this team for future projects.",
-      serviceName: "See Full Review",
-    },
-    {
-      id: "5",
-      reviewerName: "Alice Johnson",
-      reviewerAvatar: "/icons/testimonilas-2.png",
-      daysAgo: 3,
-      rating: 3,
-      reviewText:
-        "The service was prompt and professional. I was very pleased with the outcome and would definitely work with them again.",
-      fullReviewText:
-        "The service was prompt and professional. I was very pleased with the outcome and would definitely work with them again.",
-      serviceName: "Snow Lock",
-    },
-    {
-      id: "6",
-      reviewerName: "John Smith",
-      reviewerAvatar: "/icons/testimonilas-3.png",
-      daysAgo: 5,
-      rating: 3,
-      reviewText:
-        "A fantastic experience from start to finish. The team was communicative and delivered on time.",
-      fullReviewText:
-        "A fantastic experience from start to finish. The team was communicative and delivered on time.",
-      serviceName: "Read More",
-    },
-  ];
+  const { fullUserProfile } = useSelector((state: RootState) => state.auth);
+  const reviews = fullUserProfile?.recent_reviews || [];
+
+
+  console.log({ fullUserProfile })
 
   const toggleExpand = (reviewId: string) => {
     setExpandedReviews((prev) => {
@@ -114,13 +35,36 @@ export default function RatingsAndReviews() {
     });
   };
 
+  if (!reviews || reviews.length === 0) {
+    return (
+      <Box
+        sx={{
+          p: { xs: 2, sm: 3, md: 4 },
+          bgcolor: "white",
+          width: "100%",
+          borderRadius: "0.75rem",
+          border: "0.0625rem solid #EAF5F4",
+          minHeight: "200px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
+      >
+        <Typography sx={{ color: "text.secondary" }}>No reviews yet.</Typography>
+      </Box>
+    )
+  }
+
   return (
     <Box
       sx={{
-        p: { xs: 2, sm: 3, md: 4 },
+        px: { xs: 2, sm: 3, md: 4 },
+        pb: { xs: 2, sm: 3, md: 4 },
+        pt: 0,
         bgcolor: "white",
         width: "100%",
         minHeight: { xs: "auto", md: "calc(100vh - 18.75rem)" },
+        borderRadius: "0.75rem",
       }}
     >
       <Typography
@@ -144,151 +88,195 @@ export default function RatingsAndReviews() {
           gap: "16px",
         }}
       >
-        {reviews.map((review) => (
-          <Box
-            key={review.id}
-            sx={{
-              p: "16px",
-              borderRadius: "8px",
-              border: "1px solid #D5D5D5",
-              bgcolor: "#FFFFFF",
-              boxShadow: "none",
-              "&:hover": {
-                boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
-              },
-            }}
-          >
-            {/* Reviewer Header */}
+        {reviews.map((review, index) => {
+          // Determine if we should show "Read More"
+          const isLongReview = review.review.length > 100;
+          // Use index or user_id as key, ideally review should have a unique ID. 
+          // The API provides user_id, which might be same if same user reviews multiple times?
+          // Let's use user_id + index to be safe.
+          const uniqueKey = `${review.user_id}-${index}`;
+
+          return (
             <Box
+              key={uniqueKey}
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                mb: 2,
-              }}
-            >
-              <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-                <Avatar
-                  src={review.reviewerAvatar}
-                  alt={review.reviewerName}
-                  sx={{ width: 40, height: 40, borderRadius: "50%" }}
-                />
-                <Box>
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: "15px",
-                      lineHeight: "18px",
-                      letterSpacing: "0%",
-                      color: "#1B1B1B",
-                    }}
-                  >
-                    {review.reviewerName}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{ color: "#9CA3AF", fontSize: "0.75rem" }}
-                  >
-                    {review.daysAgo} days ago
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Rating Stars */}
-              <Box sx={{ display: "flex", gap: 0.25 }}>
-                {[...Array(review.rating)].map((_, index) => (
-                  <StarIcon
-                    key={index}
-                    sx={{ color: "#FCD34D", fontSize: "1.25rem" }}
-                  />
-                ))}
-              </Box>
-            </Box>
-
-            {/* Review Text */}
-            <Typography
-              sx={{
-                fontWeight: 400,
-                fontSize: "14px",
-                lineHeight: "20px",
-                letterSpacing: "0%",
-                color: "#1B1B1B",
-                mb: 1.5,
-              }}
-            >
-              {expandedReviews.has(review.id)
-                ? review.fullReviewText
-                : review.reviewText}
-            </Typography>
-
-            {/* Service Name / Read More Link */}
-            <Typography
-              onClick={() => toggleExpand(review.id)}
-              sx={{
-                fontWeight: 400,
-                fontSize: "11px",
-                lineHeight: "16px",
-                letterSpacing: "0%",
-                color: "#436A00",
-                cursor: "pointer",
+                p: "16px",
+                borderRadius: "8px",
+                border: "1px solid #D5D5D5",
+                bgcolor: "#FFFFFF",
+                boxShadow: "none",
                 "&:hover": {
-                  textDecoration: "underline",
+                  boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
                 },
               }}
             >
-              {review.serviceName}
-            </Typography>
+              {/* Reviewer Header */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  mb: 2,
+                }}
+              >
+                <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                  <Avatar
+                    src={review.profile_photo_url || "/icons/testimonilas-1.png"}
+                    alt={review.name}
+                    sx={{ width: 40, height: 40, borderRadius: "50%" }}
+                  />
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: "15px",
+                        lineHeight: "18px",
+                        letterSpacing: "0%",
+                        color: "#1B1B1B",
+                      }}
+                    >
+                      {review.name}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "#9CA3AF", fontSize: "0.75rem" }}
+                    >
+                      {review.days_ago} days ago
+                    </Typography>
+                  </Box>
+                </Box>
 
-            {/* Action Icons */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 2,
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                <IconButton
-                  size="small"
-                  sx={{
-                    color: "#9CA3AF",
-                    "&:hover": {
-                      color: "#2F6B8E",
-                    },
-                  }}
-                >
-                  <ChatBubbleOutlineIcon sx={{ fontSize: "1rem" }} />
-                </IconButton>
-                <Typography
-                  variant="caption"
-                  sx={{ color: "#9CA3AF", fontSize: "0.75rem" }}
-                >
-                  Reply
-                </Typography>
+                {/* Rating Stars */}
+                <Box sx={{ display: "flex", gap: 0.25 }}>
+                  {[...Array(5)].map((_, starIndex) => (
+                    <StarIcon
+                      key={starIndex}
+                      sx={{
+                        color:
+                          starIndex < Math.round(review.rating)
+                            ? "#FCD34D"
+                            : "#E0E0E0",
+                        fontSize: "1.25rem",
+                      }}
+                    />
+                  ))}
+                </Box>
               </Box>
 
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                <IconButton
-                  size="small"
+
+
+              {/* Review Text */}
+              <Typography
+                sx={{
+                  fontWeight: 400,
+                  fontSize: "14px",
+                  lineHeight: "20px",
+                  letterSpacing: "0%",
+                  color: "#1B1B1B",
+                  mb: 1.5,
+                }}
+              >
+                {expandedReviews.has(uniqueKey)
+                  ? review.review
+                  : isLongReview
+                    ? `${review.review.substring(0, 100)}...`
+                    : review.review}
+              </Typography>
+
+              {/* Read More Link */}
+              {isLongReview && (
+                <Typography
+                  onClick={() => toggleExpand(uniqueKey)}
                   sx={{
-                    color: "#9CA3AF",
+                    fontWeight: 400,
+                    fontSize: "11px",
+                    lineHeight: "16px",
+                    letterSpacing: "0%",
+                    color: "#436A00",
+                    cursor: "pointer",
                     "&:hover": {
-                      color: "#2F6B8E",
+                      textDecoration: "underline",
                     },
+                    display: "inline-block", // improved layout
+                    mt: 0.5
                   }}
                 >
-                  <ChatBubbleOutlineIcon sx={{ fontSize: "1rem" }} />
-                </IconButton>
-                <Typography
-                  variant="caption"
-                  sx={{ color: "#9CA3AF", fontSize: "0.75rem" }}
-                >
-                  Reply
+                  {expandedReviews.has(uniqueKey) ? "Show Less" : "See Full Review"}
                 </Typography>
+              )}
+
+
+
+              {/* Action Icons */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: 2,
+                  mt: 1,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                  <IconButton
+                    size="small"
+                    sx={{
+                      p: 0,
+                      "&:hover": {
+                        bgcolor: "transparent"
+                      },
+                    }}
+                  >
+                    <Image
+                      src="/icons/ThumbsDown.png"
+                      alt="Dislike"
+                      width={64}
+                      height={64}
+                      style={{
+                        height: "16px",
+                        width: "16px",
+                      }}
+                    />
+                  </IconButton>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "#707D85", fontSize: "0.85rem", fontWeight: 500 }}
+                  >
+                    ###
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                  <IconButton
+                    size="small"
+                    sx={{
+                      p: 0,
+                      "&:hover": {
+                        bgcolor: "transparent"
+                      },
+                    }}
+                  >
+                    <Image
+                      src="/icons/ThumbsUp.png"
+                      alt="Like"
+                      width={64}
+                      height={64}
+                      style={{
+                        height: "16px",
+                        width: "16px",
+                      }}
+                    />
+                  </IconButton>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "#707D85", fontSize: "0.85rem", fontWeight: 500 }}
+                  >
+                    ###
+                  </Typography>
+                </Box>
               </Box>
             </Box>
-          </Box>
-        ))}
+          )
+        })}
       </Box>
     </Box>
   );

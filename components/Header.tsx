@@ -30,7 +30,7 @@ import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
 import SignOutModal from "./SignOutModal";
 import { AppDispatch, RootState } from "@/lib/redux/store";
-import { setUserFromStorage, logout } from "@/lib/redux/authSlice";
+import { setUserFromStorage, logout, setFullUserProfile } from "@/lib/redux/authSlice";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import CreateServiceRequestModal from "./CreateServiceRequestModal";
@@ -108,6 +108,19 @@ interface UserDetails {
   created_at: string;
   updated_at: string;
   role?: string;
+  [key: string]: any;
+}
+
+interface ProviderInfo {
+  id: string;
+  services_provider_id: string;
+  bio?: string;
+  experience_speciality?: string;
+  achievements?: string;
+  years_of_experience?: number;
+  is_docs_verified: boolean;
+  docs_status: string;
+  [key: string]: any;
 }
 
 interface GetUserApiResponse {
@@ -115,6 +128,11 @@ interface GetUserApiResponse {
   message: string;
   data: {
     user: UserDetails;
+    provider_info?: ProviderInfo;
+    past_work_files?: string[];
+    recent_reviews?: any[];
+    customer_ratings?: any;
+    unique_clients_count?: number;
   };
 }
 
@@ -206,6 +224,7 @@ export default function Header({
       if (!isAuthenticated) {
         setUserDetails(null);
         setIsAccountUnderVerification(false);
+        dispatch(setFullUserProfile(null));
         return;
       }
 
@@ -220,6 +239,17 @@ export default function Header({
           if (apiData.data?.user) {
             const user = apiData.data.user;
             setUserDetails(user);
+
+            // Dispatch to Redux store
+            dispatch(setFullUserProfile({
+              user: user as any, // detailed user profile
+              provider_info: apiData.data.provider_info,
+              past_work_files: apiData.data.past_work_files,
+              recent_reviews: apiData.data.recent_reviews,
+              customer_ratings: apiData.data.customer_ratings,
+              unique_clients_count: apiData.data.unique_clients_count
+            }));
+
             // Set verification status based on is_docs_verified
             // If is_docs_verified is false, account is under verification (show message)
             // If is_docs_verified is true, account is verified (hide message)
@@ -235,7 +265,7 @@ export default function Header({
     };
 
     fetchUserDetails();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, dispatch]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -658,107 +688,107 @@ export default function Header({
               {(searchLoading ||
                 searchResults.length > 0 ||
                 searchTerm.trim()) && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "110%",
-                    left: 0,
-                    width: "100%",
-                    bgcolor: "white",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: 2,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                    zIndex: 1300,
-                    maxHeight: 320,
-                    overflowY: "auto",
-                    p: 1,
-                    "&::-webkit-scrollbar": {
-                      display: "none",
-                    },
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                  }}
-                >
-                  {searchLoading && (
-                    <Typography
-                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                    >
-                      Searching...
-                    </Typography>
-                  )}
-                  {!searchLoading &&
-                    searchResults.length === 0 &&
-                    searchTerm.trim() && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "110%",
+                      left: 0,
+                      width: "100%",
+                      bgcolor: "white",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 2,
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                      zIndex: 1300,
+                      maxHeight: 320,
+                      overflowY: "auto",
+                      p: 1,
+                      "&::-webkit-scrollbar": {
+                        display: "none",
+                      },
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
+                    }}
+                  >
+                    {searchLoading && (
                       <Typography
                         sx={{ color: "text.secondary", px: 1, py: 0.5 }}
                       >
-                        No results found
+                        Searching...
                       </Typography>
                     )}
-                  {!searchLoading &&
-                    searchResults.map((item) => (
-                      <Box
-                        key={item.id}
-                        // onClick={() => {
-                        //   setSelectedCategoryId(item.category_id);
-                        //   setSelectedSubcategoryId(item.sub_category_id);
-                        //   setIsModalOpen(true);
-                        // }}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          px: 1,
-                          py: 0.75,
-                          borderRadius: 1,
-                          cursor: "pointer",
-                          "&:hover": { bgcolor: "grey.100" },
-                        }}
-                      >
+                    {!searchLoading &&
+                      searchResults.length === 0 &&
+                      searchTerm.trim() && (
+                        <Typography
+                          sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                        >
+                          No results found
+                        </Typography>
+                      )}
+                    {!searchLoading &&
+                      searchResults.map((item) => (
                         <Box
+                          key={item.id}
+                          // onClick={() => {
+                          //   setSelectedCategoryId(item.category_id);
+                          //   setSelectedSubcategoryId(item.sub_category_id);
+                          //   setIsModalOpen(true);
+                          // }}
                           sx={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 1,
-                            overflow: "hidden",
-                            flexShrink: 0,
-                            bgcolor: "grey.100",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
+                            gap: 1,
+                            px: 1,
+                            py: 0.75,
+                            borderRadius: 1,
+                            cursor: "pointer",
+                            "&:hover": { bgcolor: "grey.100" },
                           }}
                         >
-                          <Image
-                            src={
-                              item.category_logo_url ||
-                              "/icons/home_assistance_icon_home.svg"
-                            }
-                            alt={item.category_name || "Service"}
-                            width={32}
-                            height={32}
-                            style={{ objectFit: "cover" }}
-                          />
-                        </Box>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography
+                          <Box
                             sx={{
-                              fontWeight: 600,
-                              color: "#214C65",
-                              lineHeight: 1.2,
+                              width: 36,
+                              height: 36,
+                              borderRadius: 1,
+                              overflow: "hidden",
+                              flexShrink: 0,
+                              bgcolor: "grey.100",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                           >
-                            {item.sub_category_name}
-                          </Typography>
-                          <Typography
-                            sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                          >
-                            {item.category_name}
-                          </Typography>
+                            <Image
+                              src={
+                                item.category_logo_url ||
+                                "/icons/home_assistance_icon_home.svg"
+                              }
+                              alt={item.category_name || "Service"}
+                              width={32}
+                              height={32}
+                              style={{ objectFit: "cover" }}
+                            />
+                          </Box>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                color: "#214C65",
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {item.sub_category_name}
+                            </Typography>
+                            <Typography
+                              sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
+                            >
+                              {item.category_name}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    ))}
-                </Box>
-              )}
+                      ))}
+                  </Box>
+                )}
 
               {!isProfessionalDashboard && (
                 <>
@@ -2036,100 +2066,100 @@ export default function Header({
             {(searchLoading ||
               searchResults.length > 0 ||
               searchTerm.trim()) && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "110%",
-                  left: 0,
-                  width: "100%",
-                  bgcolor: "white",
-                  border: "1px solid #e0e0e0",
-                  borderRadius: 2,
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                  zIndex: 1300,
-                  maxHeight: 320,
-                  overflowY: "auto",
-                  p: 1,
-                  "&::-webkit-scrollbar": {
-                    display: "none",
-                  },
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                }}
-              >
-                {searchLoading && (
-                  <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
-                    Searching...
-                  </Typography>
-                )}
-                {!searchLoading &&
-                  searchResults.length === 0 &&
-                  searchTerm.trim() && (
-                    <Typography
-                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                    >
-                      No results found
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "110%",
+                    left: 0,
+                    width: "100%",
+                    bgcolor: "white",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 2,
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                    zIndex: 1300,
+                    maxHeight: 320,
+                    overflowY: "auto",
+                    p: 1,
+                    "&::-webkit-scrollbar": {
+                      display: "none",
+                    },
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                  }}
+                >
+                  {searchLoading && (
+                    <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
+                      Searching...
                     </Typography>
                   )}
-                {!searchLoading &&
-                  searchResults.map((item) => (
-                    <Box
-                      key={item.id}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        px: 1,
-                        py: 0.75,
-                        borderRadius: 1,
-                        cursor: "pointer",
-                        "&:hover": { bgcolor: "grey.100" },
-                      }}
-                    >
+                  {!searchLoading &&
+                    searchResults.length === 0 &&
+                    searchTerm.trim() && (
+                      <Typography
+                        sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                      >
+                        No results found
+                      </Typography>
+                    )}
+                  {!searchLoading &&
+                    searchResults.map((item) => (
                       <Box
+                        key={item.id}
                         sx={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 1,
-                          overflow: "hidden",
-                          flexShrink: 0,
-                          bgcolor: "grey.100",
                           display: "flex",
                           alignItems: "center",
-                          justifyContent: "center",
+                          gap: 1,
+                          px: 1,
+                          py: 0.75,
+                          borderRadius: 1,
+                          cursor: "pointer",
+                          "&:hover": { bgcolor: "grey.100" },
                         }}
                       >
-                        <Image
-                          src={
-                            item.category_logo_url ||
-                            "/icons/home_assistance_icon_home.svg"
-                          }
-                          alt={item.category_name || "Service"}
-                          width={32}
-                          height={32}
-                          style={{ objectFit: "cover" }}
-                        />
-                      </Box>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography
+                        <Box
                           sx={{
-                            fontWeight: 600,
-                            color: "#214C65",
-                            lineHeight: 1.2,
+                            width: 36,
+                            height: 36,
+                            borderRadius: 1,
+                            overflow: "hidden",
+                            flexShrink: 0,
+                            bgcolor: "grey.100",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
-                          {item.sub_category_name}
-                        </Typography>
-                        <Typography
-                          sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                        >
-                          {item.category_name}
-                        </Typography>
+                          <Image
+                            src={
+                              item.category_logo_url ||
+                              "/icons/home_assistance_icon_home.svg"
+                            }
+                            alt={item.category_name || "Service"}
+                            width={32}
+                            height={32}
+                            style={{ objectFit: "cover" }}
+                          />
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              color: "#214C65",
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {item.sub_category_name}
+                          </Typography>
+                          <Typography
+                            sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
+                          >
+                            {item.category_name}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  ))}
-              </Box>
-            )}
+                    ))}
+                </Box>
+              )}
           </Box>
         </Box>
       </AppBar>

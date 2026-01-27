@@ -13,9 +13,8 @@ import {
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import ThumbUpOffAltIcon from "@mui/icons-material/ThumbUpOffAlt";
-import ThumbDownOffAltIcon from "@mui/icons-material/ThumbDownOffAlt";
 import { apiGet } from "@/lib/api";
+import Image from "next/image";
 import { API_ENDPOINTS } from "@/constants/api";
 
 interface Review {
@@ -145,13 +144,13 @@ const renderRating = (rating: number) => {
   const rounded = Math.round(rating);
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
       {Array.from({ length: 5 }).map((_, index) => (
         <StarIcon
           key={index}
           sx={{
-            fontSize: "1rem",
-            color: index < rounded ? "#FBBF24" : "grey.300",
+            fontSize: "1.25rem",
+            color: index < rounded ? "#FCD34D" : "#E0E0E0",
           }}
         />
       ))}
@@ -276,106 +275,182 @@ export default function RatingsReviews() {
             gap: "0.5rem",
           }}
         >
-          {reviews.map((review) => (
-            <Box
-              key={review.id}
-              sx={{
-                p: 3,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-                border: "0.0625rem solid #D5D5D5",
-                borderRadius: "0.5rem",
-              }}
-            >
-              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <Avatar
-                  src={review.avatar}
-                  alt={review.name}
-                  sx={{ width: "2.5rem", height: "2.5rem" }}
-                />
-                <Box sx={{ flex: 1 }}>
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: "0.9375rem",
-                      lineHeight: "1.125rem",
-                      letterSpacing: "0%",
-                      color: "#131313",
-                      mb: 0.5,
-                    }}
-                  >
-                    {review.name}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontStyle: "regular",
-                      fontSize: "0.6875rem",
-                      lineHeight: "1rem",
-                      letterSpacing: "0%",
-                      color: "#707D85",
-                    }}
-                  >
-                    {review.timeAgo}
-                  </Typography>
-                </Box>
-                {renderRating(review.rating)}
-              </Box>
+          {reviews.map((review) => {
+            const isLongReview = review.summary.length > 100;
+            const expanded = expandedReviews[review.id];
 
-              <Typography
+            return (
+              <Box
+                key={review.id}
                 sx={{
-                  fontSize: "0.875rem",
-                  lineHeight: "1.25rem",
-                  color: "#131313",
-                  display: "-webkit-box",
-                  WebkitLineClamp: expandedReviews[review.id] ? "unset" : 3,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  wordBreak: "break-word",
+                  p: "16px",
+                  borderRadius: "8px",
+                  border: "1px solid #D5D5D5",
+                  bgcolor: "#FFFFFF",
+                  boxShadow: "none",
+                  "&:hover": {
+                    boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)",
+                  },
                 }}
               >
-                {review.summary
-                  ? review.summary
-                  : "No review description provided."}
-              </Typography>
-
-              {review.summary.length > 120 && (
-                <Typography
-                  onClick={() => toggleExpand(review.id)}
+                {/* Reviewer Header */}
+                <Box
                   sx={{
-                    fontSize: "0.6875rem",
-                    lineHeight: "1rem",
-                    color: "#436A00",
-                    cursor: "pointer",
-                    width: "fit-content",
-                    fontWeight: 500,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    mb: 2,
                   }}
                 >
-                  {expandedReviews[review.id] ? "Show less" : "See full review"}
-                </Typography>
-              )}
+                  <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                    <Avatar
+                      src={review.avatar}
+                      alt={review.name}
+                      sx={{ width: 40, height: 40, borderRadius: "50%" }}
+                    />
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: "15px",
+                          lineHeight: "18px",
+                          letterSpacing: "0%",
+                          color: "#1B1B1B",
+                        }}
+                      >
+                        {review.name}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#9CA3AF", fontSize: "0.75rem" }}
+                      >
+                        {review.timeAgo}
+                      </Typography>
+                    </Box>
+                  </Box>
 
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  alignItems: "center",
-                }}
-              >
-                <Box sx={{ display: "flex" }}>
-                  <IconButton size="small" sx={{ color: "text.secondary" }}>
-                    <ThumbDownOffAltIcon fontSize="small" />
-                    ###
-                  </IconButton>
-                  <IconButton size="small" sx={{ color: "text.secondary" }}>
-                    <ThumbUpOffAltIcon fontSize="small" />
-                    ###
-                  </IconButton>
+                  {/* Rating Stars */}
+                  {renderRating(review.rating)}
+                </Box>
+
+                {/* Review Text */}
+                <Typography
+                  sx={{
+                    fontWeight: 400,
+                    fontSize: "14px",
+                    lineHeight: "20px",
+                    letterSpacing: "0%",
+                    color: "#1B1B1B",
+                    mb: 1.5,
+                  }}
+                >
+                  {expanded
+                    ? review.summary
+                    : isLongReview
+                      ? `${review.summary.substring(0, 100)}...`
+                      : review.summary}
+                </Typography>
+
+                {/* Read More Link */}
+                {isLongReview && (
+                  <Typography
+                    onClick={() => toggleExpand(review.id)}
+                    sx={{
+                      fontWeight: 400,
+                      fontSize: "11px",
+                      lineHeight: "16px",
+                      letterSpacing: "0%",
+                      color: "#436A00",
+                      cursor: "pointer",
+                      "&:hover": {
+                        textDecoration: "underline",
+                      },
+                      display: "inline-block",
+                      mt: 0.5,
+                    }}
+                  >
+                    {expanded ? "Show Less" : "See Full Review"}
+                  </Typography>
+                )}
+
+                {/* Action Icons */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: 2,
+                    mt: 1,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        p: 0,
+                        "&:hover": {
+                          bgcolor: "transparent",
+                        },
+                      }}
+                    >
+                      <Image
+                        src="/icons/ThumbsDown.png"
+                        alt="Dislike"
+                        width={64}
+                        height={64}
+                        style={{
+                          height: "16px",
+                          width: "16px",
+                        }}
+                      />
+                    </IconButton>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#707D85",
+                        fontSize: "0.85rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      ###
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        p: 0,
+                        "&:hover": {
+                          bgcolor: "transparent",
+                        },
+                      }}
+                    >
+                      <Image
+                        src="/icons/ThumbsUp.png"
+                        alt="Like"
+                        width={64}
+                        height={64}
+                        style={{
+                          height: "16px",
+                          width: "16px",
+                        }}
+                      />
+                    </IconButton>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#707D85",
+                        fontSize: "0.85rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      ###
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
-            </Box>
-          ))}
+            );
+          })}
         </Box>
       )}
     </Box>

@@ -17,6 +17,12 @@ export default function AuthLayout({
         sx={{
           minHeight: '100vh',
           bgcolor: 'background.default',
+          overflowX: 'hidden',
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          maxWidth: '100%',
+          width: '100%',
+          wordBreak: 'break-all',
         }}
       >
         {children}

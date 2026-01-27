@@ -50,6 +50,71 @@ interface User {
   profile_photo?: string;
 }
 
+interface ProviderInfo {
+  id: string;
+  services_provider_id: string;
+  bio?: string;
+  experience_speciality?: string;
+  achievements?: string;
+  years_of_experience?: number;
+  is_docs_verified: boolean;
+  docs_status: string;
+  [key: string]: any;
+}
+
+export interface UserProfileData {
+  id: string;
+  email: string;
+  phone_number: string;
+  password: string;
+  address: string;
+  longitude: number | null;
+  created_at: string;
+  lang: string;
+  first_name: string;
+  phone_country_code: string;
+  last_name: string;
+  role: string;
+  service_provider_type: string | null;
+  profile_photo_id: string | null;
+  profile_photo_url: string | null;
+  latitude: number | null;
+  is_deleted: boolean;
+  updated_at: string;
+  [key: string]: any;
+}
+
+export interface Review {
+  user_id: string;
+  name: string;
+  profile_photo_url: string;
+  days_ago: number;
+  rating: number;
+  review: string;
+}
+
+export interface CustomerRatings {
+  total_ratings: number;
+  overall_average: number;
+  average_rating: number;
+  criteria_averages: {
+    work_quality: number;
+    reliability: number;
+    punctuality: number;
+    solution: number;
+    payout: number;
+  };
+}
+
+export interface FullUserProfile {
+  user: UserProfileData;
+  provider_info?: ProviderInfo;
+  past_work_files?: string[];
+  recent_reviews?: Review[];
+  customer_ratings?: CustomerRatings;
+  unique_clients_count?: number;
+}
+
 interface AuthState {
   user: User | null;
   loading: boolean;
@@ -60,6 +125,8 @@ interface AuthState {
   accessTokenExpire: string | null;
   refreshTokenExpire: string | null;
   authInitialized: boolean;
+  firebaseUser: any;
+  fullUserProfile: FullUserProfile | null;
 }
 
 const initialState: AuthState = {
@@ -73,19 +140,8 @@ const initialState: AuthState = {
   refreshTokenExpire: null,
   authInitialized: false,
   firebaseUser: null,
+  fullUserProfile: null,
 };
-
-interface AuthState {
-  // user: any;
-  firebaseUser: any; // 👈 add this
-  authInitialized: boolean;
-}
-
-// const initialState: AuthState = {
-//   user: null,
-//   firebaseUser: null,
-//   authInitialized: false,
-// };
 export const loginUser = createAsyncThunk<
   {
     user: User;
@@ -240,6 +296,9 @@ const authSlice = createSlice({
       }
       state.error = null;
     },
+    setFullUserProfile(state, action: PayloadAction<FullUserProfile | null>) {
+      state.fullUserProfile = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -296,5 +355,6 @@ export const {
   setTokens,
   setFirebaseUser,
   setAuthInitialized,
+  setFullUserProfile,
 } = authSlice.actions;
 export default authSlice.reducer;
