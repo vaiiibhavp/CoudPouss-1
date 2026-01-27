@@ -7,5 +7,5 @@ interface PageProps {
 export default function ChatShell({ params }: PageProps) {
   console.log("params", params);
 
-  return <ChatPage userId={params.id} />;
+  return <ChatPage  />;
 }
