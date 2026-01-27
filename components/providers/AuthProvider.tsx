@@ -31,30 +31,6 @@ function AuthProvider({ children }: Props) {
     // dispatch(refreshAccessToken());
     dispatch(setAuthInitialized());
 
-    // const unsubscribeFirebase = listenFirebaseAuth(async (firebaseUser) => {
-    //   console.log('firebaseUser',firebaseUser);
-
-    //   if (firebaseUser) {
-    //     await createUserDoc(firebaseUser);
-
-    //     dispatch(
-    //       setFirebaseUser({
-    //         uid: firebaseUser.uid,
-    //         email: firebaseUser.email,
-    //         displayName: firebaseUser.displayName,
-    //         photoURL: firebaseUser.photoURL,
-    //       })
-    //     );
-    //   } else {
-    //     dispatch(setFirebaseUser(null));
-    //   }
-
-    //   dispatch(setAuthInitialized());
-    // });
-
-    // return () => {
-    //   unsubscribeFirebase();
-    // };
   }, [dispatch]);
 
   if (!authInitialized) {

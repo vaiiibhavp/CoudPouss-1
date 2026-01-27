@@ -36,6 +36,8 @@ import { API_ENDPOINTS } from "@/constants/api";
 import CreateServiceRequestModal from "./CreateServiceRequestModal";
 import { setActiveItem } from "@/lib/redux/profileSlice";
 import { toast } from "sonner";
+import ServiceDetailModal from "./my-request/ServiceDetailModal";
+import { formatDateString } from "@/utils/utils";
 
 // Helper function to get cookie value
 const getCookie = (name: string): string | undefined => {
@@ -70,6 +72,7 @@ interface SearchService {
   sub_category_name?: string;
   sub_category_id: string;
   category_id: string;
+  chosen_datetime: string;
 }
 
 interface HomeApiResponse {
@@ -605,159 +608,207 @@ export default function Header({
                 alignItems: "center",
               }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  width: "100%",
-                  minWidth: "381px",
-                  bgcolor: "grey.50",
-                  borderRadius: 2,
-                  border: "0.0625rem solid",
-                  borderColor: "grey.300",
-                  overflow: "hidden",
-                  paddingRight: "1rem",
-                }}
-              >
-                <InputBase
-                  placeholder="What are you looking for?"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={{
-                    flex: 1,
-                    px: 2,
-                    py: 1,
-                    "& .MuiInputBase-input": {
-                      color: "text.primary",
-                      fontSize: "0.95rem",
-                    },
-                    "& .MuiInputBase-input::placeholder": {
-                      color: "text.secondary",
-                      opacity: 1,
-                    },
-                  }}
-                />
-                <IconButton
-                  sx={{
-                    bgcolor: "primary.normal",
-                    borderRadius: "50%",
-                    color: "white",
-                    "&:hover": {
-                      bgcolor: "primary.dark",
-                    },
-                  }}
-                >
-                  <Image
-                    src={"/icons/searhIcon.png"}
-                    alt="Search Icon"
-                    width={16}
-                    height={16}
-                  />
-                </IconButton>
-              </Box>
-              {(searchLoading ||
-                searchResults.length > 0 ||
-                searchTerm.trim()) && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "110%",
-                    left: 0,
-                    width: "100%",
-                    bgcolor: "white",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: 2,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                    zIndex: 1300,
-                    maxHeight: 320,
-                    overflowY: "auto",
-                    p: 1,
-                    "&::-webkit-scrollbar": {
-                      display: "none",
-                    },
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                  }}
-                >
-                  {searchLoading && (
-                    <Typography
-                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+              {isAuthenticated && (
+                <>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      width: "100%",
+                      minWidth: "381px",
+                      bgcolor: "grey.50",
+                      borderRadius: 2,
+                      border: "0.0625rem solid",
+                      borderColor: "grey.300",
+                      overflow: "hidden",
+                      paddingRight: "1rem",
+                    }}
+                  >
+                    <InputBase
+                      placeholder="What are you looking for?"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      sx={{
+                        flex: 1,
+                        px: 2,
+                        py: 1,
+                        "& .MuiInputBase-input": {
+                          color: "text.primary",
+                          fontSize: "0.95rem",
+                        },
+                        "& .MuiInputBase-input::placeholder": {
+                          color: "text.secondary",
+                          opacity: 1,
+                        },
+                      }}
+                    />
+                    <IconButton
+                      sx={{
+                        bgcolor: "primary.normal",
+                        borderRadius: "50%",
+                        color: "white",
+                        "&:hover": {
+                          bgcolor: "primary.dark",
+                        },
+                      }}
                     >
-                      Searching...
-                    </Typography>
-                  )}
-                  {!searchLoading &&
-                    searchResults.length === 0 &&
-                    searchTerm.trim() && (
-                      <Typography
-                        sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                      >
-                        No results found
-                      </Typography>
-                    )}
-                  {!searchLoading &&
-                    searchResults.map((item) => (
-                      <Box
-                        key={item.id}
-                        // onClick={() => {
-                        //   setSelectedCategoryId(item.category_id);
-                        //   setSelectedSubcategoryId(item.sub_category_id);
-                        //   setIsModalOpen(true);
-                        // }}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          px: 1,
-                          py: 0.75,
-                          borderRadius: 1,
-                          cursor: "pointer",
-                          "&:hover": { bgcolor: "grey.100" },
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 1,
-                            overflow: "hidden",
-                            flexShrink: 0,
-                            bgcolor: "grey.100",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
+                      <Image
+                        src={"/icons/searhIcon.png"}
+                        alt="Search Icon"
+                        width={16}
+                        height={16}
+                      />
+                    </IconButton>
+                  </Box>
+                  {(searchLoading ||
+                    searchResults.length > 0 ||
+                    searchTerm.trim()) && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: "110%",
+                        left: 0,
+                        width: "100%",
+                        bgcolor: "white",
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 2,
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                        zIndex: 1300,
+                        maxHeight: 320,
+                        overflowY: "auto",
+                        p: 1,
+                        "&::-webkit-scrollbar": {
+                          display: "none",
+                        },
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                      }}
+                    >
+                      {searchLoading && (
+                        <Typography
+                          sx={{ color: "text.secondary", px: 1, py: 0.5 }}
                         >
-                          <Image
-                            src={
-                              item.category_logo_url ||
-                              "/icons/home_assistance_icon_home.svg"
-                            }
-                            alt={item.category_name || "Service"}
-                            width={32}
-                            height={32}
-                            style={{ objectFit: "cover" }}
-                          />
-                        </Box>
-                        <Box sx={{ minWidth: 0 }}>
+                          Searching...
+                        </Typography>
+                      )}
+                      {!searchLoading &&
+                        searchResults.length === 0 &&
+                        searchTerm.trim() && (
                           <Typography
+                            sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                          >
+                            No results found
+                          </Typography>
+                        )}
+                      {!searchLoading &&
+                        searchResults.map((item) => (
+                          <Box
+                            key={item.id}
+                            onClick={() => {
+                              router.push("/my-requests");
+                              setSearchResults([]);
+                              setSearchTerm("");
+                            }}
                             sx={{
-                              fontWeight: 600,
-                              color: "#214C65",
-                              lineHeight: 1.2,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 2, // Increased gap for a cleaner look
+                              px: 2,
+                              py: 1.5,
+                              borderRadius: "12px",
+                              cursor: "pointer",
+                              transition: "0.2s",
+                              border: "1px solid transparent",
+                              "&:hover": {
+                                bgcolor: "#F8FAFC", // Light professional tint
+                                borderColor: "#E2E8F0",
+                              },
                             }}
                           >
-                            {item.sub_category_name}
-                          </Typography>
-                          <Typography
-                            sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                          >
-                            {item.category_name}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    ))}
-                </Box>
+                            {/* Image Container */}
+                            <Box
+                              sx={{
+                                width: 60, // Sized down slightly from 70 for better proportions
+                                height: 60,
+                                borderRadius: "10px",
+                                overflow: "hidden",
+                                flexShrink: 0,
+                                bgcolor: "#F1F5F9",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Image
+                                src={
+                                  item.category_logo_url ||
+                                  "/icons/home_assistance_icon_home.svg"
+                                }
+                                alt={item.category_name || "Service"}
+                                width={35}
+                                height={35}
+                                style={{ objectFit: "contain" }}
+                              />
+                            </Box>
+
+                            {/* Content Container */}
+                            <Box sx={{ minWidth: 0, flex: 1 }}>
+                              {/* Title & Category */}
+                              <Typography
+                                sx={{
+                                  fontWeight: 700,
+                                  color: "#1E293B",
+                                  fontSize: "1rem",
+                                  lineHeight: 1.2,
+                                  mb: 0.3,
+                                }}
+                              >
+                                {item.sub_category_name}
+                              </Typography>
+
+                              <Typography
+                                sx={{
+                                  color: "#64748B",
+                                  fontSize: "0.85rem",
+                                  fontWeight: 500,
+                                  mb: 0.8, // Spacing before the date
+                                }}
+                              >
+                                {item.category_name}
+                              </Typography>
+
+                              {/* Date & Time Row */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    color: "#0F172A",
+                                    fontSize: "0.75rem",
+                                    fontWeight: 600,
+                                    bgcolor: "#E2E8F0", // subtle "tag" look
+                                    px: 1,
+                                    py: 0.3,
+                                    borderRadius: "4px",
+                                    display: "inline-block",
+                                  }}
+                                >
+                                  {formatDateString(
+                                    item.chosen_datetime,
+                                    "DD MMM YYYY • h:mm A",
+                                  )}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </Box>
+                        ))}
+                    </Box>
+                  )}
+                </>
               )}
 
               {!isProfessionalDashboard && (
@@ -1598,8 +1649,9 @@ export default function Header({
                           style={{ objectFit: "cover" }}
                         />
                       ) : userDetails ? (
-                        `${userDetails.first_name?.[0] || ""}${userDetails.last_name?.[0] || ""
-                          }`.toUpperCase() || user?.initial
+                        `${userDetails.first_name?.[0] || ""}${
+                          userDetails.last_name?.[0] || ""
+                        }`.toUpperCase() || user?.initial
                       ) : (
                         user?.initial
                       )}
@@ -1649,7 +1701,8 @@ export default function Header({
                         }}
                       >
                         {userDetails
-                          ? `${userDetails.first_name || ""} ${userDetails.last_name || ""
+                          ? `${userDetails.first_name || ""} ${
+                              userDetails.last_name || ""
                             }`.trim() || "User"
                           : "User"}
                       </Typography>
@@ -1677,11 +1730,9 @@ export default function Header({
                         View my profile
                       </Button>
 
-                      {
-
-
-                        isAccountUnderVerification &&
-                        (userDetails?.role === "service_provider" || userRole === "service_provider") && (
+                      {isAccountUnderVerification &&
+                        (userDetails?.role === "service_provider" ||
+                          userRole === "service_provider") && (
                           <Box
                             sx={{
                               display: "flex",
@@ -1731,8 +1782,7 @@ export default function Header({
                               Check Status
                             </Button>
                           </Box>
-                        )
-                      }
+                        )}
                       <Divider color={"#E7E7E7"} />
 
                       {/* Menu Items */}
@@ -1746,7 +1796,7 @@ export default function Header({
                         }}
                       >
                         {userDetails?.role === "service_provider" ||
-                          userRole === "service_provider" ? (
+                        userRole === "service_provider" ? (
                           <>
                             <Button
                               component={Link}
@@ -1983,161 +2033,216 @@ export default function Header({
               position: "relative",
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                width: "100%",
-                minWidth: { xs: "100%", sm: "381px" },
-                bgcolor: "grey.50",
-                borderRadius: 2,
-                border: "0.0625rem solid",
-                borderColor: "grey.300",
-                overflow: "hidden",
-                paddingRight: "1rem",
-              }}
-            >
-              <InputBase
-                placeholder="What are you looking for?"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{
-                  flex: 1,
-                  px: 2,
-                  py: 1,
-                  "& .MuiInputBase-input": {
-                    color: "text.primary",
-                    fontSize: "0.95rem",
-                  },
-                  "& .MuiInputBase-input::placeholder": {
-                    color: "text.secondary",
-                    opacity: 1,
-                  },
-                }}
-              />
-              <IconButton
-                sx={{
-                  bgcolor: "primary.normal",
-                  borderRadius: "50%",
-                  color: "white",
-                  "&:hover": {
-                    bgcolor: "primary.dark",
-                  },
-                }}
-              >
-                <Image
-                  src={"/icons/searhIcon.png"}
-                  alt="Search Icon"
-                  width={16}
-                  height={16}
-                />
-              </IconButton>
-            </Box>
-            {(searchLoading ||
-              searchResults.length > 0 ||
-              searchTerm.trim()) && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "110%",
-                  left: 0,
-                  width: "100%",
-                  bgcolor: "white",
-                  border: "1px solid #e0e0e0",
-                  borderRadius: 2,
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                  zIndex: 1300,
-                  maxHeight: 320,
-                  overflowY: "auto",
-                  p: 1,
-                  "&::-webkit-scrollbar": {
-                    display: "none",
-                  },
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                }}
-              >
-                {searchLoading && (
-                  <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
-                    Searching...
-                  </Typography>
-                )}
-                {!searchLoading &&
-                  searchResults.length === 0 &&
-                  searchTerm.trim() && (
-                    <Typography
-                      sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                    >
-                      No results found
-                    </Typography>
-                  )}
-                {!searchLoading &&
-                  searchResults.map((item) => (
-                    <Box
-                      key={item.id}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        px: 1,
-                        py: 0.75,
-                        borderRadius: 1,
-                        cursor: "pointer",
-                        "&:hover": { bgcolor: "grey.100" },
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 1,
-                          overflow: "hidden",
-                          flexShrink: 0,
-                          bgcolor: "grey.100",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
+            {isAuthenticated && (
+              <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    minWidth: { xs: "100%", sm: "381px" },
+                    bgcolor: "grey.50",
+                    borderRadius: 2,
+                    border: "0.0625rem solid",
+                    borderColor: "grey.300",
+                    overflow: "hidden",
+                    paddingRight: "1rem",
+                  }}
+                >
+                  <InputBase
+                    placeholder="What are you looking for?"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{
+                      flex: 1,
+                      px: 2,
+                      py: 1,
+                      "& .MuiInputBase-input": {
+                        color: "text.primary",
+                        fontSize: "0.95rem",
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "text.secondary",
+                        opacity: 1,
+                      },
+                    }}
+                  />
+                  <IconButton
+                    sx={{
+                      bgcolor: "primary.normal",
+                      borderRadius: "50%",
+                      color: "white",
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <Image
+                      src={"/icons/searhIcon.png"}
+                      alt="Search Icon"
+                      width={16}
+                      height={16}
+                    />
+                  </IconButton>
+                </Box>
+                {(searchLoading ||
+                  searchResults.length > 0 ||
+                  searchTerm.trim()) && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "110%",
+                      left: 0,
+                      width: "100%",
+                      bgcolor: "white",
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 2,
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                      zIndex: 1300,
+                      maxHeight: 320,
+                      overflowY: "auto",
+                      p: 1,
+                      "&::-webkit-scrollbar": {
+                        display: "none",
+                      },
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
+                    }}
+                  >
+                    {searchLoading && (
+                      <Typography
+                        sx={{ color: "text.secondary", px: 1, py: 0.5 }}
                       >
-                        <Image
-                          src={
-                            item.category_logo_url ||
-                            "/icons/home_assistance_icon_home.svg"
-                          }
-                          alt={item.category_name || "Service"}
-                          width={32}
-                          height={32}
-                          style={{ objectFit: "cover" }}
-                        />
-                      </Box>
-                      <Box sx={{ minWidth: 0 }}>
+                        Searching...
+                      </Typography>
+                    )}
+                    {!searchLoading &&
+                      searchResults.length === 0 &&
+                      searchTerm.trim() && (
                         <Typography
+                          sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                        >
+                          No results found
+                        </Typography>
+                      )}
+                    {!searchLoading &&
+                      searchResults.map((item) => (
+                        <Box
+                          key={item.id}
+                          onClick={() => {
+                            router.push("/my-requests");
+                            setSearchResults([]);
+                            setSearchTerm("");
+                          }}
                           sx={{
-                            fontWeight: 600,
-                            color: "#214C65",
-                            lineHeight: 1.2,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2, // Increased gap for a cleaner look
+                            px: 2,
+                            py: 1.5,
+                            borderRadius: "12px",
+                            cursor: "pointer",
+                            transition: "0.2s",
+                            border: "1px solid transparent",
+                            "&:hover": {
+                              bgcolor: "#F8FAFC", // Light professional tint
+                              borderColor: "#E2E8F0",
+                            },
                           }}
                         >
-                          {item.sub_category_name}
-                        </Typography>
-                        <Typography
-                          sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                        >
-                          {item.category_name}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-              </Box>
+                          {/* Image Container */}
+                          <Box
+                            sx={{
+                              width: 60, // Sized down slightly from 70 for better proportions
+                              height: 60,
+                              borderRadius: "10px",
+                              overflow: "hidden",
+                              flexShrink: 0,
+                              bgcolor: "#F1F5F9",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Image
+                              src={
+                                item.category_logo_url ||
+                                "/icons/home_assistance_icon_home.svg"
+                              }
+                              alt={item.category_name || "Service"}
+                              width={35}
+                              height={35}
+                              style={{ objectFit: "contain" }}
+                            />
+                          </Box>
+
+                          {/* Content Container */}
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            {/* Title & Category */}
+                            <Typography
+                              sx={{
+                                fontWeight: 700,
+                                color: "#1E293B",
+                                fontSize: "1rem",
+                                lineHeight: 1.2,
+                                mb: 0.3,
+                              }}
+                            >
+                              {item.sub_category_name}
+                            </Typography>
+
+                            <Typography
+                              sx={{
+                                color: "#64748B",
+                                fontSize: "0.85rem",
+                                fontWeight: 500,
+                                mb: 0.8, // Spacing before the date
+                              }}
+                            >
+                              {item.category_name}
+                            </Typography>
+
+                            {/* Date & Time Row */}
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.5,
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  color: "#0F172A",
+                                  fontSize: "0.75rem",
+                                  fontWeight: 600,
+                                  bgcolor: "#E2E8F0", // subtle "tag" look
+                                  px: 1,
+                                  py: 0.3,
+                                  borderRadius: "4px",
+                                  display: "inline-block",
+                                }}
+                              >
+                                {formatDateString(
+                                  item.chosen_datetime,
+                                  "DD MMM YYYY • h:mm A",
+                                )}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      ))}
+                  </Box>
+                )}
+              </>
             )}
           </Box>
         </Box>
       </AppBar>
-      <CreateServiceRequestModal
+      <ServiceDetailModal
         open={isModalOpen}
         onClose={handleCloseModal}
-        preSelectedCategoryId={selectedCategoryId}
-        preSelectedSubcategoryId={selectedSubcategoryId}
+        onReject={() => {}}
+        service_id={selectedCategoryId}
       />
       <BookServiceModal
         open={bookServiceModalOpen}

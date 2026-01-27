@@ -34,145 +34,30 @@ import CloseIcon from "@mui/icons-material/Close";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import {
+  ApiServiceRequest,
   getSafeImageSrc,
+  ProviderInfo,
+  ServiceDetailData,
+  ServiceRequestsApiResponse,
   ServiceSearchApiResponse,
   ServiceSearchItem,
-  STATUS_CONFIG,
+  STATUS_CONFIG,Request,
+  ServiceDetailApiResponse,
+  FavoriteResponse
 } from "./helper";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { toast } from "sonner";
 import { ApiResponse } from "@/types";
 import { log } from "console";
 
-export type ApiStatus =
-  | "pending"
-  | "open"
-  | "accepted"
-  | "completed"
-  | "cancelled";
 
-interface Request {
-  id: string;
-  serviceName: string;
-  date: string;
-  time: string;
-  status: ApiStatus;
-  image: string;
-  category: string;
-  location: string;
-  quote: number;
-  professional?: {
-    email: string;
-    first_name: string;
-    full_name: string;
-    id: string;
-    profile_photo_url: string | null;
-    profile_image_url: string | null;
-    is_verified: boolean;
-    is_favorate: boolean;
-    last_name: string;
-  };
-  message: string;
-  videos: string[];
-  quoteId?: string;
-}
-interface ProviderInfo {
-  email: string;
-  first_name: string;
-  full_name: string;
-  id: string;
-  is_favorate: boolean;
-  is_verified: boolean;
-  last_name: string;
-  profile_photo_url: string | null;
-  profile_image_url: string | null;
-}
-interface ApiServiceRequest {
-  id: string;
-  category_id: string;
-  sub_category_id: string;
-  is_professional: boolean;
-  status: string;
-  amount: number | null;
-  quoteid: string | null;
-  total_renegotiated: string | null;
-  chosen_datetime: string;
-  created_at: string;
-  service_type_photo_url: string;
-  category_name: string;
-  category_logo: string;
-  sub_category_name: string;
-  sub_category_logo: string;
-  created_date: string;
-}
 
-interface ServiceRequestsApiResponse {
-  message: string;
-  data: {
-    recent_requests: {
-      total_items: number;
-      page: number;
-      limit: number;
-      items: ApiServiceRequest[];
-    };
-  };
-  success: boolean;
-  status_code: number;
-}
 
-interface LifecycleItem {
-  id: number;
-  name: string;
-  time: string | null;
-  completed: boolean;
-}
 
-interface ServiceMedia {
-  photos: string[];
-  videos: string[];
-}
 
-interface ServiceDetailData {
-  service_id: string;
-  task_status: string;
-  service_description: string;
-  chosen_datetime: string;
-  category_name: string;
-  category_logo: string;
-  sub_category_name: string;
-  provider: ProviderInfo;
-  sub_category_logo: string;
-  elder_address: string;
-  lifecycle: LifecycleItem[];
-  total_renegotiated: number;
-  media: ServiceMedia;
-  payment_breakdown: PaymentBreakdown;
-  service_code: string;
-}
 
-interface PaymentBreakdown {
-  finalize_quote_amount: number;
-  platform_fees: number;
-  tax: number;
-  total_renegotiated: number;
-}
 
-interface ServiceDetailApiResponse {
-  message: string;
-  data: ServiceDetailData;
-  success: boolean;
-  status_code: number;
-}
 
-interface FavoriteResponse {
-  message: string;
-  success: boolean;
-  status_code: number;
-  data: {
-    elderly_id: string;
-    favorite_list: string[];
-  };
-}
 
 export default function MyRequestsPage() {
   const router = useRouter();
