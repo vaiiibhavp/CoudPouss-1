@@ -27,7 +27,10 @@ import { AppDispatch, RootState } from "@/lib/redux/store";
 import CountrySelectDropdown from "@/components/CountrySelectDropdown";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { upsertUserProfile } from "@/services/chatFirestore.service";
+import {
+  createOrUpdateUser,
+  upsertUserProfile,
+} from "@/services/chatFirestore.service";
 
 // Yup validation schema
 const loginSchema = Yup.object().shape({
@@ -166,9 +169,10 @@ export default function LoginPage() {
         password: values.password,
       }),
     );
-    console.log("auth", auth);
     if (loginUser.fulfilled.match(result)) {
       const backendUser = result.payload.user;
+      console.log('backendUser',backendUser);
+      
 
       try {
         await upsertUserProfile({
@@ -178,8 +182,9 @@ export default function LoginPage() {
           mobile: backendUser.mobile,
           role: backendUser.role,
           address: backendUser.address,
+          avatarUrl: backendUser.profile_photo,
         });
-        console.log('firebase user created');
+        console.log("firebase user created");
       } catch (err) {
         console.error("Firestore sync failed", err);
       }

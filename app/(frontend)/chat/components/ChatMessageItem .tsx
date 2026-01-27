@@ -1,5 +1,5 @@
 import { Avatar, Box, Paper, Typography } from "@mui/material";
-import { formatTime } from "@/utils/utils";
+import { formatDateString, formatTime } from "@/utils/utils";
 
 export interface ChatMessage {
   id: string;
@@ -15,6 +15,7 @@ interface ChatMessageItemProps {
 
 export const ChatMessageItem = ({ message }: ChatMessageItemProps) => {
   const isUser = message.sender === "user";
+  
 
   return (
     <Box
@@ -63,11 +64,11 @@ export const ChatMessageItem = ({ message }: ChatMessageItemProps) => {
               variant="caption"
               sx={{
                 color: "text.secondary",
-                fontSize: "0.75rem",
+                fontSize: 10,
                 whiteSpace: "nowrap",
               }}
             >
-              {formatTime(message.createdAt)}
+              {formatDateString(message.createdAt,'hh:mm A')}
             </Typography>
           </Box>
         </Paper>

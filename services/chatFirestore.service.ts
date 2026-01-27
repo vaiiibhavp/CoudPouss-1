@@ -103,6 +103,18 @@ export async function upsertUserProfile(user: FirestoreUser) {
   const timestamp = serverTimestamp();
 
   const exists = snapshot.exists();
+  console.log('login user', {
+    user_id: user.user_id,
+    name: user.name ?? '',
+    email: user.email ?? '',
+    mobile: user.mobile ?? '',
+    role: user.role ?? '',
+    address: user.address ?? '',
+    avatarUrl: user.avatarUrl ?? '',
+    updatedAt: timestamp,
+    createdAt: exists ? snapshot.data()?.createdAt ?? timestamp : timestamp,
+  },);
+
 
   await setDoc(
     userRef,
@@ -277,6 +289,8 @@ export async function sendTextMessage(payload: {
   );
 }
 
+// chatFirestore.service.ts
+
 export async function getOrCreateThread(
   currentUserId: string,
   otherUserId: string
@@ -287,35 +301,44 @@ export async function getOrCreateThread(
   );
 
   const snap = await getDocs(q);
-
   const existing = snap.docs.find((doc) =>
     doc.data().participantIds.includes(otherUserId)
   );
 
-  if (existing) return existing.id;
-
-  // 🔹 Fetch user metadata
+  // 🔹 FETCH LATEST DATA REGARDLESS (to ensure avatars are up to date)
   const [currentUser, otherUser] = await Promise.all([
     getUserMeta(currentUserId),
     getUserMeta(otherUserId),
   ]);
 
   if (!currentUser || !otherUser) {
-    throw new Error("User metadata missing");
+    throw new Error("User metadata missing in users collection");
   }
 
+  const meta = {
+    [currentUserId]: {
+      name: currentUser.name || "",
+      avatarUrl: currentUser.avatarUrl || "", // Make sure this field name matches your users db
+    },
+    [otherUserId]: {
+      name: otherUser.name || "",
+      avatarUrl: otherUser.avatarUrl || "",
+    },
+  };
+
+  if (existing) {
+    // 🔹 OPTIONAL: Update existing thread if meta is empty
+    const threadRef = doc(db, "threads", existing.id);
+    if (!existing.data().participantsMeta?.[otherUserId]?.avatarUrl) {
+      await setDoc(threadRef, { participantsMeta: meta }, { merge: true });
+    }
+    return existing.id;
+  }
+
+  // Create new
   const threadRef = await addDoc(collection(db, "threads"), {
     participantIds: [currentUserId, otherUserId],
-    participantsMeta: {
-      [currentUserId]: {
-        name: currentUser.name,
-        avatarUrl: currentUser.avatarUrl || "",
-      },
-      [otherUserId]: {
-        name: otherUser.name,
-        avatarUrl: otherUser.avatarUrl || "",
-      },
-    },
+    participantsMeta: meta,
     lastMessage: "",
     updatedAt: serverTimestamp(),
     createdAt: serverTimestamp(),
@@ -328,4 +351,22 @@ export async function getOrCreateThread(
 async function getUserMeta(userId: string) {
   const snap = await getDoc(doc(db, "users", userId));
   return snap.exists() ? snap.data() : null;
+}
+
+export function listenSpecificUsers(userIds: string[], onNext: (users: any[]) => void) {
+  if (userIds.length === 0) {
+    onNext([]);
+    return () => { };
+  }
+
+  // Firestore 'in' query supports up to 30 IDs at a time
+  const q = query(
+    collection(db, "users"),
+    where("user_id", "in", userIds)
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const users = snapshot.docs.map(doc => doc.data());
+    onNext(users);
+  });
 }

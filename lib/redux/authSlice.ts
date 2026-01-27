@@ -41,7 +41,8 @@ interface User {
   address?: string;
   mobile?: string;
   user_id?: string
-  name?: string
+  name?: string;
+  profile_photo?: string;
 }
 
 interface AuthState {
@@ -139,7 +140,8 @@ export const loginUser = createAsyncThunk<
         address: data.user_data?.address || "",
         mobile: data.user_data?.mobile || "",
         user_id: data.user_data?.user_id || "",
-        name: data.user_data?.name || ""
+        name: data.user_data?.name || "",
+        profile_photo: data.user_data?.profile_photo || ""
       };
 
       return {
