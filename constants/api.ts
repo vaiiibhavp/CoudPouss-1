@@ -16,13 +16,14 @@ export const API_ENDPOINTS = {
     UPLOAD_PROFILE_PIC: `${API_BASE_URL}userService/auth/upload-profile-photo`,
     SIGNUP: `${API_BASE_URL}userService/auth/signup`,
     LOGOUT: `${API_BASE_URL}userService/auth/logout`,
-    REFRESH: `${API_BASE_URL}userService/auth/refresh-token`,
+
     RESET_PASSWORD_START: `${API_BASE_URL}userService/auth/reset/start`,
     VERIFY_RESET_PASSWORD_OTP: `${API_BASE_URL}userService/auth/reset/verify`,
     RESET_PASSWORD: `${API_BASE_URL}userService/auth/reset/confirm`,
     VERIFY_EMAIL: `${API_BASE_URL}userService/auth/verify-email`,
     PLANS_ALL: `${API_BASE_URL}userService/auth/plans/all`,
-    PLANS: (providerType: string) => `${API_BASE_URL}userService/auth/plans?provider_type=${providerType}`,
+    PLANS: (providerType: string) =>
+      `${API_BASE_URL}userService/auth/plans?provider_type=${providerType}`,
     SELECT_PLAN: `${API_BASE_URL}userService/auth/select-plan`,
     EXPERIENCE: `${API_BASE_URL}userService/auth/experience`,
     GET_USER: `${API_BASE_URL}userService/auth/get_user`,
@@ -71,7 +72,8 @@ export const API_ENDPOINTS = {
     GET_SERVICES: `${API_BASE_URL}service_confirmation/service_accept/get_services`,
     GET_SERVICE_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/get_service`,
     OPEN_SERVICES: `${API_BASE_URL}quote_request/open-services`,
-    SEARCH_REQUEST:`${API_BASE_URL}service_confirmation/service_accept/get_services`
+    SEARCH_REQUEST: `${API_BASE_URL}service_confirmation/service_accept/get_services`,
+    PROFESSIONAL_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/user`,
   },
   CANCEL_SERVICE: {
     GET_CANCEL_DETAILS: (serviceId: string) =>
@@ -88,11 +90,12 @@ export const API_ENDPOINTS = {
   },
   FAVORITE_REAQUEST: {
     GET_FAVORITES: `${API_BASE_URL}service_confirmation/favorite-provider/fetch`,
-    UPDATE_FAVORITE: (professionalId: string) => `${API_BASE_URL}service_confirmation/favorite-provider/add/${professionalId}`,
-    DELETE_FAVORITE: (professionalId: string) => `${API_BASE_URL}service_confirmation/favorite-provider/remove/${professionalId}`,
+    UPDATE_FAVORITE: (professionalId: string) =>
+      `${API_BASE_URL}service_confirmation/favorite-provider/add/${professionalId}`,
+    DELETE_FAVORITE: (professionalId: string) =>
+      `${API_BASE_URL}service_confirmation/favorite-provider/remove/${professionalId}`,
   },
-  RATING:{
-    CREATE_RATING:`${API_BASE_URL}service_confirmation/ratings/submit`
-  }
-  
+  RATING: {
+    CREATE_RATING: `${API_BASE_URL}service_confirmation/ratings/submit`,
+  },
 } as const;

@@ -34,7 +34,7 @@ import PhoneInputWrapper from "@/components/PhoneInputWrapper";
 import CountrySelectDropdown from "@/components/CountrySelectDropdown";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { createOrUpdateUser } from "@/services/chatFirestore.service";
+import { createOrUpdateUser, upsertUserProfile } from "@/services/chatFirestore.service";
 import { normalizePhone } from "@/utils/utils";
 
 type SignupStep =
@@ -687,22 +687,21 @@ export default function SignupPage() {
       if (data && data.status === "success" && data.data) {
         const responseData = data.data;
         const userData = responseData.user_data || {};
-        const firebaseCred = await createUserWithEmailAndPassword(
-          auth,
-          userData.email,
-          formData.password, // the password user entered
-        );
 
-        const firebaseUser = firebaseCred.user;
-
-        // 2️⃣ Create Firestore user (NOW SAFE)
-        await createOrUpdateUser({
-          userId: firebaseUser.uid,
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          avatarUrl: "",
-        });
+        try {
+          await upsertUserProfile({
+            user_id: userData.user_id,
+            name: userData.name,
+            email: userData.email,
+            mobile: userData.mobile,
+            role: userData.role,
+            address: userData.address,
+          });
+          console.log('firebase user created');
+          
+        } catch (err) {
+          console.error("Firestore user creation failed", err);
+        }
 
         // Extract tokens and user data
         const accessToken = responseData.access_token;

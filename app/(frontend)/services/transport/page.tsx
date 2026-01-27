@@ -62,7 +62,8 @@ export default function TransportPage() {
   const [banners, setBanners] = useState<Record<string, Banner | null>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] =
+    useState<string>("");
 
   // Memoized function to handle modal close
   const handleCloseModal = useCallback(() => {
@@ -93,7 +94,7 @@ export default function TransportPage() {
     } catch (error) {
       console.error(
         `Error fetching subcategories for category ${categoryId}:`,
-        error
+        error,
       );
     } finally {
       setSubcategoriesLoading((prev) => ({ ...prev, [categoryId]: false }));
@@ -135,16 +136,14 @@ export default function TransportPage() {
     }
 
     fetchCategories();
-    apiCallToAllCategoriesList()
+    apiCallToAllCategoriesList();
   }, [router, fetchCategories]);
 
-
-
-  const apiCallToAllCategoriesList = async() => {
-    let serviceName = "transport"
-    const response = await apiGet(API_ENDPOINTS.HOME.SERVICENAME(serviceName))
-    console.log(response)
-  }
+  const apiCallToAllCategoriesList = async () => {
+    let serviceName = "transport";
+    const response = await apiGet(API_ENDPOINTS.HOME.SERVICENAME(serviceName));
+    console.log(response);
+  };
 
   // Transport service cards data
   const transportServices = [
@@ -186,7 +185,9 @@ export default function TransportPage() {
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       {/* Hero Section - Transport Banner */}
-      <Box sx={{ pt: { xs: "2rem", md: "5rem" }, px: { xs: "1rem", md: "5rem" } }}>
+      <Box
+        sx={{ pt: { xs: "2rem", md: "5rem" }, px: { xs: "1rem", md: "5rem" } }}
+      >
         <Box
           sx={{
             borderRadius: 3,
@@ -208,7 +209,7 @@ export default function TransportPage() {
                 height={278}
                 width={1248}
                 style={{
-                  width:"100%"
+                  width: "100%",
                 }}
               />
             </Box>
@@ -350,9 +351,7 @@ export default function TransportPage() {
                                     justifyContent: "center",
                                   }}
                                 >
-                                  <Typography
-                                    sx={{ color: "text.secondary" }}
-                                  >
+                                  <Typography sx={{ color: "text.secondary" }}>
                                     {subcategory.subcategory_name}
                                   </Typography>
                                 </Box>
@@ -362,7 +361,9 @@ export default function TransportPage() {
                               sx={{
                                 display: "flex",
                                 justifyContent: "space-between",
-                                alignItems: "center",
+                                flexDirection: { xs: "column", sm: "row" },
+                                alignItems: { xs: "flex-start", sm: "center" },
+                                // alignItems:"center",
                                 bgcolor: "white",
                                 px: { xs: "1rem", md: "1.25rem" },
                                 py: { xs: "0.75rem", md: "0.969rem" },
@@ -373,15 +374,22 @@ export default function TransportPage() {
                               }}
                             >
                               <Typography
+                                title={subcategory.subcategory_name} // native browser hover
                                 sx={{
                                   color: "primary.normal",
-                                  fontSize: { xs: "1rem", md: "1.125rem" },
+                                  fontSize: { xs: "16px", md: "20px" },
                                   lineHeight: "2rem",
-                                  flex: { xs: "1 1 100%", sm: "1" },
+
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+
+                                  maxWidth: "100%", // important inside flex
                                 }}
                               >
                                 {subcategory.subcategory_name}
                               </Typography>
+
                               <Button
                                 variant="contained"
                                 size="small"
@@ -390,22 +398,29 @@ export default function TransportPage() {
                                   setSelectedSubcategoryId(subcategory.id);
                                   setIsModalOpen(true);
                                 }}
+                                endIcon={
+                                  <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />
+                                }
                                 sx={{
                                   bgcolor: "primary.normal",
                                   color: "white",
                                   textTransform: "none",
                                   borderRadius: 1,
+
                                   fontSize: { xs: "0.8rem", sm: "0.85rem" },
+                                  lineHeight: "1.125rem",
+
+                                  px: { xs: 1.25, sm: 1.5 },
                                   py: { xs: 0.5, sm: 0.75 },
-                                  textWrap: "nowrap",
-                                  lineHeight:"1.125rem",
-                                  px: { xs: "8px", sm: "12px" },
-                                  flex: { xs: "1 1 auto", sm: "0" },
+
                                   whiteSpace: "nowrap",
+                                  alignSelf: "flex-start",
+                                  minWidth: "fit-content",
+
+                                  "& .MuiButton-endIcon": {
+                                    ml: 0.5,
+                                  },
                                 }}
-                                endIcon={
-                                  <ArrowOutwardIcon sx={{ fontSize: "1rem" }} />
-                                }
                               >
                                 Create Request
                               </Button>

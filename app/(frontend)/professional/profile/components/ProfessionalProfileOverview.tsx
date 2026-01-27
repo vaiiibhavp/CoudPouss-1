@@ -7,6 +7,9 @@ import Image from "next/image";
 import ProfessionalEditProfile from "./ProfessionalEditProfile";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/lib/redux/store";
+import { setFullUserProfile } from "@/lib/redux/authSlice";
 
 interface UserData {
   id: string;
@@ -48,10 +51,16 @@ interface GetUserApiResponse {
     user: UserData;
     provider_info?: ProviderInfo;
     past_work_files?: string[];
+    recent_reviews?: any[];
+    customer_ratings?: any;
+    unique_clients_count?: number;
   };
 }
 
 export default function ProfessionalProfileOverview() {
+  const dispatch = useDispatch();
+  const { fullUserProfile, isAuthenticated } = useSelector((state: RootState) => state.auth);
+
   const [isEditMode, setIsEditMode] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [providerInfo, setProviderInfo] = useState<ProviderInfo | null>(null);
@@ -59,27 +68,53 @@ export default function ProfessionalProfileOverview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (fullUserProfile && fullUserProfile.user) {
+      setUserData(fullUserProfile.user as unknown as UserData);
+      setProviderInfo(fullUserProfile.provider_info || null);
+      setPastWorkFiles(fullUserProfile.past_work_files || []);
+      setLoading(false);
+    } else if (isAuthenticated === false) {
+      // Not authenticated
+      setLoading(false);
+    }
+  }, [fullUserProfile, isAuthenticated]);
+
   const fetchUserData = useCallback(async () => {
+    // Only fetch if we don't have data in Redux (or if we want to force refresh)
+    // Here we will use this mainly for re-fetching after edit
     setLoading(true);
     setError(null);
     try {
       const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
-      
+
       if (response.success && response.data) {
         const apiData = response.data;
         if (apiData.data?.user) {
-          setUserData(apiData.data.user);
-          // Update role in localStorage if needed
-          if (apiData.data.user.role) {
-            localStorage.setItem("role", apiData.data.user.role);
-          }
-          // Set provider info if available
+          const user = apiData.data.user;
+          // Update local state
+          setUserData(user);
           if (apiData.data.provider_info) {
             setProviderInfo(apiData.data.provider_info);
           }
-          // Set past work files if available
           if (apiData.data.past_work_files && Array.isArray(apiData.data.past_work_files)) {
             setPastWorkFiles(apiData.data.past_work_files);
+          }
+
+          // Also sync with Redux so other components update (and Header doesn't overwrite with old data if it re-renders?)
+          // Generally Header fetches on mount only.
+          dispatch(setFullUserProfile({
+            user: user as any,
+            provider_info: apiData.data.provider_info,
+            past_work_files: apiData.data.past_work_files,
+            recent_reviews: apiData.data.recent_reviews,
+            customer_ratings: apiData.data.customer_ratings,
+            unique_clients_count: apiData.data.unique_clients_count
+          }));
+
+          // Update role in localStorage if needed
+          if (user.role) {
+            localStorage.setItem("role", user.role);
           }
         } else {
           setError("User data not found");
@@ -93,11 +128,12 @@ export default function ProfessionalProfileOverview() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
-  useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
+  // Initial load check - if verify Redux has data, rely on the useEffect above.
+  // If Redux is empty (e.g. Header hasn't finished yet), we wait. 
+  // But purely relying on the existing useEffect [fullUserProfile] covers it.
+  // We keep fetchUserData primarily for the "onSuccess" callback of EditProfile.
 
   if (isEditMode) {
     return (
@@ -238,6 +274,7 @@ export default function ProfessionalProfileOverview() {
               onClick={() => setIsEditMode(true)}
               endIcon={<EditIcon sx={{ color: "#6D6D6D", fontSize: "1rem" }} />}
               sx={{
+                flexShrink: 0,
                 textTransform: "none",
                 border: "0.03125rem solid #DFE8ED",
                 borderColor: "#DFE8ED",

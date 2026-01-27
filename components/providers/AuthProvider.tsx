@@ -6,7 +6,7 @@ import {
   setFirebaseUser,
   setUserFromStorage,
 } from "@/lib/redux/authSlice";
-import { refreshAccessToken } from "@/lib/redux/authSlice";
+
 import { useAppDispatch } from "@/hooks/useAppDispatchHook";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -28,31 +28,33 @@ function AuthProvider({ children }: Props) {
     dispatch(setUserFromStorage());
 
     // Try to get a new access token from refresh token (httpOnly cookie)
-    dispatch(refreshAccessToken());
+    // dispatch(refreshAccessToken());
+    dispatch(setAuthInitialized());
 
-    const unsubscribeFirebase = listenFirebaseAuth(async (firebaseUser) => {
-      if (firebaseUser) {
-        // 🔑 CREATE / UPDATE USER DOCUMENT IN FIRESTORE
-        await createUserDoc(firebaseUser);
+    // const unsubscribeFirebase = listenFirebaseAuth(async (firebaseUser) => {
+    //   console.log('firebaseUser',firebaseUser);
 
-        dispatch(
-          setFirebaseUser({
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            photoURL: firebaseUser.photoURL,
-          })
-        );
-      } else {
-        dispatch(setFirebaseUser(null));
-      }
+    //   if (firebaseUser) {
+    //     await createUserDoc(firebaseUser);
 
-      dispatch(setAuthInitialized());
-    });
+    //     dispatch(
+    //       setFirebaseUser({
+    //         uid: firebaseUser.uid,
+    //         email: firebaseUser.email,
+    //         displayName: firebaseUser.displayName,
+    //         photoURL: firebaseUser.photoURL,
+    //       })
+    //     );
+    //   } else {
+    //     dispatch(setFirebaseUser(null));
+    //   }
 
-    return () => {
-      unsubscribeFirebase();
-    };
+    //   dispatch(setAuthInitialized());
+    // });
+
+    // return () => {
+    //   unsubscribeFirebase();
+    // };
   }, [dispatch]);
 
   if (!authInitialized) {

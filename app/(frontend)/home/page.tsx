@@ -1457,6 +1457,9 @@ export default function AuthenticatedHomePage() {
                   return (
                     <Box
                       key={professional.id}
+                      onClick={() =>
+                        router.push(`/about-professional/${professional.id}`)
+                      }
                       sx={{
                         width: "100%",
                         maxWidth: "308px",

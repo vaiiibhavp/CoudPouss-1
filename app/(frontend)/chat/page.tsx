@@ -19,9 +19,11 @@ import theme from "@/lib/theme";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import {
   getOrCreateThread,
+  listenSpecificUsers,
   sendTextMessage,
   subscribeToMessages,
   subscribeToThreads,
+  uploadChatImage,
 } from "@/services/chatFirestore.service";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
@@ -34,6 +36,7 @@ import {
   UserData,
 } from "./components/interfaces";
 import { Timestamp } from "firebase/firestore";
+import { ChatMessageInput } from "./components/ChatMessageInput";
 
 interface Chat {
   id: string;
@@ -57,10 +60,7 @@ interface UIMessage {
   createdAt: string;
   photoURL?: string;
 }
-interface ChatShellProps {
-  userId: string | null;
-}
-export default function ChatPage({ userId }: ChatShellProps) {
+export default function ChatPage() {
   const router = useRouter();
   const { id } = useParams();
   const otherUserId = Array.isArray(id) ? id[0] : id;
@@ -79,12 +79,14 @@ export default function ChatPage({ userId }: ChatShellProps) {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+  console.log("messages", messages);
 
   const fetchUserData = useCallback(async () => {
     setLoading(true);
@@ -117,8 +119,8 @@ export default function ChatPage({ userId }: ChatShellProps) {
   }, [fetchUserData]);
 
   console.log("chatUsers", chatUsers, userData);
-  console.log("users", users, selectedChat, user);
-  console.log("id", id, otherUserId);
+  console.log("users", users, selectedChat);
+  // console.log("userdata", userData, otherUserId);
   useEffect(() => {
     if (!userData || !otherUserId) return;
 
@@ -130,19 +132,45 @@ export default function ChatPage({ userId }: ChatShellProps) {
   }, [userData, otherUserId]);
 
   useEffect(() => {
-    const unsubscribe = listenUsers(setUsers);
+    if (chatUsers.length === 0 || !userData) return;
+
+    // Extract all unique 'other' user IDs from all your threads
+    const participantIds = chatUsers.reduce((acc: string[], thread) => {
+      const otherId = thread.participantIds.find(
+        (id: string) => id !== userData.id,
+      );
+      if (otherId && !acc.includes(otherId)) {
+        acc.push(otherId);
+      }
+      return acc;
+    }, []);
+
+    if (participantIds.length === 0) return;
+
+    // Only listen to these specific users
+    const unsubscribe = listenSpecificUsers(participantIds, (fetchedUsers) => {
+      setUsers(fetchedUsers);
+    });
+
     return () => unsubscribe();
-  }, []);
+  }, [chatUsers, userData?.id]); // Runs whenever the thread list updates
 
   const activeUser = React.useMemo(() => {
     if (!activeChat || !userData) return null;
 
-    const otherUserId = activeChat.participantIds.find(
+    const otherId = activeChat.participantIds.find(
       (id: string) => id !== userData.id,
     );
 
-    return activeChat.participantsMeta?.[otherUserId] || null;
-  }, [activeChat, userData]);
+    const userInList = users.find((u) => u.user_id === otherId);
+    const meta = activeChat.participantsMeta?.[otherId];
+
+    return {
+      name: userInList?.name || meta?.name || "Chat",
+      avatarUrl: userInList?.avatarUrl || meta?.avatarUrl || "",
+    };
+  }, [activeChat, userData, users]); // Keeps the header in sync
+  console.log("activeUser", activeUser, activeChat);
 
   useEffect(() => {
     if (!selectedChat || !userData) return;
@@ -150,22 +178,34 @@ export default function ChatPage({ userId }: ChatShellProps) {
     const unsubscribe = subscribeToMessages(
       selectedChat,
       (firebaseMessages) => {
-        console.log("firebaseMessages", firebaseMessages, userData.id);
+        const mapped = firebaseMessages.map((msg) => {
+          const isMe = msg.senderId === userData.id;
 
-        const mapped = firebaseMessages.map((msg) => ({
-          id: msg.id,
-          text: msg.text,
-          sender: (msg.senderId === userData.id ? "user" : "other") as
-            | "user"
-            | "other",
-          // createdAt: msg.createdAt,
-          createdAt: msg.createdAt
-            ? msg.createdAt instanceof Timestamp
-              ? msg.createdAt.toDate().toISOString()
-              : new Date(msg.createdAt).toISOString()
-            : "",
-        }));
+          // 1. Try to get avatar from the Thread Metadata
+          let photo = activeChat?.participantsMeta?.[msg.senderId]?.avatarUrl;
 
+          // 2. FALLBACK: If Thread Meta is empty, find the user in your 'users' state
+          if (!photo) {
+            const userInList = users.find((u) => u.user_id === msg.senderId);
+            photo = userInList?.avatarUrl;
+          }
+          return {
+            id: msg.id,
+            text: msg.text,
+            sender: (msg.senderId === userData.id ? "user" : "other") as
+              | "user"
+              | "other",
+            // createdAt: msg.createdAt,
+            createdAt: msg.createdAt
+              ? msg.createdAt instanceof Timestamp
+                ? msg.createdAt.toDate().toISOString()
+                : new Date(msg.createdAt).toISOString()
+              : "",
+            photoURL: photo,
+          };
+        });
+
+        // console.log("firebaseMessages", firebaseMessages, mapped);
         setMessages(mapped);
       },
     );
@@ -181,36 +221,89 @@ export default function ChatPage({ userId }: ChatShellProps) {
     return () => unsubscribe();
   }, [userData]);
 
-  const handleSendMessage = async () => {
-    if (!messageInput.replace(/\s/g, "").length || !userData || !selectedChat)
-      return;
+  // const handleSendMessage = async () => {
+  //   if (!messageInput.replace(/\s/g, "").length || !userData || !selectedChat)
+  //     return;
 
-    const textToSend = messageInput; // Don't trim the actual content
-    setMessageInput(""); // Clear immediately for Optimistic UI
+  //   const textToSend = messageInput; // Don't trim the actual content
+  //   setMessageInput(""); // Clear immediately for Optimistic UI
+
+  //   try {
+  //     const receiverId = activeChat.participantIds.find(
+  //       (id: string) => id !== userData.id,
+  //     );
+  //     if (!receiverId) return;
+  //     await sendTextMessage({
+  //       threadId: selectedChat,
+  //       text: textToSend, // Send the raw text with newlines/spaces
+  //       senderId: userData.id,
+  //       receiverId,
+  //     });
+  //   } catch (error) {
+  //     console.error("Failed to send:", error);
+  //     setMessageInput(textToSend); // Restore on error
+  //   }
+  // };
+  const handleSendMessage = async (text: string, files: File[]) => {
+    if (!userData || !selectedChat) return;
+    console.log("files", files);
 
     try {
+      let uploadedUrls: string[] = [];
+
+      // 1. If there are files, upload them first
+      if (files.length > 0) {
+        // Use Promise.all to upload all images simultaneously
+        uploadedUrls = await Promise.all(
+          files.map((file) => uploadChatImage(file, selectedChat)),
+        );
+      }
+
       const receiverId = activeChat.participantIds.find(
         (id: string) => id !== userData.id,
       );
-      if (!receiverId) return;
+
+      // 2. Send the message with text and the new URLs
       await sendTextMessage({
         threadId: selectedChat,
-        text: textToSend, // Send the raw text with newlines/spaces
+        text: text,
         senderId: userData.id,
         receiverId,
+        imageUrls: uploadedUrls, // Pass the array of URLs
       });
     } catch (error) {
-      console.error("Failed to send:", error);
-      setMessageInput(textToSend); // Restore on error
+      console.error("Failed to send message with attachments:", error);
     }
   };
+  const filteredChatUsers = React.useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return chatUsers;
+
+    return chatUsers.filter((chat) => {
+      // 1. Get the "other" person's ID
+      const otherUserId = chat.participantIds.find(
+        (id: string) => id !== userData?.id,
+      );
+
+      // 2. Get their name from the Metadata saved directly on the thread
+      const meta = chat.participantsMeta?.[otherUserId];
+      const displayName = (meta?.name || "Chat").toLowerCase();
+
+      // 3. (Optional) Search within the last message text too
+      const lastMsg = (chat.lastMessage || "").toLowerCase();
+
+      return displayName.includes(query) || lastMsg.includes(query);
+    });
+  }, [chatUsers, searchQuery, userData?.id]);
 
   return (
     <Box
       sx={{
         bgcolor: "background.default",
-        minHeight: "100vh",
+        height: "100vh",
         display: "flex",
+        // overflow:"auto",
         flexDirection: "column",
       }}
     >
@@ -222,10 +315,12 @@ export default function ChatPage({ userId }: ChatShellProps) {
             borderRadius: 3,
             overflow: "hidden",
             display: "flex",
+            // flex:1,
             height: {
               xs: "calc(100vh - 18.75rem)",
-              md: "calc(100vh - 15.625rem)",
+              md: "calc(100vh - 7.625rem)",
             },
+            // height:"100%",
             minHeight: 600,
             border: "1px solid",
             borderColor: "grey.200",
@@ -297,6 +392,8 @@ export default function ChatPage({ userId }: ChatShellProps) {
                     />
                     <InputBase
                       placeholder="Search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       sx={{
                         flex: 1,
                         fontSize: "0.9rem",
@@ -341,7 +438,7 @@ export default function ChatPage({ userId }: ChatShellProps) {
                   },
                 }}
               >
-                {chatUsers.length === 0 ? (
+                {filteredChatUsers.length === 0 ? (
                   <Box
                     sx={{
                       p: 3,
@@ -357,20 +454,39 @@ export default function ChatPage({ userId }: ChatShellProps) {
                     </Typography>
                   </Box>
                 ) : (
-                  chatUsers.map((chat) => {
+                  filteredChatUsers.map((chat) => {
                     const otherUserId = chat.participantIds.find(
                       (id: string) => id !== userData?.id,
                     );
 
-                    const otherUser = chat.participantsMeta?.[otherUserId];
+                    // 1. Get initial meta from thread
+                    const otherUserMeta = chat.participantsMeta?.[otherUserId];
+
+                    // 2. FALLBACK: Check the global 'users' state for the real avatar
+                    const userInList = users.find(
+                      (u) => u.user_id === otherUserId,
+                    );
+
+                    const displayAvatar =
+                      userInList?.avatarUrl || otherUserMeta?.avatarUrl || "";
+                    const displayName =
+                      userInList?.name || otherUserMeta?.name || "Chat";
+
                     const isActive = selectedChat === chat.id;
+
                     return (
                       <UserChat
+                        key={chat.id}
                         chat={chat}
                         setSelectedChat={setSelectedChat}
                         isActive={isActive}
                         userData={userData}
-                        otherUser={otherUser}
+                        // Pass the enriched data here
+                        otherUser={{
+                          ...otherUserMeta,
+                          name: displayName,
+                          avatarUrl: displayAvatar,
+                        }}
                       />
                     );
                   })
@@ -447,7 +563,7 @@ export default function ChatPage({ userId }: ChatShellProps) {
                   </Box>
 
                   {/* Message Input */}
-                  <Box
+                  {/* <Box
                     sx={{
                       px: "1.75rem",
                       py: "1.188rem",
@@ -522,7 +638,12 @@ export default function ChatPage({ userId }: ChatShellProps) {
                         height={24}
                       />
                     </Box>
-                  </Box>
+                  </Box> */}
+                  <ChatMessageInput
+                    value={messageInput}
+                    onChange={setMessageInput}
+                    onSend={handleSendMessage}
+                  />
                 </>
               ) : (
                 <NoChatSelected />

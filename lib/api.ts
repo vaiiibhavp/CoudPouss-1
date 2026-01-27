@@ -2,19 +2,19 @@
  * API client utilities with error handling
  */
 
-import { ApiResponse } from '@/types';
-import { setTokens, logout } from '../lib/redux/authSlice';
-import { handleError, NetworkError } from '@/lib/errors';
-import { API_ENDPOINTS } from '@/constants/api';
+import { ApiResponse } from "@/types";
+import { setTokens, logout } from "../lib/redux/authSlice";
+import { handleError, NetworkError } from "@/lib/errors";
+import { API_ENDPOINTS } from "@/constants/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api";
 
 // Lazy import store to avoid circular dependency
 let storeInstance: any = null;
 function getStore() {
   if (!storeInstance) {
     // Use dynamic import to break circular dependency
-    const storeModule = require('@/lib/redux/store');
+    const storeModule = require("@/lib/redux/store");
     storeInstance = storeModule.store;
   }
   return storeInstance;
@@ -25,27 +25,43 @@ function getStore() {
  */
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
   try {
-    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-    
-     // Get access token from Redux (lazy import to avoid circular dependency)
+    const url = endpoint.startsWith("http")
+      ? endpoint
+      : `${API_BASE_URL}${endpoint}`;
+
+    // Get access token from Redux (lazy import to avoid circular dependency)
     const store = getStore();
     const { accessToken } = store.getState().auth;
     let token = accessToken;
 
     let headers = {
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    }
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
 
-        // Make the API request
+    // Make the API request
     const response = await fetch(url, {
       ...options,
       headers,
     });
+
+    if (response.status === 401) {
+      const store = getStore();
+      store.dispatch(logout());
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+      return {
+        success: false,
+        error: {
+          message: "Session expired. Please login again.",
+        },
+      };
+    }
 
     const data = await response.json().catch(() => ({}));
 
@@ -71,11 +87,13 @@ async function apiRequest<T>(
         },
       };
     }
-    
+
     return { success: true, data };
   } catch (error) {
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new NetworkError('Network request failed. Please check your connection.');
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new NetworkError(
+        "Network request failed. Please check your connection.",
+      );
     }
     throw error;
   }
@@ -86,7 +104,7 @@ async function apiRequest<T>(
  */
 export async function apiGet<T>(endpoint: string): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, {
-    method: 'GET',
+    method: "GET",
   });
 }
 
@@ -95,10 +113,10 @@ export async function apiGet<T>(endpoint: string): Promise<ApiResponse<T>> {
  */
 export async function apiPost<T>(
   endpoint: string,
-  body?: unknown
+  body?: unknown,
 ): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, {
-    method: 'POST',
+    method: "POST",
     body: body ? JSON.stringify(body) : undefined,
   });
 }
@@ -108,11 +126,13 @@ export async function apiPost<T>(
  */
 export async function apiPostFormData<T>(
   endpoint: string,
-  formData: FormData
+  formData: FormData,
 ): Promise<ApiResponse<T>> {
   try {
-    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
-    
+    const url = endpoint.startsWith("http")
+      ? endpoint
+      : `${API_BASE_URL}${endpoint}`;
+
     // Get access token from Redux
     const store = getStore();
     const { accessToken } = store.getState().auth;
@@ -124,7 +144,7 @@ export async function apiPostFormData<T>(
     };
 
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: formData,
     });
@@ -141,11 +161,13 @@ export async function apiPostFormData<T>(
         },
       };
     }
-    
+
     return { success: true, data };
   } catch (error) {
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new NetworkError('Network request failed. Please check your connection.');
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      throw new NetworkError(
+        "Network request failed. Please check your connection.",
+      );
     }
     throw error;
   }
@@ -156,10 +178,10 @@ export async function apiPostFormData<T>(
  */
 export async function apiPut<T>(
   endpoint: string,
-  body?: unknown
+  body?: unknown,
 ): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, {
-    method: 'PUT',
+    method: "PUT",
     body: body ? JSON.stringify(body) : undefined,
   });
 }
@@ -169,10 +191,10 @@ export async function apiPut<T>(
  */
 export async function apiPatch<T>(
   endpoint: string,
-  body?: unknown
+  body?: unknown,
 ): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, {
-    method: 'PATCH',
+    method: "PATCH",
     body: body ? JSON.stringify(body) : undefined,
   });
 }
@@ -182,7 +204,7 @@ export async function apiPatch<T>(
  */
 export async function apiDelete<T>(endpoint: string): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 }
 
@@ -196,4 +218,3 @@ export function handleApiError(error: unknown): {
 } {
   return handleError(error);
 }
-

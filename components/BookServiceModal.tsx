@@ -909,6 +909,9 @@ export default function BookServiceModal({
         description: serviceDescription,
         description_files: descriptionFileKeys,
         chosen_datetime: chosenDateTime,
+        address: "Prometteur solution",
+        latitude: "44.968046",
+        longitude: "-94.420307",
       };
 
       if (isProfessional) {
@@ -1866,7 +1869,7 @@ export default function BookServiceModal({
 
                     // Limit decimal places to 2
                     if (parts[1] && parts[1].length > 2) {
-                      return; 
+                      return;
                     }
 
                     // Limit integer digits

@@ -694,6 +694,9 @@ export default function CreateServiceRequestModal({
         description: serviceDescription,
         description_files: descriptionFileKeys,
         chosen_datetime: chosenDateTime,
+        address:"Prometteur solution",
+        latitude:'44.968046',
+        longitude:'-94.420307'
       };
 
       if (isProfessional) {

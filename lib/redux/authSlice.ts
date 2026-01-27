@@ -2,7 +2,12 @@
 "use client";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { apiGet, apiPost } from "../api";
-import { buildInputData, getCookie, setCookie, deleteCookie } from "@/utils/validation";
+import {
+  buildInputData,
+  getCookie,
+  setCookie,
+  deleteCookie,
+} from "@/utils/validation";
 import { API_ENDPOINTS } from "@/constants/api";
 import { ApiResponse } from "@/types";
 import { act } from "react";
@@ -37,7 +42,77 @@ interface LoginResponse {
 interface User {
   email: string;
   initial: string;
-  role: string
+  role: string;
+  address?: string;
+  mobile?: string;
+  user_id?: string;
+  name?: string;
+  profile_photo?: string;
+}
+
+interface ProviderInfo {
+  id: string;
+  services_provider_id: string;
+  bio?: string;
+  experience_speciality?: string;
+  achievements?: string;
+  years_of_experience?: number;
+  is_docs_verified: boolean;
+  docs_status: string;
+  [key: string]: any;
+}
+
+export interface UserProfileData {
+  id: string;
+  email: string;
+  phone_number: string;
+  password: string;
+  address: string;
+  longitude: number | null;
+  created_at: string;
+  lang: string;
+  first_name: string;
+  phone_country_code: string;
+  last_name: string;
+  role: string;
+  service_provider_type: string | null;
+  profile_photo_id: string | null;
+  profile_photo_url: string | null;
+  latitude: number | null;
+  is_deleted: boolean;
+  updated_at: string;
+  [key: string]: any;
+}
+
+export interface Review {
+  user_id: string;
+  name: string;
+  profile_photo_url: string;
+  days_ago: number;
+  rating: number;
+  review: string;
+}
+
+export interface CustomerRatings {
+  total_ratings: number;
+  overall_average: number;
+  average_rating: number;
+  criteria_averages: {
+    work_quality: number;
+    reliability: number;
+    punctuality: number;
+    solution: number;
+    payout: number;
+  };
+}
+
+export interface FullUserProfile {
+  user: UserProfileData;
+  provider_info?: ProviderInfo;
+  past_work_files?: string[];
+  recent_reviews?: Review[];
+  customer_ratings?: CustomerRatings;
+  unique_clients_count?: number;
 }
 
 interface AuthState {
@@ -49,7 +124,9 @@ interface AuthState {
   refreshToken: string | null;
   accessTokenExpire: string | null;
   refreshTokenExpire: string | null;
-  authInitialized: boolean
+  authInitialized: boolean;
+  firebaseUser: any;
+  fullUserProfile: FullUserProfile | null;
 }
 
 const initialState: AuthState = {
@@ -63,19 +140,8 @@ const initialState: AuthState = {
   refreshTokenExpire: null,
   authInitialized: false,
   firebaseUser: null,
+  fullUserProfile: null,
 };
-
-interface AuthState {
-  // user: any;
-  firebaseUser: any; // 👈 add this
-  authInitialized: boolean;
-}
-
-// const initialState: AuthState = {
-//   user: null,
-//   firebaseUser: null,
-//   authInitialized: false,
-// };
 export const loginUser = createAsyncThunk<
   {
     user: User;
@@ -110,17 +176,22 @@ export const loginUser = createAsyncThunk<
         password,
       };
 
-      const response = await apiPost<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, apiPayload);
+      const response = await apiPost<LoginResponse>(
+        API_ENDPOINTS.AUTH.LOGIN,
+        apiPayload,
+      );
 
       // Check if API returned an error
       if (!response.success || response.error) {
-        const errorMessage = response.error?.message || "Login failed. Please try again.";
+        const errorMessage =
+          response.error?.message || "Login failed. Please try again.";
         return rejectWithValue(errorMessage);
       }
 
       // Check if the response data indicates an error status
       if (response.data && (response.data as any).status === "error") {
-        const errorMessage = (response.data as any).message || "Login failed. Please try again.";
+        const errorMessage =
+          (response.data as any).message || "Login failed. Please try again.";
         return rejectWithValue(errorMessage);
       }
       const data = response.data?.data;
@@ -132,6 +203,11 @@ export const loginUser = createAsyncThunk<
         email: data.user_data?.email || apiPayload["email"] || "",
         initial: (data.user_data?.name?.charAt(0) || "U").toUpperCase(),
         role: data.user_data?.role || "",
+        address: data.user_data?.address || "",
+        mobile: data.user_data?.mobile || "",
+        user_id: data.user_data?.user_id || "",
+        name: data.user_data?.name || "",
+        profile_photo: data.user_data?.profile_photo || "",
       };
 
       return {
@@ -148,32 +224,7 @@ export const loginUser = createAsyncThunk<
 
       return rejectWithValue("Something went wrong. Please try again.");
     }
-  }
-);
-
-export const refreshAccessToken = createAsyncThunk(
-  "auth/refreshAccessToken",
-  async (_, { rejectWithValue }) => {
-    try {
-      const refreshToken = getCookie("refreshToken");
-      if (!refreshToken) throw new Error("No refresh token found");
-
-      const response = await apiPost<any>(API_ENDPOINTS.AUTH.REFRESH, { refresh_token: refreshToken });
-      if (!response.success) throw new Error(response.error?.message || "Failed");
-
-      const data = response.data.data
-
-      return {
-        accessToken: data.access_token,
-        accessTokenExpire: data.access_token_expire,
-        refreshToken: data.refresh_token,
-        refreshTokenExpire: data.refresh_token_expire,
-      };
-
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
-  }
+  },
 );
 
 const authSlice = createSlice({
@@ -233,7 +284,7 @@ const authSlice = createSlice({
         accessTokenExpire: string;
         refreshTokenExpire: string;
         user?: User;
-      }>
+      }>,
     ) {
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
@@ -245,6 +296,9 @@ const authSlice = createSlice({
       }
       state.error = null;
     },
+    setFullUserProfile(state, action: PayloadAction<FullUserProfile | null>) {
+      state.fullUserProfile = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -252,51 +306,40 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(refreshAccessToken.fulfilled, (state, action) => {
-        state.accessToken = action.payload.accessToken;
-        state.accessTokenExpire = action.payload.accessTokenExpire;
 
-        if (action.payload.refreshToken) {
-          state.refreshToken = action.payload.refreshToken;
-          state.refreshTokenExpire = action.payload.refreshTokenExpire;
-        }
+      .addCase(
+        loginUser.fulfilled,
+        (
+          state,
+          action: PayloadAction<{
+            user: User;
+            accessToken: string;
+            refreshToken: string;
+            accessTokenExpire: string;
+            refreshTokenExpire: string;
+          }>,
+        ) => {
+          state.loading = false;
+          state.user = action.payload.user;
+          ((state.accessToken = action.payload.accessToken),
+            (state.refreshToken = action.payload.refreshToken),
+            (state.refreshTokenExpire = action.payload.refreshTokenExpire),
+            (state.accessTokenExpire = action.payload.accessTokenExpire),
+            (state.isAuthenticated = true));
+          state.authInitialized = true;
 
-        state.isAuthenticated = true;
-        state.authInitialized = true
-        state.error = null;
-      })
-      .addCase(refreshAccessToken.rejected, (state, action) => {
-        state.authInitialized = true
-        state.accessToken = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{
-        user: User;
-        accessToken: string;
-        refreshToken: string;
-        accessTokenExpire: string;
-        refreshTokenExpire: string;
-      }>) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.accessToken = action.payload.accessToken,
-          state.refreshToken = action.payload.refreshToken,
-          state.refreshTokenExpire = action.payload.refreshTokenExpire,
-          state.accessTokenExpire = action.payload.accessTokenExpire,
-          state.isAuthenticated = true;
-        state.authInitialized = true;
-
-        // Persist to localStorage and cookies for page refresh
-        if (typeof window !== "undefined") {
-          localStorage.setItem("userEmail", action.payload.user.email);
-          localStorage.setItem("userInitial", action.payload.user.initial);
-          localStorage.setItem("role", action.payload.user.role);
-          localStorage.setItem("token", action.payload.accessToken);
-          // Save refresh token and role to cookies
-          setCookie("refreshToken", action.payload.refreshToken, 7);
-          setCookie("userRole", action.payload.user.role, 7);
-        }
-      })
+          // Persist to localStorage and cookies for page refresh
+          if (typeof window !== "undefined") {
+            localStorage.setItem("userEmail", action.payload.user.email);
+            localStorage.setItem("userInitial", action.payload.user.initial);
+            localStorage.setItem("role", action.payload.user.role);
+            localStorage.setItem("token", action.payload.accessToken);
+            // Save refresh token and role to cookies
+            setCookie("refreshToken", action.payload.refreshToken, 7);
+            setCookie("userRole", action.payload.user.role, 7);
+          }
+        },
+      )
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Login failed";
@@ -305,5 +348,13 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearAuthError, setUserFromStorage, setTokens, setFirebaseUser, setAuthInitialized } = authSlice.actions;
+export const {
+  logout,
+  clearAuthError,
+  setUserFromStorage,
+  setTokens,
+  setFirebaseUser,
+  setAuthInitialized,
+  setFullUserProfile,
+} = authSlice.actions;
 export default authSlice.reducer;

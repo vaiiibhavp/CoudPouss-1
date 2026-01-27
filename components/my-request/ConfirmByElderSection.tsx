@@ -203,6 +203,13 @@ export default function ConfirmByElderSection({
     },
   };
 
+  const handleNavigate = () => {
+    const provider: ProviderInfo | undefined = serviceDetail?.provider;
+    if (provider) {
+      router.push(ROUTES.CHAT_id.replace(":id", provider?.id || ""));
+    }
+  };
+
   return (
     <Box>
       {/* Main Grid Layout */}
@@ -747,6 +754,7 @@ export default function ConfirmByElderSection({
                     </Box>
                   </Box>
                   <Button
+                    onClick={handleNavigate}
                     variant="outlined"
                     sx={{
                       textTransform: "none",

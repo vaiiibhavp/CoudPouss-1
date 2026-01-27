@@ -26,6 +26,7 @@ export interface UserData {
   latitude: number | null;
   is_deleted: boolean;
   updated_at: string;
+  profile_photo: string;
 }
 
 export interface ProviderInfo {
