@@ -6,7 +6,7 @@ import {
   setFirebaseUser,
   setUserFromStorage,
 } from "@/lib/redux/authSlice";
-import { refreshAccessToken } from "@/lib/redux/authSlice";
+
 import { useAppDispatch } from "@/hooks/useAppDispatchHook";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/redux/store";
@@ -28,11 +28,12 @@ function AuthProvider({ children }: Props) {
     dispatch(setUserFromStorage());
 
     // Try to get a new access token from refresh token (httpOnly cookie)
-    dispatch(refreshAccessToken());
+    // dispatch(refreshAccessToken());
+    dispatch(setAuthInitialized());
 
     // const unsubscribeFirebase = listenFirebaseAuth(async (firebaseUser) => {
     //   console.log('firebaseUser',firebaseUser);
-      
+
     //   if (firebaseUser) {
     //     await createUserDoc(firebaseUser);
 
