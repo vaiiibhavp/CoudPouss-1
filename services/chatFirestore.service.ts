@@ -42,6 +42,7 @@ export type ChatThread = {
 };
 
 export type ChatMessage = {
+  attachments: never[];
   id: string;
   text: string;
   senderId: string;
@@ -402,7 +403,7 @@ export async function sendTextMessage(payload: {
     text: payload.text,
     senderId: payload.senderId,
     receiverId: payload.receiverId,
-    imageUrls: payload.imageUrls || [], // Store the URLs here
+    attachments: payload.imageUrls || [], // Store the URLs here
     type: payload.imageUrls?.length ? 'image' : 'text',
     createdAt: timestamp,
   };

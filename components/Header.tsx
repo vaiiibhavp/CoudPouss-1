@@ -474,13 +474,12 @@ export default function Header({
   const userRole =
     user?.role || getCookie("userRole") || localStorage.getItem("role");
   const finalHomeRoute =
-    homeRoute ||
+
     (isAuthenticated && userRole === "service_provider"
       ? ROUTES.PROFESSIONAL_HOME
       : isAuthenticated && userRole === "elderly_user"
         ? ROUTES.AUTH_HOME
         : ROUTES.HOME);
-
   return (
     <>
       <AppBar

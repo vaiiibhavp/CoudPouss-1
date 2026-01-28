@@ -33,8 +33,135 @@ export interface ServiceSearchApiResponse {
   };
 }
 
+export interface ServiceDetailData {
+  service_id: string;
+  task_status: string;
+  service_description: string;
+  chosen_datetime: string;
+  category_name: string;
+  category_logo: string;
+  sub_category_name: string;
+  provider: ProviderInfo;
+  sub_category_logo: string;
+  elder_address: string;
+  lifecycle: LifecycleItem[];
+  total_renegotiated: number;
+  media: ServiceMedia;
+  payment_breakdown: PaymentBreakdown;
+  service_code: string;
+}
 
+interface PaymentBreakdown {
+  finalize_quote_amount: number;
+  platform_fees: number;
+  tax: number;
+  total_renegotiated: number;
+}
+export interface ProviderInfo {
+  email: string;
+  first_name: string;
+  full_name: string;
+  id: string;
+  is_favorate: boolean;
+  is_verified: boolean;
+  last_name: string;
+  profile_photo_url: string | null;
+  profile_image_url: string | null;
+}
 
+export interface Request {
+  id: string;
+  serviceName: string;
+  date: string;
+  time: string;
+  status: ApiStatus;
+  image: string;
+  category: string;
+  location: string;
+  quote: number;
+  professional?: {
+    email: string;
+    first_name: string;
+    full_name: string;
+    id: string;
+    profile_photo_url: string | null;
+    profile_image_url: string | null;
+    is_verified: boolean;
+    is_favorate: boolean;
+    last_name: string;
+  };
+  message: string;
+  videos: string[];
+  quoteId?: string;
+}
+export type ApiStatus =
+  | "pending"
+  | "open"
+  | "accepted"
+  | "completed"
+  | "cancelled";
+
+export interface ApiServiceRequest {
+  id: string;
+  category_id: string;
+  sub_category_id: string;
+  is_professional: boolean;
+  status: string;
+  amount: number | null;
+  quoteid: string | null;
+  total_renegotiated: string | null;
+  chosen_datetime: string;
+  created_at: string;
+  service_type_photo_url: string;
+  category_name: string;
+  category_logo: string;
+  sub_category_name: string;
+  sub_category_logo: string;
+  created_date: string;
+}
+
+export interface ServiceRequestsApiResponse {
+  message: string;
+  data: {
+    recent_requests: {
+      total_items: number;
+      page: number;
+      limit: number;
+      items: ApiServiceRequest[];
+    };
+  };
+  success: boolean;
+  status_code: number;
+}
+
+export interface LifecycleItem {
+  id: number;
+  name: string;
+  time: string | null;
+  completed: boolean;
+}
+
+export interface ServiceMedia {
+  photos: string[];
+  videos: string[];
+}
+
+export interface ServiceDetailApiResponse {
+  message: string;
+  data: ServiceDetailData;
+  success: boolean;
+  status_code: number;
+}
+
+export interface FavoriteResponse {
+  message: string;
+  success: boolean;
+  status_code: number;
+  data: {
+    elderly_id: string;
+    favorite_list: string[];
+  };
+}
 export const STATUS_CONFIG: Record<string, UiStatusConfig> = {
   "pending": {
     label: "Responded",

@@ -74,6 +74,7 @@ export const API_ENDPOINTS = {
     OPEN_SERVICES: `${API_BASE_URL}quote_request/open-services`,
     SEARCH_REQUEST: `${API_BASE_URL}service_confirmation/service_accept/get_services`,
     PROFESSIONAL_DETAIL: `${API_BASE_URL}service_confirmation/service_accept/user`,
+    REJECT_SERVICE: `${API_BASE_URL}service_confirmation/service_accept/reject_quote`,
   },
   CANCEL_SERVICE: {
     GET_CANCEL_DETAILS: (serviceId: string) =>

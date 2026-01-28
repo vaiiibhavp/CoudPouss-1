@@ -20,8 +20,10 @@ import { ROUTES } from "@/constants/routes";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import BookServiceModal from "@/components/BookServiceModal";
-import { apiGet } from "@/lib/api";
+import { apiDelete, apiGet, apiPost } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import { ApiResponse } from "@/types";
+import { FavoriteResponse } from "../my-requests/helper";
 
 interface Service {
   id: string;
@@ -371,6 +373,56 @@ export default function AuthenticatedHomePage() {
   };
 
   const navigate = useRouter();
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+
+  const handleFavorite = async (
+    professionalId?: string,
+    isFavorite?: boolean,
+  ) => {
+    if (!professionalId || favoriteLoading) return;
+
+    setFavoriteLoading(true);
+
+    // 🔹 Snapshot for rollback
+    const prevList = [...favoriteProfessionals];
+
+    // 🔹 Optimistic update: Remove from UI immediately if we are un-favoriting
+    setFavoriteProfessionals((prev) =>
+      prev.filter((req) => req?.id !== professionalId),
+    );
+
+    try {
+      let response: ApiResponse<FavoriteResponse>;
+
+      if (isFavorite) {
+        const endpoint =
+          API_ENDPOINTS.FAVORITE_REAQUEST.DELETE_FAVORITE(professionalId);
+        response = await apiDelete<FavoriteResponse>(endpoint);
+      } else {
+        const endpoint =
+          API_ENDPOINTS.FAVORITE_REAQUEST.UPDATE_FAVORITE(professionalId);
+        response = await apiPost<FavoriteResponse>(endpoint, {});
+      }
+
+      if (!response.success) {
+        throw new Error(response.data?.message || "Operation failed");
+      }
+
+      // 🔹 Server Sync: Use the actual list returned by the server
+      const favoriteListIds = response.data?.data?.favorite_list || [];
+
+      // Filter the state to match exactly what the server says are favorites
+      setFavoriteProfessionals((prev) =>
+        prev.filter((req) => favoriteListIds.includes(req?.id)),
+      );
+    } catch (error) {
+      console.error("Failed to update favorite status", error);
+      // 🔹 Rollback UI on failure
+      setFavoriteProfessionals(prevList);
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
 
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
@@ -1485,8 +1537,23 @@ export default function AuthenticatedHomePage() {
                           color: "#2C6587",
                           p: 0.5,
                         }}
+                        size="small"
+                        onClick={(e) => {
+                          handleFavorite(professional.id, true);
+                          e.stopPropagation();
+                        }}
                       >
-                        <FavoriteIcon sx={{ fontSize: 20 }} />
+                        {/* {professional?.is_favorate ? ( */}
+                        <FavoriteIcon
+                          fontSize="small"
+                          sx={{ color: "#E0245E" }}
+                        />
+                        {/* ) : (
+                          <FavoriteBorderIcon
+                            fontSize="small"
+                            sx={{ color: "#6B7280" }}
+                          />
+                        )} */}
                       </IconButton>
 
                       {/* Profile Picture */}

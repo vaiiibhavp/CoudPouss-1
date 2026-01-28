@@ -50,7 +50,7 @@ export default function ProceedToPaymentModal({
       try {
         console.log("Calling accept quote API...");
         const response = await apiPut<AcceptQuoteResponse>(
-          "service_confirmation/service_accept/accept_quote",
+          "service_confirmation/service_accept/accept_quote"+`?platform=web`,
           {
             service_id: serviceId,
             quote_id: quoteId,
