@@ -214,7 +214,9 @@ export default function AuthenticatedHomePage() {
     useState(false);
   const [serviceCards, setServiceCards] = useState<ServiceCard[]>([]);
   const [serviceCardsLoading, setServiceCardsLoading] = useState(false);
+
   const [isBookServiceModalOpen, setIsBookServiceModalOpen] = useState(false);
+  const [professionalConnectedCount, setProfessionalConnectedCount] = useState<number>(0);
 
   // Check if user is authenticated on mount
   useEffect(() => {
@@ -305,6 +307,11 @@ export default function AuthenticatedHomePage() {
           setServices(sortedServices);
         }
         console.log({ apiData });
+
+        // Handle professional connected count
+        if (apiData.data?.professional_connected_count !== undefined) {
+          setProfessionalConnectedCount(apiData.data.professional_connected_count);
+        }
 
         // Handle favorite professionals
         if (apiData?.data?.favorite_professionals?.records) {
@@ -482,7 +489,7 @@ export default function AuthenticatedHomePage() {
                         fontWeight: "600",
                       }}
                     >
-                      10
+                      {professionalConnectedCount}
                     </Typography>
                     <Typography
                       sx={{
@@ -1448,9 +1455,8 @@ export default function AuthenticatedHomePage() {
               ) : (
                 favoriteProfessionals.map((professional) => {
                   const fullName =
-                    `${professional.first_name || ""} ${
-                      professional.last_name || ""
-                    }`.trim() || "Unknown";
+                    `${professional.first_name || ""} ${professional.last_name || ""
+                      }`.trim() || "Unknown";
                   const rating = professional.average_rating || 0;
                   const reviews = professional.total_reviews || 0;
 

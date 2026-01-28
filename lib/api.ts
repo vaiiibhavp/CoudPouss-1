@@ -162,6 +162,17 @@ export async function apiPostFormData<T>(
       };
     }
 
+    if (data?.status === "error") {
+      return {
+        success: false,
+        error: {
+          message: data?.message || "An error occurred",
+          code: data?.code,
+          fields: data?.fields,
+        },
+      };
+    }
+
     return { success: true, data };
   } catch (error) {
     if (error instanceof TypeError && error.message.includes("fetch")) {

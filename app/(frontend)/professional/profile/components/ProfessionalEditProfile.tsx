@@ -128,23 +128,23 @@ export default function ProfessionalEditProfile({
       setLoading(true);
       try {
         const response = await apiGet<GetUserApiResponse>(API_ENDPOINTS.AUTH.GET_USER);
-        
+
         if (response.success && response.data) {
           const apiData = response.data;
           if (apiData.data?.user) {
             const user = apiData.data.user;
             setUserData(user);
-            
+
             // Set provider info if available
             if (apiData.data.provider_info) {
               setProviderInfo(apiData.data.provider_info);
             }
-            
+
             // Initialize form data
             const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
             const dialCode = user.phone_country_code || "+91";
             const iso2 = dialCodeToIso2(dialCode);
-            
+
             setFormData({
               fullName,
               email: user.email || "",
@@ -196,7 +196,7 @@ export default function ProfessionalEditProfile({
         setLoading(false);
       }
     };
-    
+
     fetchUserData();
   }, []);
 
@@ -217,6 +217,12 @@ export default function ProfessionalEditProfile({
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      if (file.type !== "image/jpeg" && file.type !== "image/png") {
+        toast.error("Only JPG and PNG files are allowed");
+        return;
+      }
+
       setProfilePhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -510,7 +516,7 @@ export default function ProfessionalEditProfile({
               }}
             >
               <input
-                accept="image/*"
+                accept=".jpg,.jpeg,.png"
                 style={{ display: "none" }}
                 id="profile-photo-upload"
                 type="file"
@@ -690,31 +696,33 @@ export default function ProfessionalEditProfile({
                   sx={{
                     display: "flex",
                     alignItems: "center",
+                    justifyContent: "space-between",
                     border: "1px solid #D5D5D5",
                     borderRadius: "0.75rem",
                     backgroundColor: "#FFFFFF",
-                    width: "fit-content",
-                    padding: "0.375rem 0.5rem",
-                    gap: 0.5,
+                    width: "100%",
+                    padding: "0.875rem 1rem",
                   }}
                 >
-                  <IconButton
-                    size="small"
-                    onClick={() => handleExperienceChange(-1)}
-                    sx={{ color: "#2F6B8E" }}
-                  >
-                    <RemoveIcon fontSize="small" />
-                  </IconButton>
-                  <Typography sx={{ px: 2, fontWeight: 600, color: "#131313" }}>
+                  <Typography sx={{ fontWeight: 500, color: "#131313", fontSize: "1rem" }}>
                     {formData.yearsOfExperience}
                   </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleExperienceChange(1)}
-                    sx={{ color: "#2F6B8E" }}
-                  >
-                    <AddIcon fontSize="small" />
-                  </IconButton>
+                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleExperienceChange(-1)}
+                      sx={{ color: "#5E5E5E", p: 0 }}
+                    >
+                      <RemoveIcon fontSize="medium" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleExperienceChange(1)}
+                      sx={{ color: "#5E5E5E", p: 0 }}
+                    >
+                      <AddIcon fontSize="medium" />
+                    </IconButton>
+                  </Box>
                 </Box>
               </Box>
             </Box>

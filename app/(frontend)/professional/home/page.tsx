@@ -190,6 +190,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [recentTasks, setRecentTasks] = useState<RecentTask[]>([]);
+  const [verifiedProvidersCount, setVerifiedProvidersCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -222,6 +223,11 @@ export default function DashboardPage() {
             setRecentTasks(transformedTasks);
           } else {
             setRecentTasks([]);
+          }
+
+          // Extract verified providers count
+          if (response.data.data?.stats?.verified_providers_today?.count !== undefined) {
+            setVerifiedProvidersCount(response.data.data.stats.verified_providers_today.count);
           }
         } else {
           setError(
@@ -349,20 +355,187 @@ export default function DashboardPage() {
       {
         recentTasks.length > 0 ?
 
+          // <Box
+          //   sx={{
+          //     px: { xs: "1rem", md: "5.063rem" },
+          //   }}
+          // >
+          //   <Image
+          //     src="/image/professionalHomeBanner.png"
+          //     alt="Professional"
+          //     style={{
+          //       width: "100%",
+          //     }}
+          //     width={1278}
+          //     height={514}
+          //   />
+          // </Box> :
+
+
           <Box
             sx={{
+              position: "relative",
+              mb: { xs: 1, md: 3 },
+              mt: { xs: "30px", sm: "60px", md: "126px" },
+              overflow: "visible",
               px: { xs: "1rem", md: "5.063rem" },
             }}
           >
-            <Image
-              src="/image/professionalHomeBanner.png"
-              alt="Professional"
-              style={{
-                width: "100%",
+            <Box
+              sx={{
+                bgcolor: "#2F6B8E",
+                color: "white",
+                minHeight: { xs: "7.5rem", sm: "10rem", md: "12.5rem" },
+                borderRadius: { xs: "20px", sm: "45px", md: "50px" },
+                display: "flex",
+                alignItems: "center",
+                gap: { xs: "0.25rem", sm: "0.75rem", md: "0.977rem" },
+                position: "relative",
+                overflow: "visible",
+                // px: { xs: "10px", md: "0px" }
               }}
-              width={1278}
-              height={514}
-            />
+            >
+              {/* Floating Image */}
+
+
+              <Box sx={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between" }} >
+
+
+                <Box
+                  sx={{
+                    mt: { xs: "-3rem", sm: "-4rem", md: "-7rem" },
+                    // display: { xs: "none", sm: "block" },
+                    "& img": {
+                      width: { xs: "150px", sm: "225px", md: "345px" },
+                      height: "auto"
+                    }
+                  }}
+                >
+                  <Image
+                    src="/image/worker-with-side.png"
+                    alt="Professional"
+                    style={{
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      marginBottom: "auto",
+                    }}
+                    width={345}
+                    height={514}
+                  />
+                </Box>
+                <Box sx={{
+                  maxWidth: "436px",
+                  paddingRight: { xs: "20px", sm: "0px", md: "0px" }
+
+                }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 0.5, sm: 1 },
+                      mb: { xs: "0.5rem", md: "29px" },
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: {
+                          xs: "2.5rem",
+                          sm: "4rem",
+                          md: "97.23px",
+
+                        },
+                        lineHeight: {
+                          xs: "2rem",
+                          sm: "3.5rem",
+                          md: "64.83px",
+                        },
+                        fontWeight: "700",
+                      }}
+                    >
+                      {verifiedProvidersCount}
+                    </Typography>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: {
+                            xs: "0.75rem",
+                            sm: "1.2rem",
+                            md: "40.51px",
+                          },
+                          lineHeight: {
+                            xs: "1rem",
+                            sm: "1.4rem",
+                          },
+                          mb: { xs: 0, md: "24px" }
+                        }}
+                      >
+                        Professionals
+
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: {
+                            xs: "0.75rem",
+                            sm: "1.2rem",
+                            md: "40.51px",
+                          },
+                          lineHeight: {
+                            xs: "1rem",
+                            sm: "1.4rem",
+
+                          },
+                        }}
+                      >
+                        Connected Today
+                      </Typography>
+                    </Box>
+
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      opacity: 0.9,
+                      fontSize: {
+                        xs: "0.5rem",
+                        sm: "0.75rem",
+                        md: "24.31px",
+                      },
+                      lineHeight: {
+                        xs: "0.7rem",
+                        sm: "1rem",
+                        md: "1.8rem",
+                      },
+                    }}
+                  >
+                    Professionals have joined to serve with <br /> skill, responsibility, and care.
+                  </Typography>
+                </Box>
+                <Box sx={{
+                  display: { xs: "none", sm: "block" },
+                  marginBottom: "auto",
+                  height: { xs: "90px", sm: "200px", md: "19.375rem" },
+                  "& img": {
+                    height: "100% !important",
+                    width: "auto !important",
+                    borderRadius: { xs: "1rem", md: "3.125rem" }
+                  }
+                }}>
+                  <Image
+                    src="/image/half-blue-circle.png"
+                    alt="Professional"
+                    width={350}
+                    height={262}
+                    style={{
+                      width: "auto",
+                      height: "19.375rem",
+                      borderRadius: "3.125rem",
+                      marginBottom: "auto",
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
           </Box> :
 
           <Box
@@ -450,7 +623,7 @@ export default function DashboardPage() {
                             fontWeight: "600",
                           }}
                         >
-                          10
+                          {verifiedProvidersCount}
                         </Typography>
                         <Typography
                           sx={{
@@ -924,6 +1097,7 @@ export default function DashboardPage() {
               textTransform: "none",
               boxShadow: "0px 10px 13.2px rgba(44, 101, 135, 0.06)",
               bgcolor: "#FFFFFF",
+              flexShrink: 0,
               "&:hover": {
                 bgcolor: "#F5F8FA",
                 borderColor: "#BECFDA",
@@ -1068,6 +1242,7 @@ export default function DashboardPage() {
                   textTransform: "none",
                   boxShadow: "0px 10px 13.2px rgba(44, 101, 135, 0.06)",
                   bgcolor: "#FFFFFF",
+                  flexShrink: 0,
                   "&:hover": {
                     bgcolor: "#F5F8FA",
                     borderColor: "#BECFDA",
@@ -1163,7 +1338,7 @@ export default function DashboardPage() {
           </Box> :
 
 
-          <Box sx={{   mt:"94px", bgcolor: "#F8F8F8", py: { xs: 4, sm: 6, md: 8 } }}>
+          <Box sx={{ mt: "94px", bgcolor: "#F8F8F8", py: { xs: 4, sm: 6, md: 8 } }}>
             <Container
               maxWidth="lg"
               sx={{ px: { xs: "1rem", sm: "2rem", md: "3rem" } }}

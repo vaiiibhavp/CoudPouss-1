@@ -6,7 +6,6 @@ import {
   Box,
   Typography,
   Avatar,
-  IconButton,
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import { useSelector } from "react-redux";
@@ -88,7 +87,7 @@ export default function RatingsAndReviews() {
           gap: "16px",
         }}
       >
-        {reviews.map((review, index) => {
+        {reviews.map((review: any, index) => {
           // Determine if we should show "Read More"
           const isLongReview = review.review.length > 100;
           // Use index or user_id as key, ideally review should have a unique ID. 
@@ -216,61 +215,41 @@ export default function RatingsAndReviews() {
                   mt: 1,
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
-                  <IconButton
-                    size="small"
-                    sx={{
-                      p: 0,
-                      "&:hover": {
-                        bgcolor: "transparent"
-                      },
+                <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Image
+                    src="/icons/ThumbsDown.png"
+                    alt="Dislike"
+                    width={64}
+                    height={64}
+                    style={{
+                      height: "16px",
+                      width: "16px",
                     }}
-                  >
-                    <Image
-                      src="/icons/ThumbsDown.png"
-                      alt="Dislike"
-                      width={64}
-                      height={64}
-                      style={{
-                        height: "16px",
-                        width: "16px",
-                      }}
-                    />
-                  </IconButton>
+                  />
                   <Typography
                     variant="caption"
                     sx={{ color: "#707D85", fontSize: "0.85rem", fontWeight: 500 }}
                   >
-                    ###
+                    {review.dislikes_count || 0}
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
-                  <IconButton
-                    size="small"
-                    sx={{
-                      p: 0,
-                      "&:hover": {
-                        bgcolor: "transparent"
-                      },
+                <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Image
+                    src="/icons/ThumbsUp.png"
+                    alt="Like"
+                    width={64}
+                    height={64}
+                    style={{
+                      height: "16px",
+                      width: "16px",
                     }}
-                  >
-                    <Image
-                      src="/icons/ThumbsUp.png"
-                      alt="Like"
-                      width={64}
-                      height={64}
-                      style={{
-                        height: "16px",
-                        width: "16px",
-                      }}
-                    />
-                  </IconButton>
+                  />
                   <Typography
                     variant="caption"
                     sx={{ color: "#707D85", fontSize: "0.85rem", fontWeight: 500 }}
                   >
-                    ###
+                    {review.likes_count || 0}
                   </Typography>
                 </Box>
               </Box>

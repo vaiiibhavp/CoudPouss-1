@@ -167,6 +167,10 @@ export default function EditProfile({ onCancel, onSuccess }: EditProfileProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.type !== "image/jpeg" && file.type !== "image/png") {
+        toast.error("Only JPG and PNG files are allowed");
+        return;
+      }
       setSelectedFile(file);
       // Create preview URL
       const reader = new FileReader();
@@ -184,7 +188,7 @@ export default function EditProfile({ onCancel, onSuccess }: EditProfileProps) {
         user_data: {
           name: values.fullName.trim(),
           address: values.address.trim(),
-          phone_number:values.mobileNumber
+          phone_number: values.mobileNumber
         },
       };
 
@@ -193,8 +197,8 @@ export default function EditProfile({ onCancel, onSuccess }: EditProfileProps) {
         API_ENDPOINTS.PROFILE.UPDATE_PROFILE,
         updatePayload,
       );
-      console.log('updateResponse',updateResponse);
-      
+      console.log('updateResponse', updateResponse);
+
 
       if (!updateResponse.success) {
         throw new Error(
@@ -329,11 +333,11 @@ export default function EditProfile({ onCancel, onSuccess }: EditProfileProps) {
                       ? null
                       : values.fullName
                         ? values.fullName
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()
-                            .slice(0, 2)
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2)
                         : "U"}
                   </Avatar>
                   <Box
@@ -343,7 +347,7 @@ export default function EditProfile({ onCancel, onSuccess }: EditProfileProps) {
                     }}
                   >
                     <input
-                      accept="image/*"
+                      accept=".jpg,.jpeg,.png"
                       style={{ display: "none" }}
                       id="profile-photo-upload"
                       type="file"

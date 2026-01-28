@@ -1,4 +1,5 @@
 "use client";
+import { toast } from "sonner";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -13,7 +14,7 @@ import {
 } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import { apiGet } from "@/lib/api";
+import { apiGet, apiPut } from "@/lib/api";
 import Image from "next/image";
 import { API_ENDPOINTS } from "@/constants/api";
 
@@ -171,6 +172,26 @@ export default function RatingsReviews() {
       ...prev,
       [id]: !prev[id],
     }));
+  };
+
+  const handleLikeDislike = async (reviewId: string, action: "like" | "dislike") => {
+    try {
+      if (!reviewId) return;
+
+      const response = await apiPut(API_ENDPOINTS.RATING.LIKE_REVIEW, {
+        review_id: reviewId,
+        action: action
+      });
+
+      if (response.success) {
+        toast.success((response as any).message || "Review updated successfully");
+      } else {
+        toast.error((response as any).message || "Failed to update review");
+      }
+    } catch (error: any) {
+      console.error("Error liking/disliking review:", error);
+      toast.error(error.message || "Something went wrong. Please try again.");
+    }
   };
 
   console.log("reviews", reviews);
@@ -385,6 +406,7 @@ export default function RatingsReviews() {
                   <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
                     <IconButton
                       size="small"
+                      onClick={() => handleLikeDislike(review.id, 'dislike')}
                       sx={{
                         p: 0,
                         "&:hover": {
@@ -418,6 +440,7 @@ export default function RatingsReviews() {
                   <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
                     <IconButton
                       size="small"
+                      onClick={() => handleLikeDislike(review.id, 'like')}
                       sx={{
                         p: 0,
                         "&:hover": {

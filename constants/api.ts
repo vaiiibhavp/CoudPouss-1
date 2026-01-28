@@ -97,5 +97,6 @@ export const API_ENDPOINTS = {
   },
   RATING: {
     CREATE_RATING: `${API_BASE_URL}service_confirmation/ratings/submit`,
+    LIKE_REVIEW: `${API_BASE_URL}profile_module/like-review-rating`,
   },
 } as const;
