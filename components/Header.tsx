@@ -30,7 +30,7 @@ import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
 import SignOutModal from "./SignOutModal";
 import { AppDispatch, RootState } from "@/lib/redux/store";
-import { setUserFromStorage, logout } from "@/lib/redux/authSlice";
+import { setUserFromStorage, logout, setFullUserProfile } from "@/lib/redux/authSlice";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import CreateServiceRequestModal from "./CreateServiceRequestModal";
@@ -112,6 +112,19 @@ interface UserDetails {
   created_at: string;
   updated_at: string;
   role?: string;
+  [key: string]: any;
+}
+
+interface ProviderInfo {
+  id: string;
+  services_provider_id: string;
+  bio?: string;
+  experience_speciality?: string;
+  achievements?: string;
+  years_of_experience?: number;
+  is_docs_verified: boolean;
+  docs_status: string;
+  [key: string]: any;
 }
 
 interface GetUserApiResponse {
@@ -119,6 +132,11 @@ interface GetUserApiResponse {
   message: string;
   data: {
     user: UserDetails;
+    provider_info?: ProviderInfo;
+    past_work_files?: string[];
+    recent_reviews?: any[];
+    customer_ratings?: any;
+    unique_clients_count?: number;
   };
 }
 
@@ -210,6 +228,7 @@ export default function Header({
       if (!isAuthenticated) {
         setUserDetails(null);
         setIsAccountUnderVerification(false);
+        dispatch(setFullUserProfile(null));
         return;
       }
 
@@ -224,6 +243,17 @@ export default function Header({
           if (apiData.data?.user) {
             const user = apiData.data.user;
             setUserDetails(user);
+
+            // Dispatch to Redux store
+            dispatch(setFullUserProfile({
+              user: user as any, // detailed user profile
+              provider_info: apiData.data.provider_info,
+              past_work_files: apiData.data.past_work_files,
+              recent_reviews: apiData.data.recent_reviews,
+              customer_ratings: apiData.data.customer_ratings,
+              unique_clients_count: apiData.data.unique_clients_count
+            }));
+
             // Set verification status based on is_docs_verified
             // If is_docs_verified is false, account is under verification (show message)
             // If is_docs_verified is true, account is verified (hide message)
@@ -239,7 +269,7 @@ export default function Header({
     };
 
     fetchUserDetails();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, dispatch]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

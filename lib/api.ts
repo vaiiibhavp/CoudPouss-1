@@ -49,8 +49,6 @@ async function apiRequest<T>(
       headers,
     });
 
-    console.log({ response });
-
     if (response.status === 401) {
       const store = getStore();
       store.dispatch(logout());
