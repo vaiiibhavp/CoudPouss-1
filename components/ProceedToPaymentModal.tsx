@@ -50,11 +50,11 @@ export default function ProceedToPaymentModal({
       try {
         console.log("Calling accept quote API...");
         const response = await apiPut<AcceptQuoteResponse>(
-          "service_confirmation/service_accept/accept_quote"+`?platform=web`,
+          "service_confirmation/service_accept/accept_quote" + `?platform=web`,
           {
             service_id: serviceId,
             quote_id: quoteId,
-          }
+          },
         );
         console.log("Accept quote API response:", response);
 
@@ -69,7 +69,6 @@ export default function ProceedToPaymentModal({
           // Optional: Handle error (e.g. show toast)
           console.error("API Error - No checkout URL:", response);
         }
-
       } catch (error) {
         console.error("Error calling accept quote API:", error);
       } finally {
@@ -82,8 +81,17 @@ export default function ProceedToPaymentModal({
     }
   };
 
-  const formatAmount = (value: number) =>
-    `${currencySymbol}${value.toFixed(1)}`;
+  const formatAmount = (value: any) => {
+    // Convert value to a number (handles strings like "50")
+    const numValue = Number(value);
+
+    // Check if it's a valid number. If not, default to 0.0
+    if (isNaN(numValue)) {
+      return `${currencySymbol}0.0`;
+    }
+
+    return `${currencySymbol}${numValue.toFixed(1)}`;
+  };
 
   return (
     <Dialog
@@ -94,7 +102,7 @@ export default function ProceedToPaymentModal({
         sx: {
           borderRadius: 3,
           p: "2.5rem",
-          minWidth: "27.5rem"
+          minWidth: "27.5rem",
         },
       }}
     >
@@ -370,8 +378,8 @@ export default function ProceedToPaymentModal({
                 },
                 "&:disabled": {
                   bgcolor: "#5c7e91",
-                  color: "#e0e0e0"
-                }
+                  color: "#e0e0e0",
+                },
               }}
             >
               {loading ? "Processing..." : "Proceed to Pay"}

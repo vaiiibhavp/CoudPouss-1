@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import Image from "next/image";
 import { apiGet, apiPost, apiPostFormData } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import dayjs from "dayjs";
 
 interface BookServiceModalProps {
   open: boolean;
@@ -2472,6 +2473,18 @@ export default function BookServiceModal({
                 </Typography>
               </Box>
             </Box>
+            {isPastTime && (
+              <Typography
+                sx={{
+                  color: "error.main",
+                  fontSize: "0.75rem",
+                  mt: 1,
+                  textAlign: "center",
+                }}
+              >
+                Please select a time at least 2 hours from now.
+              </Typography>
+            )}
           </Box>
         );
 
@@ -3339,6 +3352,40 @@ export default function BookServiceModal({
       </Box>
     );
   };
+  console.log("currentStep", currentStep);
+
+  const isPastTime = useMemo(() => {
+    if (
+      !selectedTime.hour ||
+      !selectedTime.minute ||
+      !selectedTime.period ||
+      selectedTime.minute.trim().length < 2
+    ) {
+      return true;
+    }
+
+    // 1. Get the current time for reference
+    const now = dayjs();
+
+    // 2. Build the base date using the selected day
+    const baseDate = dayjs().date(selectedDate).startOf("day");
+
+    // 3. Construct the full date/time object from user selection
+    const selectedDateTime = dayjs(
+      `${baseDate.format("YYYY-MM-DD")} ${selectedTime.hour.padStart(2, "0")}:${selectedTime.minute.padStart(2, "0")} ${selectedTime.period}`,
+      "YYYY-MM-DD hh:mm A",
+      true,
+    );
+
+    // 4. Logic: Only apply the 2-hour restriction if the date is TODAY
+    if (baseDate.isSame(now, "day")) {
+      const minAllowedTime = now.add(2, "hour");
+      return selectedDateTime.isBefore(minAllowedTime);
+    }
+
+    // If it's a future date, it's valid (unless it's in the past, though usually handled by date picker)
+    return selectedDateTime.isBefore(now);
+  }, [selectedTime, selectedDate]);
 
   return (
     <>
@@ -3531,9 +3578,9 @@ export default function BookServiceModal({
                   (!selectedCategory || !selectedService)) ||
                 (currentStep === 3 &&
                   (!serviceDescription || descriptionFiles.length === 0)) ||
-                (currentStep === 4 &&
+                (currentStep === 4 &&(isPastTime||(
                   serviceProvider === "professional" &&
-                  (!valuation || valuation.trim() === "")) ||
+                  (!valuation || valuation.trim() === "")))) ||
                 (currentStep === 5 &&
                   serviceProvider === "non-professional" &&
                   (!productName || barterPhotoFiles.length === 0))

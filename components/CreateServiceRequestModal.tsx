@@ -864,31 +864,33 @@ export default function CreateServiceRequestModal({
     }
   };
   const isPastTime = useMemo(() => {
-    if (!selectedTime.hour || !selectedTime.minute || !selectedTime.period) {
-      return false;
+    if (!selectedTime.hour || !selectedTime.minute || !selectedTime.period||selectedTime.minute.trim().length<2) {
+      return true;
     }
 
-    // 🔧 Build full date using current month/year
-    const baseDate = dayjs()
-      .date(selectedDate) // selectedDate = 27
-      .hour(0)
-      .minute(0)
-      .second(0);
+    // 1. Get the current time for reference
+    const now = dayjs();
 
+    // 2. Build the base date using the selected day
+    const baseDate = dayjs().date(selectedDate).startOf("day");
+
+    // 3. Construct the full date/time object from user selection
     const selectedDateTime = dayjs(
       `${baseDate.format("YYYY-MM-DD")} ${selectedTime.hour.padStart(2, "0")}:${selectedTime.minute.padStart(2, "0")} ${selectedTime.period}`,
       "YYYY-MM-DD hh:mm A",
-      true, // strict parsing
+      true,
     );
 
-    // only block past time for today
-    if (!baseDate.isSame(dayjs(), "day")) {
-      return false;
+    // 4. Logic: Only apply the 2-hour restriction if the date is TODAY
+    if (baseDate.isSame(now, "day")) {
+      const minAllowedTime = now.add(2, "hour");
+      return selectedDateTime.isBefore(minAllowedTime);
     }
 
-    return selectedDateTime.isBefore(dayjs());
+    // If it's a future date, it's valid (unless it's in the past, though usually handled by date picker)
+    return selectedDateTime.isBefore(now);
   }, [selectedTime, selectedDate]);
-  
+  console.log("isPastTime", isPastTime, selectedTime, selectedDate);
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -1827,6 +1829,18 @@ export default function CreateServiceRequestModal({
                 </Typography>
               </Box>
             </Box>
+            {isPastTime && (
+              <Typography
+                sx={{
+                  color: "error.main",
+                  fontSize: "0.75rem",
+                  mt: 1,
+                  textAlign: "center",
+                }}
+              >
+                Please select a time at least 2 hours from now.
+              </Typography>
+            )}
           </Box>
         );
 
@@ -2881,8 +2895,9 @@ export default function CreateServiceRequestModal({
                 (currentStep === 2 &&
                   (!serviceDescription || descriptionFiles.length === 0)) ||
                 (currentStep === 3 &&
-                  serviceProvider === "professional" &&
-                  (!valuation || valuation.trim() === "" || isPastTime)) ||
+                  (isPastTime || // Global check for both professional and non-professional
+                    (serviceProvider === "professional" &&
+                      (!valuation || valuation.trim() === "")))) ||
                 // (serviceProvider === "non-professional" && isPastTime) ||
                 (currentStep === 4 &&
                   serviceProvider === "non-professional" &&
