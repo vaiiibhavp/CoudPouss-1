@@ -171,7 +171,7 @@ const mapApiTransactionToTransaction = (
 
 export default function TransactionsHistory() {
   const [status, setStatus] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  // const [paymentMethod, setPaymentMethod] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -189,9 +189,9 @@ export default function TransactionsHistory() {
         params.append("status", status);
       }
       // Add payment method and date filters if API supports them
-      if (paymentMethod) {
-        params.append("payment_method", paymentMethod);
-      }
+      // if (paymentMethod) {
+      //   params.append("payment_method", paymentMethod);
+      // }
       if (startDate) {
         params.append("start_date", startDate);
       }
@@ -226,7 +226,7 @@ export default function TransactionsHistory() {
     } finally {
       setLoading(false);
     }
-  }, [status, paymentMethod, startDate, endDate]);
+  }, [status,  startDate, endDate]);
 
   useEffect(() => {
     fetchTransactions();
@@ -236,9 +236,9 @@ export default function TransactionsHistory() {
     setStatus(event.target.value);
   };
 
-  const handlePaymentMethodChange = (event: SelectChangeEvent) => {
-    setPaymentMethod(event.target.value);
-  };
+  // const handlePaymentMethodChange = (event: SelectChangeEvent) => {
+  //   setPaymentMethod(event.target.value);
+  // };
 
   // Popover state for date picker and date-range selection state
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -361,7 +361,7 @@ export default function TransactionsHistory() {
                 </MenuItem>
               </Select>
             </FormControl>
-            <FormControl>
+            {/* <FormControl>
               <Select
                 value={paymentMethod}
                 onChange={handlePaymentMethodChange}
@@ -401,7 +401,7 @@ export default function TransactionsHistory() {
                   Bank Transfer
                 </MenuItem>
               </Select>
-            </FormControl>
+            </FormControl> */}
             <Box>
               <Button
                 onClick={handleOpenDatePopover}

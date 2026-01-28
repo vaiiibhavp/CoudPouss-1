@@ -249,36 +249,36 @@ export default function ChatPage() {
   //   }
   // };
   // Inside ChatPage.tsx
- const uploadFile = async (file: File): Promise<string | null> => {
-  try {
-    const formData = new FormData();
-    
-    formData.append("file", file);
-    
-    const response = await apiPostFormData<{ url: string }>(
-      API_ENDPOINTS.SERVICE_REQUEST.UPLOAD_FILE,
-      formData,
-    );
+  const uploadFile = async (file: File): Promise<string | null> => {
+    try {
+      const formData = new FormData();
 
-    if (response.success && response.data?.url) {
-      return response.data.url;
+      formData.append("file", file);
+
+      const response = await apiPostFormData<{ url: string }>(
+        API_ENDPOINTS.SERVICE_REQUEST.UPLOAD_FILE,
+        formData,
+      );
+
+      if (response.success && response.data?.url) {
+        return response.data.url;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Error uploading ${file.name}:`, error);
+      return null;
     }
-    return null;
-  } catch (error) {
-    console.error(`Error uploading ${file.name}:`, error);
-    return null;
-  }
-};
+  };
 
-const uploadFiles = async (files: File[]): Promise<string[]> => {
-  // Promise.all triggers all uploads simultaneously
-  const uploadPromises = files.map((file) => uploadFile(file));
-  
-  const urls = await Promise.all(uploadPromises);
+  const uploadFiles = async (files: File[]): Promise<string[]> => {
+    // Promise.all triggers all uploads simultaneously
+    const uploadPromises = files.map((file) => uploadFile(file));
 
-  // Clean up and return only successful URLs
-  return urls.filter((url): url is string => url !== null);
-};
+    const urls = await Promise.all(uploadPromises);
+
+    // Clean up and return only successful URLs
+    return urls.filter((url): url is string => url !== null);
+  };
   const handleSendMessage = async (text: string, files: File[]) => {
     if (!userData || !selectedChat) return;
 
@@ -306,7 +306,7 @@ const uploadFiles = async (files: File[]): Promise<string[]> => {
       console.error("Failed to process message:", error);
     }
   };
-  
+
   const filteredChatUsers = React.useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
@@ -328,7 +328,6 @@ const uploadFiles = async (files: File[]): Promise<string[]> => {
       return displayName.includes(query) || lastMsg.includes(query);
     });
   }, [chatUsers, searchQuery, userData?.id]);
-  
 
   return (
     <Box
@@ -561,7 +560,29 @@ const uploadFiles = async (files: File[]): Promise<string[]> => {
                       </IconButton>
                     )}
 
-                    <Avatar src={activeUser?.avatarUrl} />
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        position: "relative",
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Image
+                        src={
+                          activeUser?.avatarUrl &&
+                          activeUser.avatarUrl.startsWith("http")
+                            ? activeUser.avatarUrl
+                            : "/icons/appLogo.png"
+                        }
+                        alt={activeUser?.name || "User avatar"}
+                        fill
+                        sizes="40px"
+                        style={{ objectFit: "cover" }}
+                      />
+                    </Box>
 
                     <Typography fontWeight={600}>
                       {activeUser?.name || "Chat"}

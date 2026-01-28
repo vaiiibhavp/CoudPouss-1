@@ -1,4 +1,11 @@
-import { Avatar, Box, Dialog, IconButton, Paper, Typography } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Dialog,
+  IconButton,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { formatDateString, formatTime } from "@/utils/utils";
 import Image from "next/image";
 import { useState } from "react";
@@ -36,7 +43,28 @@ export const ChatMessageItem = ({ message }: ChatMessageItemProps) => {
         flexDirection: isUser ? "row-reverse" : "row",
       }}
     >
-      <Avatar src={message.photoURL} sx={{ width: 36, height: 36 }} />
+      <Box
+  sx={{
+    width: 36,
+    height: 36,
+    position: "relative",
+    borderRadius: "50%",
+    overflow: "hidden",
+    flexShrink: 0,
+  }}
+>
+  <Image
+    src={
+      message.photoURL && message.photoURL.startsWith("http")
+        ? message.photoURL
+        : "/icons/appLogo.png"
+    }
+    alt="User avatar"
+    fill
+    sizes="36px"
+    style={{ objectFit: "cover" }}
+  />
+</Box>
 
       <Box
         sx={{
@@ -172,7 +200,7 @@ const ChatImage = ({ src }: { src: string }) => {
           objectFit: error ? "contain" : "cover",
           padding: error ? "20px" : "0px",
           opacity: isLoading ? 0 : 1, // Prevent partial load flash
-          transition: "opacity 0.3s ease-in-out"
+          transition: "opacity 0.3s ease-in-out",
         }}
         unoptimized={src?.startsWith("http://")}
         onLoadingComplete={() => setIsLoading(false)}
@@ -182,13 +210,13 @@ const ChatImage = ({ src }: { src: string }) => {
         }}
       />
       {isLoading && !error && (
-        <Box 
-          sx={{ 
-            position: "absolute", 
-            inset: 0, 
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
             bgcolor: "#eee",
             // Add a shimmer animation here if you have one
-          }} 
+          }}
         />
       )}
     </>
