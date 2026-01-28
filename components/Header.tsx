@@ -914,7 +914,7 @@ export default function Header({
                                   key={service.id}
                                   component={Link}
                                   href={route}
-                                  sx={{
+                                  sx={{ 
                                     p: 2,
                                     borderRadius: 2,
                                     cursor: "pointer",
