@@ -30,12 +30,14 @@ import { ROUTES } from "@/constants/routes";
 import BookServiceModal from "./BookServiceModal";
 import SignOutModal from "./SignOutModal";
 import { AppDispatch, RootState } from "@/lib/redux/store";
-import { setUserFromStorage, logout, setFullUserProfile } from "@/lib/redux/authSlice";
+import { setUserFromStorage, logout } from "@/lib/redux/authSlice";
 import { apiGet } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import CreateServiceRequestModal from "./CreateServiceRequestModal";
 import { setActiveItem } from "@/lib/redux/profileSlice";
 import { toast } from "sonner";
+import ServiceDetailModal from "./my-request/ServiceDetailModal";
+import { formatDateString } from "@/utils/utils";
 
 // Helper function to get cookie value
 const getCookie = (name: string): string | undefined => {
@@ -59,6 +61,7 @@ interface Service {
   id: number;
   name: string;
   icon: string;
+  services_type_photos_url: string;
 }
 
 interface SearchService {
@@ -70,6 +73,7 @@ interface SearchService {
   sub_category_name?: string;
   sub_category_id: string;
   category_id: string;
+  chosen_datetime: string;
 }
 
 interface HomeApiResponse {
@@ -108,19 +112,6 @@ interface UserDetails {
   created_at: string;
   updated_at: string;
   role?: string;
-  [key: string]: any;
-}
-
-interface ProviderInfo {
-  id: string;
-  services_provider_id: string;
-  bio?: string;
-  experience_speciality?: string;
-  achievements?: string;
-  years_of_experience?: number;
-  is_docs_verified: boolean;
-  docs_status: string;
-  [key: string]: any;
 }
 
 interface GetUserApiResponse {
@@ -128,11 +119,6 @@ interface GetUserApiResponse {
   message: string;
   data: {
     user: UserDetails;
-    provider_info?: ProviderInfo;
-    past_work_files?: string[];
-    recent_reviews?: any[];
-    customer_ratings?: any;
-    unique_clients_count?: number;
   };
 }
 
@@ -224,7 +210,6 @@ export default function Header({
       if (!isAuthenticated) {
         setUserDetails(null);
         setIsAccountUnderVerification(false);
-        dispatch(setFullUserProfile(null));
         return;
       }
 
@@ -239,17 +224,6 @@ export default function Header({
           if (apiData.data?.user) {
             const user = apiData.data.user;
             setUserDetails(user);
-
-            // Dispatch to Redux store
-            dispatch(setFullUserProfile({
-              user: user as any, // detailed user profile
-              provider_info: apiData.data.provider_info,
-              past_work_files: apiData.data.past_work_files,
-              recent_reviews: apiData.data.recent_reviews,
-              customer_ratings: apiData.data.customer_ratings,
-              unique_clients_count: apiData.data.unique_clients_count
-            }));
-
             // Set verification status based on is_docs_verified
             // If is_docs_verified is false, account is under verification (show message)
             // If is_docs_verified is true, account is verified (hide message)
@@ -265,7 +239,7 @@ export default function Header({
     };
 
     fetchUserDetails();
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -474,12 +448,13 @@ export default function Header({
   const userRole =
     user?.role || getCookie("userRole") || localStorage.getItem("role");
   const finalHomeRoute =
-
+    homeRoute ||
     (isAuthenticated && userRole === "service_provider"
       ? ROUTES.PROFESSIONAL_HOME
       : isAuthenticated && userRole === "elderly_user"
         ? ROUTES.AUTH_HOME
         : ROUTES.HOME);
+
   return (
     <>
       <AppBar
@@ -634,160 +609,208 @@ export default function Header({
                 alignItems: "center",
               }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  width: "100%",
-                  minWidth: "381px",
-                  bgcolor: "grey.50",
-                  borderRadius: 2,
-                  border: "0.0625rem solid",
-                  borderColor: "grey.300",
-                  overflow: "hidden",
-                  paddingRight: "1rem",
-                }}
-              >
-                <InputBase
-                  placeholder="What are you looking for?"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={{
-                    flex: 1,
-                    px: 2,
-                    py: 1,
-                    "& .MuiInputBase-input": {
-                      color: "text.primary",
-                      fontSize: "0.95rem",
-                    },
-                    "& .MuiInputBase-input::placeholder": {
-                      color: "text.secondary",
-                      opacity: 1,
-                    },
-                  }}
-                />
-                <IconButton
-                  sx={{
-                    bgcolor: "primary.normal",
-                    borderRadius: "50%",
-                    color: "white",
-                    "&:hover": {
-                      bgcolor: "primary.dark",
-                    },
-                  }}
-                >
-                  <Image
-                    src={"/icons/searhIcon.png"}
-                    alt="Search Icon"
-                    width={16}
-                    height={16}
-                  />
-                </IconButton>
-              </Box>
-              {(searchLoading ||
-                searchResults.length > 0 ||
-                searchTerm.trim()) && (
+              {isAuthenticated && (
+                <>
                   <Box
                     sx={{
-                      position: "absolute",
-                      top: "110%",
-                      left: 0,
+                      display: "flex",
+                      alignItems: "center",
                       width: "100%",
-                      bgcolor: "white",
-                      border: "1px solid #e0e0e0",
+                      minWidth: "381px",
+                      bgcolor: "grey.50",
                       borderRadius: 2,
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                      zIndex: 1300,
-                      maxHeight: 320,
-                      overflowY: "auto",
-                      p: 1,
-                      "&::-webkit-scrollbar": {
-                        display: "none",
-                      },
-                      scrollbarWidth: "none",
-                      msOverflowStyle: "none",
+                      border: "0.0625rem solid",
+                      borderColor: "grey.300",
+                      overflow: "hidden",
+                      paddingRight: "1rem",
                     }}
                   >
-                    {searchLoading && (
-                      <Typography
-                        sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                    <InputBase
+                      placeholder="What are you looking for?"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      sx={{
+                        flex: 1,
+                        px: 2,
+                        py: 1,
+                        "& .MuiInputBase-input": {
+                          color: "text.primary",
+                          fontSize: "0.95rem",
+                        },
+                        "& .MuiInputBase-input::placeholder": {
+                          color: "text.secondary",
+                          opacity: 1,
+                        },
+                      }}
+                    />
+                    <IconButton
+                      sx={{
+                        bgcolor: "primary.normal",
+                        borderRadius: "50%",
+                        color: "white",
+                        "&:hover": {
+                          bgcolor: "primary.dark",
+                        },
+                      }}
+                    >
+                      <Image
+                        src={"/icons/searhIcon.png"}
+                        alt="Search Icon"
+                        width={16}
+                        height={16}
+                      />
+                    </IconButton>
+                  </Box>
+                  {(searchLoading ||
+                    searchResults.length > 0 ||
+                    searchTerm.trim()) && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: "110%",
+                          left: 0,
+                          width: "100%",
+                          bgcolor: "white",
+                          border: "1px solid #e0e0e0",
+                          borderRadius: 2,
+                          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                          zIndex: 1300,
+                          maxHeight: 320,
+                          overflowY: "auto",
+                          p: 1,
+                          "&::-webkit-scrollbar": {
+                            display: "none",
+                          },
+                          scrollbarWidth: "none",
+                          msOverflowStyle: "none",
+                        }}
                       >
-                        Searching...
-                      </Typography>
-                    )}
-                    {!searchLoading &&
-                      searchResults.length === 0 &&
-                      searchTerm.trim() && (
-                        <Typography
-                          sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                        >
-                          No results found
-                        </Typography>
-                      )}
-                    {!searchLoading &&
-                      searchResults.map((item) => (
-                        <Box
-                          key={item.id}
-                          // onClick={() => {
-                          //   setSelectedCategoryId(item.category_id);
-                          //   setSelectedSubcategoryId(item.sub_category_id);
-                          //   setIsModalOpen(true);
-                          // }}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            px: 1,
-                            py: 0.75,
-                            borderRadius: 1,
-                            cursor: "pointer",
-                            "&:hover": { bgcolor: "grey.100" },
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 1,
-                              overflow: "hidden",
-                              flexShrink: 0,
-                              bgcolor: "grey.100",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
+                        {searchLoading && (
+                          <Typography
+                            sx={{ color: "text.secondary", px: 1, py: 0.5 }}
                           >
-                            <Image
-                              src={
-                                item.category_logo_url ||
-                                "/icons/home_assistance_icon_home.svg"
-                              }
-                              alt={item.category_name || "Service"}
-                              width={32}
-                              height={32}
-                              style={{ objectFit: "cover" }}
-                            />
-                          </Box>
-                          <Box sx={{ minWidth: 0 }}>
+                            Searching...
+                          </Typography>
+                        )}
+                        {!searchLoading &&
+                          searchResults.length === 0 &&
+                          searchTerm.trim() && (
                             <Typography
+                              sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                            >
+                              No results found
+                            </Typography>
+                          )}
+                        {!searchLoading &&
+                          searchResults.map((item) => (
+                            <Box
+                              key={item.id}
+                              onClick={() => {
+                                router.push("/my-requests");
+                                setSearchResults([]);
+                                setSearchTerm("");
+                              }}
                               sx={{
-                                fontWeight: 600,
-                                color: "#214C65",
-                                lineHeight: 1.2,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 2, // Increased gap for a cleaner look
+                                px: 2,
+                                py: 1.5,
+                                borderRadius: "12px",
+                                cursor: "pointer",
+                                transition: "0.2s",
+                                border: "1px solid transparent",
+                                "&:hover": {
+                                  bgcolor: "#F8FAFC", // Light professional tint
+                                  borderColor: "#E2E8F0",
+                                },
                               }}
                             >
-                              {item.sub_category_name}
-                            </Typography>
-                            <Typography
-                              sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                            >
-                              {item.category_name}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      ))}
-                  </Box>
-                )}
+                              {/* Image Container */}
+                              <Box
+                                sx={{
+                                  width: 60, // Sized down slightly from 70 for better proportions
+                                  height: 60,
+                                  borderRadius: "10px",
+                                  overflow: "hidden",
+                                  flexShrink: 0,
+                                  bgcolor: "#F1F5F9",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Image
+                                  src={
+                                    item.category_logo_url ||
+                                    "/icons/home_assistance_icon_home.svg"
+                                  }
+                                  alt={item.category_name || "Service"}
+                                  width={35}
+                                  height={35}
+                                  style={{ objectFit: "contain" }}
+                                />
+                              </Box>
+
+                              {/* Content Container */}
+                              <Box sx={{ minWidth: 0, flex: 1 }}>
+                                {/* Title & Category */}
+                                <Typography
+                                  sx={{
+                                    fontWeight: 700,
+                                    color: "#1E293B",
+                                    fontSize: "1rem",
+                                    lineHeight: 1.2,
+                                    mb: 0.3,
+                                  }}
+                                >
+                                  {item.sub_category_name}
+                                </Typography>
+
+                                <Typography
+                                  sx={{
+                                    color: "#64748B",
+                                    fontSize: "0.85rem",
+                                    fontWeight: 500,
+                                    mb: 0.8, // Spacing before the date
+                                  }}
+                                >
+                                  {item.category_name}
+                                </Typography>
+
+                                {/* Date & Time Row */}
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0.5,
+                                  }}
+                                >
+                                  <Typography
+                                    sx={{
+                                      color: "#0F172A",
+                                      fontSize: "0.75rem",
+                                      fontWeight: 600,
+                                      bgcolor: "#E2E8F0", // subtle "tag" look
+                                      px: 1,
+                                      py: 0.3,
+                                      borderRadius: "4px",
+                                      display: "inline-block",
+                                    }}
+                                  >
+                                    {formatDateString(
+                                      item.chosen_datetime,
+                                      "DD MMM YYYY • h:mm A",
+                                    )}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          ))}
+                      </Box>
+                    )}
+                </>
+              )}
 
               {!isProfessionalDashboard && (
                 <>
@@ -882,68 +905,68 @@ export default function Header({
                               gap: 2,
                             }}
                           >
-                            {/* {services.map((service) => {
-                          const { route, icon } = getServiceRouteAndIcon(
-                            service.name
-                          );
-                          return (
-                            <Box
-                              key={service.id}
-                              component={Link}
-                              href={route}
-                              sx={{
-                                p: 2,
-                                borderRadius: 2,
-                                cursor: "pointer",
-                                border: "0.0625rem solid",
-                                borderColor: "grey.200",
-                                textDecoration: "none",
-                                transition: "all 0.2s ease",
-                                bgcolor: "#F7F7F7",
-                                "&:hover": {
-                                  borderColor: "primary.main",
-                                  bgcolor: "#f0f7fa",
-                                },
-                              }}
-                              onClick={handleServicesMenuClose}
-                            >
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  gap: 1.5,
-                                }}
-                              >
+                            {services.map((service) => {
+                              const { route, icon } = getServiceRouteAndIcon(
+                                service.name,
+                              );
+                              return (
                                 <Box
+                                  key={service.id}
+                                  component={Link}
+                                  href={route}
                                   sx={{
-                                    width: 80,
-                                    height: 80,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
+                                    p: 2,
                                     borderRadius: 2,
+                                    cursor: "pointer",
+                                    border: "0.0625rem solid",
+                                    borderColor: "grey.200",
+                                    textDecoration: "none",
+                                    transition: "all 0.2s ease",
+                                    bgcolor: "#F7F7F7",
+                                    "&:hover": {
+                                      borderColor: "primary.main",
+                                      bgcolor: "#f0f7fa",
+                                    },
                                   }}
+                                  onClick={handleServicesMenuClose}
                                 >
-                                  {service.services_type_photos_url ? (
-                                    <Image
-                                      src={service.services_type_photos_url}
-                                      alt={service.name}
-                                      width={60}
-                                      height={60}
-                                      style={{ objectFit: "contain" }}
-                                    />
-                                  ) : (
-                                    <Image
-                                      src={icon}
-                                      alt={service.name}
-                                      width={60}
-                                      height={60}
-                                      style={{ objectFit: "contain" }}
-                                    />
-                                  )}
-                                </Box>
-                                <Typography
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      alignItems: "center",
+                                      gap: 1.5,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: 120,
+                                        height: 120,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        borderRadius: 2,
+                                      }}
+                                    >
+                                      {service.services_type_photos_url ? (
+                                        <Image
+                                          src={service.services_type_photos_url}
+                                          alt={service.name}
+                                          width={150}
+                                          height={150}
+                                          style={{ objectFit: "contain" }}
+                                        />
+                                      ) : (
+                                        <Image
+                                          src={icon}
+                                          alt={service.name}
+                                          width={150}
+                                          height={150}
+                                          style={{ objectFit: "contain" }}
+                                        />
+                                      )}
+                                    </Box>
+                                    {/* <Typography
                                   variant="body1"
                                   fontWeight="600"
                                   sx={{
@@ -953,13 +976,13 @@ export default function Header({
                                   }}
                                 >
                                   {service.name}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          );
-                        })} */}
+                                </Typography> */}
+                                  </Box>
+                                </Box>
+                              );
+                            })}
 
-                            <Box sx={{ cursor: "pointer" }}>
+                            {/* <Box sx={{ cursor: "pointer" }}>
                               <Image
                                 src="/image/HomeServiceBox.png"
                                 alt="services"
@@ -990,7 +1013,7 @@ export default function Header({
                                 width={183}
                                 height={158}
                               />
-                            </Box>
+                            </Box> */}
                           </Box>
                         ) : (
                           <Box
@@ -1706,11 +1729,9 @@ export default function Header({
                         View my profile
                       </Button>
 
-                      {
-
-
-                        isAccountUnderVerification &&
-                        (userDetails?.role === "service_provider" || userRole === "service_provider") && (
+                      {isAccountUnderVerification &&
+                        (userDetails?.role === "service_provider" ||
+                          userRole === "service_provider") && (
                           <Box
                             sx={{
                               display: "flex",
@@ -1760,8 +1781,7 @@ export default function Header({
                               Check Status
                             </Button>
                           </Box>
-                        )
-                      }
+                        )}
                       <Divider color={"#E7E7E7"} />
 
                       {/* Menu Items */}
@@ -2012,161 +2032,216 @@ export default function Header({
               position: "relative",
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                width: "100%",
-                minWidth: { xs: "100%", sm: "381px" },
-                bgcolor: "grey.50",
-                borderRadius: 2,
-                border: "0.0625rem solid",
-                borderColor: "grey.300",
-                overflow: "hidden",
-                paddingRight: "1rem",
-              }}
-            >
-              <InputBase
-                placeholder="What are you looking for?"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{
-                  flex: 1,
-                  px: 2,
-                  py: 1,
-                  "& .MuiInputBase-input": {
-                    color: "text.primary",
-                    fontSize: "0.95rem",
-                  },
-                  "& .MuiInputBase-input::placeholder": {
-                    color: "text.secondary",
-                    opacity: 1,
-                  },
-                }}
-              />
-              <IconButton
-                sx={{
-                  bgcolor: "primary.normal",
-                  borderRadius: "50%",
-                  color: "white",
-                  "&:hover": {
-                    bgcolor: "primary.dark",
-                  },
-                }}
-              >
-                <Image
-                  src={"/icons/searhIcon.png"}
-                  alt="Search Icon"
-                  width={16}
-                  height={16}
-                />
-              </IconButton>
-            </Box>
-            {(searchLoading ||
-              searchResults.length > 0 ||
-              searchTerm.trim()) && (
+            {isAuthenticated && (
+              <>
                 <Box
                   sx={{
-                    position: "absolute",
-                    top: "110%",
-                    left: 0,
+                    display: "flex",
+                    alignItems: "center",
                     width: "100%",
-                    bgcolor: "white",
-                    border: "1px solid #e0e0e0",
+                    minWidth: { xs: "100%", sm: "381px" },
+                    bgcolor: "grey.50",
                     borderRadius: 2,
-                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-                    zIndex: 1300,
-                    maxHeight: 320,
-                    overflowY: "auto",
-                    p: 1,
-                    "&::-webkit-scrollbar": {
-                      display: "none",
-                    },
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
+                    border: "0.0625rem solid",
+                    borderColor: "grey.300",
+                    overflow: "hidden",
+                    paddingRight: "1rem",
                   }}
                 >
-                  {searchLoading && (
-                    <Typography sx={{ color: "text.secondary", px: 1, py: 0.5 }}>
-                      Searching...
-                    </Typography>
-                  )}
-                  {!searchLoading &&
-                    searchResults.length === 0 &&
-                    searchTerm.trim() && (
-                      <Typography
-                        sx={{ color: "text.secondary", px: 1, py: 0.5 }}
-                      >
-                        No results found
-                      </Typography>
-                    )}
-                  {!searchLoading &&
-                    searchResults.map((item) => (
-                      <Box
-                        key={item.id}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          px: 1,
-                          py: 0.75,
-                          borderRadius: 1,
-                          cursor: "pointer",
-                          "&:hover": { bgcolor: "grey.100" },
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 1,
-                            overflow: "hidden",
-                            flexShrink: 0,
-                            bgcolor: "grey.100",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
+                  <InputBase
+                    placeholder="What are you looking for?"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    sx={{
+                      flex: 1,
+                      px: 2,
+                      py: 1,
+                      "& .MuiInputBase-input": {
+                        color: "text.primary",
+                        fontSize: "0.95rem",
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "text.secondary",
+                        opacity: 1,
+                      },
+                    }}
+                  />
+                  <IconButton
+                    sx={{
+                      bgcolor: "primary.normal",
+                      borderRadius: "50%",
+                      color: "white",
+                      "&:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
+                  >
+                    <Image
+                      src={"/icons/searhIcon.png"}
+                      alt="Search Icon"
+                      width={16}
+                      height={16}
+                    />
+                  </IconButton>
+                </Box>
+                {(searchLoading ||
+                  searchResults.length > 0 ||
+                  searchTerm.trim()) && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: "110%",
+                        left: 0,
+                        width: "100%",
+                        bgcolor: "white",
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 2,
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                        zIndex: 1300,
+                        maxHeight: 320,
+                        overflowY: "auto",
+                        p: 1,
+                        "&::-webkit-scrollbar": {
+                          display: "none",
+                        },
+                        scrollbarWidth: "none",
+                        msOverflowStyle: "none",
+                      }}
+                    >
+                      {searchLoading && (
+                        <Typography
+                          sx={{ color: "text.secondary", px: 1, py: 0.5 }}
                         >
-                          <Image
-                            src={
-                              item.category_logo_url ||
-                              "/icons/home_assistance_icon_home.svg"
-                            }
-                            alt={item.category_name || "Service"}
-                            width={32}
-                            height={32}
-                            style={{ objectFit: "cover" }}
-                          />
-                        </Box>
-                        <Box sx={{ minWidth: 0 }}>
+                          Searching...
+                        </Typography>
+                      )}
+                      {!searchLoading &&
+                        searchResults.length === 0 &&
+                        searchTerm.trim() && (
                           <Typography
+                            sx={{ color: "text.secondary", px: 1, py: 0.5 }}
+                          >
+                            No results found
+                          </Typography>
+                        )}
+                      {!searchLoading &&
+                        searchResults.map((item) => (
+                          <Box
+                            key={item.id}
+                            onClick={() => {
+                              router.push("/my-requests");
+                              setSearchResults([]);
+                              setSearchTerm("");
+                            }}
                             sx={{
-                              fontWeight: 600,
-                              color: "#214C65",
-                              lineHeight: 1.2,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 2, // Increased gap for a cleaner look
+                              px: 2,
+                              py: 1.5,
+                              borderRadius: "12px",
+                              cursor: "pointer",
+                              transition: "0.2s",
+                              border: "1px solid transparent",
+                              "&:hover": {
+                                bgcolor: "#F8FAFC", // Light professional tint
+                                borderColor: "#E2E8F0",
+                              },
                             }}
                           >
-                            {item.sub_category_name}
-                          </Typography>
-                          <Typography
-                            sx={{ color: "#6D6D6D", fontSize: "0.85rem" }}
-                          >
-                            {item.category_name}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    ))}
-                </Box>
-              )}
+                            {/* Image Container */}
+                            <Box
+                              sx={{
+                                width: 60, // Sized down slightly from 70 for better proportions
+                                height: 60,
+                                borderRadius: "10px",
+                                overflow: "hidden",
+                                flexShrink: 0,
+                                bgcolor: "#F1F5F9",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Image
+                                src={
+                                  item.category_logo_url ||
+                                  "/icons/home_assistance_icon_home.svg"
+                                }
+                                alt={item.category_name || "Service"}
+                                width={35}
+                                height={35}
+                                style={{ objectFit: "contain" }}
+                              />
+                            </Box>
+
+                            {/* Content Container */}
+                            <Box sx={{ minWidth: 0, flex: 1 }}>
+                              {/* Title & Category */}
+                              <Typography
+                                sx={{
+                                  fontWeight: 700,
+                                  color: "#1E293B",
+                                  fontSize: "1rem",
+                                  lineHeight: 1.2,
+                                  mb: 0.3,
+                                }}
+                              >
+                                {item.sub_category_name}
+                              </Typography>
+
+                              <Typography
+                                sx={{
+                                  color: "#64748B",
+                                  fontSize: "0.85rem",
+                                  fontWeight: 500,
+                                  mb: 0.8, // Spacing before the date
+                                }}
+                              >
+                                {item.category_name}
+                              </Typography>
+
+                              {/* Date & Time Row */}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    color: "#0F172A",
+                                    fontSize: "0.75rem",
+                                    fontWeight: 600,
+                                    bgcolor: "#E2E8F0", // subtle "tag" look
+                                    px: 1,
+                                    py: 0.3,
+                                    borderRadius: "4px",
+                                    display: "inline-block",
+                                  }}
+                                >
+                                  {formatDateString(
+                                    item.chosen_datetime,
+                                    "DD MMM YYYY • h:mm A",
+                                  )}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </Box>
+                        ))}
+                    </Box>
+                  )}
+              </>
+            )}
           </Box>
         </Box>
       </AppBar>
-      <CreateServiceRequestModal
+      <ServiceDetailModal
         open={isModalOpen}
         onClose={handleCloseModal}
-        preSelectedCategoryId={selectedCategoryId}
-        preSelectedSubcategoryId={selectedSubcategoryId}
+        onReject={() => { }}
+        service_id={selectedCategoryId}
       />
       <BookServiceModal
         open={bookServiceModalOpen}
