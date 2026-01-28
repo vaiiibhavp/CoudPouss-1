@@ -343,12 +343,13 @@ export default function TransportPage() {
                               ) : (
                                 <Box
                                   sx={{
-                                    width: "100%",
-                                    height: "100%",
-                                    bgcolor: "grey.300",
+                                    width: "376px",
+                                    height: "225px",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
+                                    bgcolor: "grey.300",
+                                    borderRadius: "14px",
                                   }}
                                 >
                                   <Typography sx={{ color: "text.secondary" }}>

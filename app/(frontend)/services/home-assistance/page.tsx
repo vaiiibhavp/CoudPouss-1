@@ -17,9 +17,11 @@ import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
-import { apiGet } from "@/lib/api";
+import { apiDelete, apiGet, apiPost } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import CreateServiceRequestModal from "@/components/CreateServiceRequestModal";
+import { ApiResponse } from "@/types";
+import { FavoriteResponse } from "../../my-requests/helper";
 
 interface Category {
   id: string;
@@ -403,6 +405,55 @@ export default function HomeAssistancePage() {
     window.scrollTo({ top: y, behavior: "smooth" });
   };
 
+    const handleFavorite = async (
+      professionalId?: string,
+      isFavorite?: boolean,
+    ) => {
+      if (!professionalId ) return;
+  
+      // setFavoriteLoading(true);
+  
+      // 🔹 Snapshot for rollback
+      const prevList = [...favoriteProfessionals];
+  
+      // 🔹 Optimistic update: Remove from UI immediately if we are un-favoriting
+      setFavoriteProfessionals((prev) =>
+        prev.filter((req) => req?.id !== professionalId),
+      );
+  
+      try {
+        let response: ApiResponse<FavoriteResponse>;
+  
+        if (isFavorite) {
+          const endpoint =
+            API_ENDPOINTS.FAVORITE_REAQUEST.DELETE_FAVORITE(professionalId);
+          response = await apiDelete<FavoriteResponse>(endpoint);
+        } else {
+          const endpoint =
+            API_ENDPOINTS.FAVORITE_REAQUEST.UPDATE_FAVORITE(professionalId);
+          response = await apiPost<FavoriteResponse>(endpoint, {});
+        }
+  
+        if (!response.success) {
+          throw new Error(response.data?.message || "Operation failed");
+        }
+  
+        // 🔹 Server Sync: Use the actual list returned by the server
+        const favoriteListIds = response.data?.data?.favorite_list || [];
+  
+        // Filter the state to match exactly what the server says are favorites
+        setFavoriteProfessionals((prev) =>
+          prev.filter((req) => favoriteListIds.includes(req?.id)),
+        );
+      } catch (error) {
+        console.error("Failed to update favorite status", error);
+        // 🔹 Rollback UI on failure
+        setFavoriteProfessionals(prevList);
+      } finally {
+        // setFavoriteLoading(false);
+      }
+    };
+
   return (
     <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       {/* Hero Section */}
@@ -774,7 +825,7 @@ export default function HomeAssistancePage() {
                           overflow: "hidden",
                           bgcolor: "#EAF0F35C",
                           p: "0.75rem",
-                          pb: 0,
+                          // pb: 0,
                         }}
                       >
                         <Box
@@ -834,10 +885,17 @@ export default function HomeAssistancePage() {
                           }}
                         >
                           <Typography
+                            title={subcategory.subcategory_name} // native browser hover
                             sx={{
                               color: "primary.normal",
-                              fontSize: "1.125rem",
-                              lineHeight: "1.4rem",
+                              fontSize: { xs: "16px", md: "20px" },
+                              lineHeight: "2rem",
+
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+
+                              maxWidth: "100%", // important inside flex
                             }}
                           >
                             {subcategory.subcategory_name}
@@ -996,122 +1054,127 @@ export default function HomeAssistancePage() {
                     const reviews = professional.total_reviews || 0;
 
                     return (
-                       <Box
-                      key={professional.id}
-                      onClick={() =>
-                        router.push(`/about-professional/${professional.id}`)
-                      }
-                      sx={{
-                        width: "100%",
-                        maxWidth: "308px",
-                        borderRadius: "1.125rem",
-                        p: "0.875rem",
-                        textAlign: "center",
-                        position: "relative",
-                        border: "0.0625rem solid #DFE8ED",
-                      }}
-                    >
-                      {/* Heart Icon */}
-                      <IconButton
-                        sx={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          color: "#2C6587",
-                          p: 0.5,
-                        }}
-                      >
-                        <FavoriteIcon sx={{ fontSize: 20 }} />
-                      </IconButton>
-
-                      {/* Profile Picture */}
                       <Box
+                        key={professional.id}
+                        onClick={() =>
+                          router.push(`/about-professional/${professional.id}`)
+                        }
                         sx={{
-                          width: 92,
-                          height: 92,
-                          borderRadius: "50%",
-                          bgcolor: "grey.300",
-                          margin: "0 auto 0.75rem",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          overflow: "hidden",
+                          width: "100%",
+                          maxWidth: "308px",
+                          borderRadius: "1.125rem",
+                          p: "0.875rem",
+                          textAlign: "center",
+                          position: "relative",
+                          border: "0.0625rem solid #DFE8ED",
                         }}
                       >
-                        {professional.profile_photo_url ? (
-                          <Image
-                            src={professional.profile_photo_url}
-                            alt={fullName}
-                            width={92}
-                            height={92}
-                            style={{
-                              objectFit: "cover",
-                              borderRadius: "50%",
-                              width: "100%",
-                              height: "100%",
-                            }}
-                          />
-                        ) : (
-                          <AccountCircleIcon
-                            sx={{ fontSize: 80, color: "grey.500" }}
-                          />
-                        )}
-                      </Box>
+                        {/* Heart Icon */}
+                        <IconButton
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            color: "#2C6587",
+                            p: 0.5,
+                          }}
+                          size="small"
+                          onClick={(e) => {
+                            handleFavorite(professional.id, true);
+                            e.stopPropagation();
+                          }}
+                        >
+                          <FavoriteIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
 
-                      {/* Name */}
-                      <Typography
-                        sx={{
-                          mb: 1,
-                          textAlign: "left",
-                          color: "#323232",
-                          fontSize: "1.125rem",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {fullName}
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        {/* Rating */}
+                        {/* Profile Picture */}
+                        <Box
+                          sx={{
+                            width: 92,
+                            height: 92,
+                            borderRadius: "50%",
+                            bgcolor: "grey.300",
+                            margin: "0 auto 0.75rem",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {professional.profile_photo_url ? (
+                            <Image
+                              src={professional.profile_photo_url}
+                              alt={fullName}
+                              width={92}
+                              height={92}
+                              style={{
+                                objectFit: "cover",
+                                borderRadius: "50%",
+                                width: "100%",
+                                height: "100%",
+                              }}
+                            />
+                          ) : (
+                            <AccountCircleIcon
+                              sx={{ fontSize: 80, color: "grey.500" }}
+                            />
+                          )}
+                        </Box>
+
+                        {/* Name */}
+                        <Typography
+                          sx={{
+                            mb: 1,
+                            textAlign: "left",
+                            color: "#323232",
+                            fontSize: "1.125rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {fullName}
+                        </Typography>
                         <Box
                           sx={{
                             display: "flex",
-                            gap: 0.5,
-                            mb: "0.375rem",
+                            justifyContent: "space-between",
                             alignItems: "center",
                           }}
                         >
-                          <Typography
+                          {/* Rating */}
+                          <Box
                             sx={{
-                              textAlign: "left",
-                              color: "secondary.naturalGray",
-                              fontSize: "1.063rem",
-                              lineHeight: "20px",
+                              display: "flex",
+                              gap: 0.5,
+                              mb: "0.375rem",
+                              alignItems: "center",
                             }}
                           >
-                            {rating > 0 ? rating.toFixed(1) : "0.0"}
-                          </Typography>
-                          <StarIcon sx={{ fontSize: 16, color: "#F59E0B" }} />
-                        </Box>
+                            <Typography
+                              sx={{
+                                textAlign: "left",
+                                color: "secondary.naturalGray",
+                                fontSize: "1.063rem",
+                                lineHeight: "20px",
+                              }}
+                            >
+                              {rating > 0 ? rating.toFixed(1) : "0.0"}
+                            </Typography>
+                            <StarIcon sx={{ fontSize: 16, color: "#F59E0B" }} />
+                          </Box>
 
-                        {/* Reviews */}
-                        <Typography
-                          variant="caption"
-                          color="#999999"
-                          sx={{
-                            fontSize: "0.688rem",
-                            lineHeight: "1rem",
-                          }}
-                        >
-                          ({reviews} {reviews === 1 ? "Review" : "Reviews"})
-                        </Typography>
+                          {/* Reviews */}
+                          <Typography
+                            variant="caption"
+                            color="#999999"
+                            sx={{
+                              fontSize: "0.688rem",
+                              lineHeight: "1rem",
+                            }}
+                          >
+                            ({reviews} {reviews === 1 ? "Review" : "Reviews"})
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
                     );
                   })
                 )}

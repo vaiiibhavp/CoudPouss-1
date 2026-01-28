@@ -203,7 +203,7 @@ export default function LoginPage() {
 
       <Box
         sx={{
-          display: { xs: "none", lg: "flex" },
+          display: { xs: "none", md: "flex" },
           width: "56%",
           position: "relative",
           overflow: "hidden",

@@ -24,6 +24,7 @@ import { apiPost } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
 import { ApiResponse } from "@/types";
 import CountrySelectDropdown from "@/components/CountrySelectDropdown";
+import { toast } from "sonner";
 
 type ResetStep = "enter-email" | "verify-otp" | "set-password";
 type UserType = "elder" | "professional";
@@ -261,7 +262,8 @@ export default function ResetPasswordPage() {
         console.log("response", response);
 
         if (response.data?.message?.includes("OTP sent to email")) {
-          setErrors({ otp: "OTP sent successfully" });
+          // setErrors({ otp: "OTP sent successfully" });
+          toast.success("OTP sent successfully");
         }
       }
 
@@ -1218,7 +1220,7 @@ export default function ResetPasswordPage() {
       {/* Left side - Image Section */}
       <Box
         sx={{
-          display: { xs: "none", lg: "flex" },
+          display: { xs: "none", md: "flex" },
           width: "55%",
           position: "relative",
           overflow: "hidden",

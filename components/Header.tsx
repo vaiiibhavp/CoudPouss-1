@@ -61,6 +61,7 @@ interface Service {
   id: number;
   name: string;
   icon: string;
+  services_type_photos_url: string;
 }
 
 interface SearchService {
@@ -904,68 +905,68 @@ export default function Header({
                               gap: 2,
                             }}
                           >
-                            {/* {services.map((service) => {
-                          const { route, icon } = getServiceRouteAndIcon(
-                            service.name
-                          );
-                          return (
-                            <Box
-                              key={service.id}
-                              component={Link}
-                              href={route}
-                              sx={{
-                                p: 2,
-                                borderRadius: 2,
-                                cursor: "pointer",
-                                border: "0.0625rem solid",
-                                borderColor: "grey.200",
-                                textDecoration: "none",
-                                transition: "all 0.2s ease",
-                                bgcolor: "#F7F7F7",
-                                "&:hover": {
-                                  borderColor: "primary.main",
-                                  bgcolor: "#f0f7fa",
-                                },
-                              }}
-                              onClick={handleServicesMenuClose}
-                            >
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  gap: 1.5,
-                                }}
-                              >
+                            {services.map((service) => {
+                              const { route, icon } = getServiceRouteAndIcon(
+                                service.name,
+                              );
+                              return (
                                 <Box
+                                  key={service.id}
+                                  component={Link}
+                                  href={route}
                                   sx={{
-                                    width: 80,
-                                    height: 80,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
+                                    p: 2,
                                     borderRadius: 2,
+                                    cursor: "pointer",
+                                    border: "0.0625rem solid",
+                                    borderColor: "grey.200",
+                                    textDecoration: "none",
+                                    transition: "all 0.2s ease",
+                                    bgcolor: "#F7F7F7",
+                                    "&:hover": {
+                                      borderColor: "primary.main",
+                                      bgcolor: "#f0f7fa",
+                                    },
                                   }}
+                                  onClick={handleServicesMenuClose}
                                 >
-                                  {service.services_type_photos_url ? (
-                                    <Image
-                                      src={service.services_type_photos_url}
-                                      alt={service.name}
-                                      width={60}
-                                      height={60}
-                                      style={{ objectFit: "contain" }}
-                                    />
-                                  ) : (
-                                    <Image
-                                      src={icon}
-                                      alt={service.name}
-                                      width={60}
-                                      height={60}
-                                      style={{ objectFit: "contain" }}
-                                    />
-                                  )}
-                                </Box>
-                                <Typography
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      alignItems: "center",
+                                      gap: 1.5,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: 120,
+                                        height: 120,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        borderRadius: 2,
+                                      }}
+                                    >
+                                      {service.services_type_photos_url ? (
+                                        <Image
+                                          src={service.services_type_photos_url}
+                                          alt={service.name}
+                                          width={150}
+                                          height={150}
+                                          style={{ objectFit: "contain" }}
+                                        />
+                                      ) : (
+                                        <Image
+                                          src={icon}
+                                          alt={service.name}
+                                          width={150}
+                                          height={150}
+                                          style={{ objectFit: "contain" }}
+                                        />
+                                      )}
+                                    </Box>
+                                    {/* <Typography
                                   variant="body1"
                                   fontWeight="600"
                                   sx={{
@@ -975,13 +976,13 @@ export default function Header({
                                   }}
                                 >
                                   {service.name}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          );
-                        })} */}
+                                </Typography> */}
+                                  </Box>
+                                </Box>
+                              );
+                            })}
 
-                            <Box sx={{ cursor: "pointer" }}>
+                            {/* <Box sx={{ cursor: "pointer" }}>
                               <Image
                                 src="/image/HomeServiceBox.png"
                                 alt="services"
@@ -1012,7 +1013,7 @@ export default function Header({
                                 width={183}
                                 height={158}
                               />
-                            </Box>
+                            </Box> */}
                           </Box>
                         ) : (
                           <Box

@@ -80,13 +80,41 @@ export default function ProfessionalDetails() {
     fetchProfessional();
   }, [id]);
 
+  type CustomerRatings = {
+    work_quality: number;
+    reliability: number;
+    punctuality: number;
+    solution: number;
+    payout: number;
+  };
+
+  const parseCustomerRatings = (
+    ratings: string | CustomerRatings | null,
+  ): CustomerRatings | null => {
+    if (!ratings) return null;
+
+    // If backend already fixes it later
+    if (typeof ratings === "object") return ratings;
+
+    try {
+      // Convert single quotes to double quotes
+      const jsonString = ratings.replace(/'/g, '"');
+      return JSON.parse(jsonString) as CustomerRatings;
+    } catch (error) {
+      console.error("Failed to parse customer_ratings:", ratings);
+      return null;
+    }
+  };
+
+  const ratings = parseCustomerRatings(professional?.customer_ratings || "");
+
   return (
     <Box
       sx={{
         // maxWidth: 1100,
         mx: "auto",
-        m:2,
-        p:2,
+        m: 2,
+        p: 2,
         display: "flex",
         flexDirection: "column",
         gap: "28px",
@@ -95,7 +123,7 @@ export default function ProfessionalDetails() {
     >
       {/* Header */}
       <Box sx={{ display: "flex", gap: 2, p: 1, alignItems: "center" }}>
-        <IconButton sx={{ p: 0 }} onClick={()=>router.back()}>
+        <IconButton sx={{ p: 0 }} onClick={() => router.back()}>
           <ArrowBackIosIcon fontSize="small" />
         </IconButton>
         <Typography
@@ -129,10 +157,21 @@ export default function ProfessionalDetails() {
             }}
           >
             <Avatar
-              src={professional?.profile_photo_url ?? ""}
-              alt="profile"
-              sx={{ width: { xs: 64, sm: 80 }, height: { xs: 64, sm: 80 } }}
-            />
+              src={
+                professional?.profile_photo_url &&
+                professional.profile_photo_url.startsWith("http")
+                  ? professional.profile_photo_url
+                  : undefined
+              }
+              alt={professional?.full_name || "Profile"}
+              sx={{
+                width: { xs: 64, sm: 80 },
+                height: { xs: 64, sm: 80 },
+              }}
+            >
+              {/* Fallback initials */}
+              {professional?.full_name?.charAt(0)}
+            </Avatar>
 
             <Box>
               <Typography fontWeight={600} fontSize={{ xs: 16, sm: 18 }}>
@@ -307,18 +346,22 @@ export default function ProfessionalDetails() {
               <Box sx={{ display: "flex", flexDirection: "column" }}>
                 <Rating value={4.6} precision={0.1} readOnly />
                 <Typography fontSize={12} color="text.secondary">
-                  Based on 471 ratings
+                  Based on {professional?.total_reviews} ratings
                 </Typography>
               </Box>
             </Box>
           </Grid>
 
           <Grid item xs={12} md={6}>
-            {ratingBar("Work quality", 4.9)}
-            {ratingBar("Reliability", 4.9)}
-            {ratingBar("Punctuality", 4.8)}
-            {ratingBar("Solution", 5.0)}
-            {ratingBar("Politeness", 4.5)}
+            {ratings && (
+              <>
+                {ratingBar("Work quality", ratings.work_quality ?? 0)}
+                {ratingBar("Reliability", ratings.reliability ?? 0)}
+                {ratingBar("Punctuality", ratings.punctuality ?? 0)}
+                {ratingBar("Solution", ratings.solution ?? 0)}
+                {ratingBar("Politeness", ratings.payout ?? 0)}
+              </>
+            )}
           </Grid>
         </Grid>
       </Box>

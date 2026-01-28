@@ -1,5 +1,6 @@
 import { formatTime } from "@/utils/utils";
 import { Avatar, Box, Typography } from "@mui/material";
+import Image from "next/image";
 
 interface OtherUser {
   name?: string;
@@ -59,12 +60,33 @@ export const UserChat = ({
           : {},
       }}
     >
-      <Avatar
-        src={otherUser?.avatarUrl}
-        sx={{ width: 48, height: 48 }} // Standard size
+      <Box
+        sx={{
+          width: 48,
+          height: 48,
+          flexShrink: 0,
+          borderRadius: "50%",
+          overflow: "hidden",
+          position: "relative",
+        }}
       >
-        {otherUser?.name?.[0] || "?"}
-      </Avatar>
+        <Image
+          src={
+            otherUser?.avatarUrl && otherUser.avatarUrl.startsWith("http")
+              ? otherUser.avatarUrl
+              : "/icons/appLogo.png" // fallback MUST be valid
+          }
+          alt={otherUser?.name || "User avatar"}
+          fill
+          sizes="48px"
+          onError={(e) => {
+            e.currentTarget.src = "/icons/appLogo.png";
+          }}
+          style={{
+            objectFit: "cover",
+          }}
+        />
+      </Box>
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Box

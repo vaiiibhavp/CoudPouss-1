@@ -41,23 +41,16 @@ import {
   ServiceRequestsApiResponse,
   ServiceSearchApiResponse,
   ServiceSearchItem,
-  STATUS_CONFIG,Request,
+  STATUS_CONFIG,
+  Request,
   ServiceDetailApiResponse,
-  FavoriteResponse
+  FavoriteResponse,
 } from "./helper";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { toast } from "sonner";
 import { ApiResponse } from "@/types";
 import { log } from "console";
-
-
-
-
-
-
-
-
-
+import RejectServiceModal from "@/components/cancel-service/RejectServiceModal";
 
 export default function MyRequestsPage() {
   const router = useRouter();
@@ -82,6 +75,7 @@ export default function MyRequestsPage() {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<ServiceSearchItem[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [rejectService, setRejectService] = useState(false);
   // const statusConfig =
   // STATUS_CONFIG[request.status] || STATUS_CONFIG.open;
 
@@ -1419,7 +1413,11 @@ export default function MyRequestsPage() {
                           </Typography>
                           <Button
                             variant="contained"
-                            onClick={()=>router.push(`/chat/${serviceDetail?.provider?.id}`)}
+                            onClick={() =>
+                              router.push(
+                                `/chat/${serviceDetail?.provider?.id}`,
+                              )
+                            }
                             sx={{
                               textTransform: "none",
                               borderRadius: { xs: "0.375rem", sm: "0.5rem" },
@@ -1685,71 +1683,66 @@ export default function MyRequestsPage() {
                                 width: { xs: "100%", sm: "auto" },
                               }}
                             >
-                              <Button
-                                onClick={handleNavigate}
-                                variant="contained"
+                              <Box
                                 sx={{
-                                  textTransform: "none",
-                                  borderRadius: {
-                                    xs: "0.375rem",
-                                    sm: "0.5rem",
-                                  },
-                                  pt: { xs: "0.5rem", sm: "0.625rem" },
-                                  pr: { xs: "1rem", sm: "2rem", md: "3.75rem" },
-                                  pb: { xs: "0.5rem", sm: "0.625rem" },
-                                  pl: { xs: "1rem", sm: "2rem", md: "3.75rem" },
-                                  gap: "0.625rem",
-                                  bgcolor: "#214C65",
-                                  fontSize: {
-                                    xs: "0.875rem",
-                                    sm: "0.9375rem",
-                                    md: "1rem",
-                                  },
+                                  display: "flex",
+                                  gap: { xs: "0.5rem", sm: "0.75rem" },
+                                  flexDirection: { xs: "column", sm: "row" },
                                   width: { xs: "100%", sm: "auto" },
-                                  minWidth: {
-                                    xs: "auto",
-                                    sm: "120px",
-                                    md: "200px",
-                                  },
-                                  "&:hover": {
-                                    bgcolor: "#214C65",
-                                  },
                                 }}
                               >
-                                Chat
-                              </Button>
-                              <Button
-                                variant="contained"
-                                onClick={() =>
-                                  router.push(
-                                    `/about-professional/${selectedRequestData.professional?.id}`,
-                                  )
-                                }
-                                sx={{
-                                  textTransform: "none",
-                                  borderRadius: {
-                                    xs: "0.375rem",
-                                    sm: "0.5rem",
-                                  },
-                                  pt: { xs: "0.5rem", sm: "0.625rem" },
-                                  pr: { xs: "1rem", sm: "2rem", md: "3.75rem" },
-                                  pb: { xs: "0.5rem", sm: "0.625rem" },
-                                  pl: { xs: "1rem", sm: "2rem", md: "3.75rem" },
-                                  gap: "0.625rem",
-                                  bgcolor: "#214C65",
-                                  fontSize: {
-                                    xs: "0.875rem",
-                                    sm: "0.9375rem",
-                                    md: "1rem",
-                                  },
-                                  width: { xs: "100%", sm: "auto" },
-                                  "&:hover": {
+                                <Button
+                                  onClick={handleNavigate}
+                                  size="small"
+                                  variant="contained"
+                                  sx={{
+                                    textTransform: "none",
+                                    borderRadius: "0.5rem",
+                                    // Reduced padding for a professional look
+                                    px: { xs: 2, md: 4 },
+                                    py: { xs: 1, sm: 1.25 },
                                     bgcolor: "#214C65",
-                                  },
-                                }}
-                              >
-                                View Profile
-                              </Button>
+                                    fontSize: {
+                                      xs: "0.875rem",
+                                      sm: "0.9375rem",
+                                      md: "1rem",
+                                    },
+                                    width: { xs: "100%", sm: "auto" },
+                                    // Optional: set a smaller minWidth if you want them uniform
+                                    minWidth: { sm: "140px" },
+                                    "&:hover": { bgcolor: "#214C65" },
+                                  }}
+                                >
+                                  Chat
+                                </Button>
+
+                                <Button
+                                  variant="contained"
+                                  onClick={() =>
+                                    router.push(
+                                      `/about-professional/${selectedRequestData.professional?.id}`,
+                                    )
+                                  }
+                                  sx={{
+                                    textTransform: "none",
+                                    borderRadius: "0.5rem",
+                                    px: { xs: 2, md: 4 },
+                                    py: { xs: 1, sm: 1.25 },
+                                    bgcolor: "#214C65",
+                                    whiteSpace: "nowrap",
+                                    fontSize: {
+                                      xs: "0.875rem",
+                                      sm: "0.9375rem",
+                                      md: "1rem",
+                                    },
+                                    width: { xs: "100%", sm: "auto" },
+                                    minWidth: { sm: "140px" },
+                                    "&:hover": { bgcolor: "#214C65" },
+                                  }}
+                                >
+                                  View Profile
+                                </Button>
+                              </Box>
                             </Box>
                           </Box>
                         </Box>
@@ -2213,7 +2206,7 @@ export default function MyRequestsPage() {
                         }}
                       >
                         <Button
-                          onClick={() => setOpenReject(true)}
+                          onClick={() => setRejectService(true)}
                           variant="outlined"
                           sx={{
                             textTransform: "none",
@@ -2419,7 +2412,7 @@ export default function MyRequestsPage() {
           setOpenConfirm(false);
           setOpenPayment(true);
         }}
-        rate={499}
+        rate={serviceDetail?.total_renegotiated ?? 0}
         providerName="Wade Warren"
       />
       <ProceedToPaymentModal
@@ -2429,7 +2422,7 @@ export default function MyRequestsPage() {
           setOpenProceed(false);
           setOpenSummary(true);
         }}
-        finalizedQuoteAmount={499}
+        finalizedQuoteAmount={serviceDetail?.total_renegotiated ?? 0}
         platformFeePercent={10}
         taxes={12}
         serviceId={selectedRequestData?.id}
@@ -2459,6 +2452,7 @@ export default function MyRequestsPage() {
         dateLabel={selectedRequestData?.date || "Date"}
         timeLabel={selectedRequestData?.time || "Time"}
         providerName={serviceDetail?.provider?.full_name || "Provider"}
+        providerId={serviceDetail?.provider?.id || null}
         providerPhone={serviceDetail?.provider?.email || ""} // Using email as phone fallback or just empty
         providerAvatar={
           serviceDetail?.provider?.profile_photo_url ||
@@ -2467,6 +2461,15 @@ export default function MyRequestsPage() {
         finalizedQuoteAmount={selectedRequestData?.quote || 0}
         platformFeePercent={10}
         taxes={12} // TODO: Calculate or fetch dynamically
+      />
+      <RejectServiceModal
+        open={rejectService}
+        onClose={() => setRejectService(false)}
+        data={{
+          service_id: serviceDetail?.service_id,
+          quote_id: selectedRequestData?.quoteId,
+        }}
+        onSubmit={() => fetchRequests()}
       />
     </Box>
   );

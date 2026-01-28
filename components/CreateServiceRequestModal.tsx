@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import Image from "next/image";
 import { apiGet, apiPost, apiPostFormData } from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/api";
+import dayjs from "dayjs";
 
 interface CreateServiceRequestModalProps {
   open: boolean;
@@ -178,6 +179,8 @@ export default function CreateServiceRequestModal({
   preSelectedSubcategoryId,
 }: CreateServiceRequestModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  console.log("currentStep", currentStep);
+
   const [serviceProvider, setServiceProvider] = useState("professional");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedService, setSelectedService] = useState<string | null>(null);
@@ -694,9 +697,9 @@ export default function CreateServiceRequestModal({
         description: serviceDescription,
         description_files: descriptionFileKeys,
         chosen_datetime: chosenDateTime,
-        address:"Prometteur solution",
-        latitude:'44.968046',
-        longitude:'-94.420307'
+        address: "Prometteur solution",
+        latitude: "44.968046",
+        longitude: "-94.420307",
       };
 
       if (isProfessional) {
@@ -860,6 +863,32 @@ export default function CreateServiceRequestModal({
       setCurrentMonth(currentMonth + 1);
     }
   };
+  const isPastTime = useMemo(() => {
+    if (!selectedTime.hour || !selectedTime.minute || !selectedTime.period) {
+      return false;
+    }
+
+    // 🔧 Build full date using current month/year
+    const baseDate = dayjs()
+      .date(selectedDate) // selectedDate = 27
+      .hour(0)
+      .minute(0)
+      .second(0);
+
+    const selectedDateTime = dayjs(
+      `${baseDate.format("YYYY-MM-DD")} ${selectedTime.hour.padStart(2, "0")}:${selectedTime.minute.padStart(2, "0")} ${selectedTime.period}`,
+      "YYYY-MM-DD hh:mm A",
+      true, // strict parsing
+    );
+
+    // only block past time for today
+    if (!baseDate.isSame(dayjs(), "day")) {
+      return false;
+    }
+
+    return selectedDateTime.isBefore(dayjs());
+  }, [selectedTime, selectedDate]);
+  
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -2853,7 +2882,8 @@ export default function CreateServiceRequestModal({
                   (!serviceDescription || descriptionFiles.length === 0)) ||
                 (currentStep === 3 &&
                   serviceProvider === "professional" &&
-                  (!valuation || valuation.trim() === "")) ||
+                  (!valuation || valuation.trim() === "" || isPastTime)) ||
+                // (serviceProvider === "non-professional" && isPastTime) ||
                 (currentStep === 4 &&
                   serviceProvider === "non-professional" &&
                   (!productName || barterPhotoFiles.length === 0))
